@@ -14,6 +14,7 @@ import sys
 class StepperMotor(QDialog):
 
     def __init__(self):
+
         QDialog.__init__(self)
         layout1 = QVBoxLayout()
         label1 = QLabel("Stepper Motor Control")
@@ -97,18 +98,24 @@ class StepperMotor(QDialog):
         self.cb3.stateChanged.connect(self.statusCheck3)
         self.cbl.stateChanged.connect(self.statusCheck4)
 
+
     def onStart(self, status):
+
         if status:
+
             self.btn1.setText("Start")
             self.stop()
+
         else:
+
             self.btn1.setText("Stop")
             self.btn1.setCheckable(True)
             self.start()
 
     def statusCheck1(self):
 
-        if self.cb1.isChecked() :
+        if self.cb1.isChecked():
+
             self.cb2.setEnabled(False)
             self.cb3.setEnabled(False)
             self.cbl.setEnabled(False)
@@ -116,7 +123,8 @@ class StepperMotor(QDialog):
             self.cb5.setEnabled(True)
             self.labely.setEnabled(True)
 
-        elif self.cb2.isChecked() or self.cb3.isChecked() :
+        elif self.cb2.isChecked() or self.cb3.isChecked():
+
             self.cb4.setChecked(False)
             self.cb5.setChecked(False)
             self.cb4.setEnabled(False)
@@ -124,6 +132,7 @@ class StepperMotor(QDialog):
             self.labely.setEnabled(False)
 
         else:
+
             self.group.setExclusive(False)
             self.cb4.setChecked(False)
             self.cb5.setChecked(False)
@@ -137,23 +146,28 @@ class StepperMotor(QDialog):
 
     def statusCheck2(self):
 
-        if self.cb2.isChecked() :
+        if self.cb2.isChecked():
+
             self.cb1.setEnabled(False)
             self.cb3.setEnabled(False)
             self.cbl.setEnabled(False)
 
         else:
+
             self.cb1.setEnabled(True)
             self.cb3.setEnabled(True)
             self.cbl.setEnabled(True)
 
     def statusCheck3(self):
 
-        if self.cb3.isChecked() :
+        if self.cb3.isChecked():
+
             self.cb1.setEnabled(False)
             self.cb2.setEnabled(False)
             self.cbl.setEnabled(False)
+
         else:
+
             self.cb1.setEnabled(True)
             self.cb2.setEnabled(True)
             self.cbl.setEnabled(True)
@@ -161,11 +175,13 @@ class StepperMotor(QDialog):
     def statusCheck4(self):
 
         if self.cbl.isChecked():
+
             self.cb1.setEnabled(False)
             self.cb2.setEnabled(False)
             self.cb3.setEnabled(False)
 
         else:
+
             self.cb1.setEnabled(True)
             self.cb2.setEnabled(True)
             self.cb3.setEnabled(True)
@@ -176,6 +192,7 @@ class StepperMotor(QDialog):
     def event(self, event):
 
         if event.type() == QEvent.EnterWhatsThisMode:
+
             QWhatsThis.leaveWhatsThisMode()
             QMessageBox.information(self, "Information", "This is a Python-based control module for a stepper motor. \n\n\tAngle must be between 0 and 360"+u"\u00B0"
         +". \n\tSpeed should be within 60 rpm. \n\tOnly one type can be selected. \n\tUncheck one type to select another. \n\tLinear type alone enables direction toggle."
@@ -184,7 +201,9 @@ class StepperMotor(QDialog):
         +" If angle is specified, moves the shaft through arbitrary direction in steps of the specified angle."
         +"\n\nABOUT \nThis program was written to conduct experiments studying head stabilization in moths when subjected to roll perturbation."
         + "\n"+"\nFlightlab, Dr Sanjay Sane, NCBS")
+
             return True
+
         return QDialog.event(self, event)
 
     def start(self):
@@ -204,36 +223,47 @@ class StepperMotor(QDialog):
                     self.labelx.setEnabled(False)
                     self.cb4.setEnabled(False)
                     self.cb5.setEnabled(False)
+
                     if(self.cb4.isChecked()):
+
                         float(a), float(s), "C"
                         self.btn1.setText("Start")
                         self.stop()
+
                     elif(self.cb5.isChecked()):
+
                         float(a), float(s), "CC"
                         self.btn1.setText("Start")
                         self.stop()
+
                     else:
+
                         QMessageBox.warning(self, "Error", "     Incomplete. \n  Specify Direction.", QMessageBox.Ok, QMessageBox.NoButton)
                         self.btn1.setText("Start")
                         self.btn1.setCheckable(False)
                         self.stop()
 
                 elif(self.cb2.isChecked()):
+
                     self.cb2.setEnabled(False)
 
                 elif(self.cb3.isChecked()):
+
                     self.cb3.setEnabled(False)
 
                 elif(self.cbl.ischecked()):
+
                     self.cbl.setEnabled(False)
 
                 else:
+
                     QMessageBox.warning(self, "Error", "You need to select a type.", QMessageBox.Ok, QMessageBox.NoButton)
                     self.btn1.setText("Start")
                     self.btn1.setCheckable(False)
                     self.stop()
 
             else:
+
                 QMessageBox.warning(self, "Error", "Incorrect Parameters. \n  Enter within range.", QMessageBox.Ok, QMessageBox.NoButton)
                 self.btn1.setText("Start")
                 self.btn1.setCheckable(False)
@@ -243,14 +273,17 @@ class StepperMotor(QDialog):
         except ValueError:
 
             if (self.cb1.isChecked() and (not a or not s)):
+
                 self.cb1.setEnabled(False)
                 self.labely.setEnabled(False)
                 self.labelx.setEnabled(False)
                 self.cb4.setEnabled(False)
                 self.cb5.setEnabled(False)
+
                 if not a and not s:
 
                     if(self.cb4.isChecked()):
+
                         QMessageBox.warning(self, "Warning", "   Angle and Speed has not been entered. \nDefault values of 90"+u"\u00B0"+" and 20 rpm will be given.", QMessageBox.Ok, QMessageBox.NoButton)
                         #linPattern(self, 90.0, 20.0, "C")
                         self.btn1.setText("Start")
@@ -258,6 +291,7 @@ class StepperMotor(QDialog):
                         self.stop()
 
                     elif(self.cb5.isChecked()):
+
                         QMessageBox.warning(self, "Warning", "   Angle and Speed has not been entered. \nDefault values of 90"+u"\u00B0"+" and 20 rpm will be given.", QMessageBox.Ok, QMessageBox.NoButton)
                         #linPattern(self, 90.0, 20.0, "CC")
                         self.btn1.setText("Start")
@@ -265,6 +299,7 @@ class StepperMotor(QDialog):
                         self.stop()
 
                     else:
+
                         QMessageBox.warning(self, "Error", "      Incomplete. \nSpecify Direction.", QMessageBox.Ok, QMessageBox.NoButton)
                         self.btn1.setText("Start")
                         self.btn1.setCheckable(False)
@@ -274,6 +309,7 @@ class StepperMotor(QDialog):
                 elif (not a) and (float(s)>0.0 and float(s)<=60.0):
 
                     if(self.cb4.isChecked()):
+
                         QMessageBox.warning(self, "Warning", "   Angle has not been entered. \nDefault value of 90"+u"\u00B0"+" will be given.", QMessageBox.Ok, QMessageBox.NoButton)
                         #sinPattern(self, 90.0, float(s))
                         self.btn1.setText("Start")
@@ -281,6 +317,7 @@ class StepperMotor(QDialog):
                         self.stop()
 
                     elif(self.cb5.isChecked()):
+
                         QMessageBox.warning(self, "Warning", "   Angle has not been entered. \nDefault value of 90"+u"\u00B0"+" will be given.", QMessageBox.Ok, QMessageBox.NoButton)
                         #print "90", s.append(".0")
                         self.btn1.setText("Start")
@@ -288,6 +325,7 @@ class StepperMotor(QDialog):
                         self.stop()
 
                     else:
+
                         QMessageBox.warning(self, "Error", "      Incomplete. \nSpecify Direction.", QMessageBox.Ok, QMessageBox.NoButton)
                         self.btn1.setText("Start")
                         self.btn1.setCheckable(False)
@@ -298,18 +336,23 @@ class StepperMotor(QDialog):
                 elif (not s) and (float(a)>0.0 and float(a)<=360.0):
 
                     if(self.cb4.isChecked()):
+
                         QMessageBox.warning(self, "Warning", "     Speed has not been entered. \nDefault value of 20 rpm will be given.", QMessageBox.Ok, QMessageBox.NoButton)
                         #print a.append(".0"), "20.0"
                         self.btn1.setText("Start")
                         self.btn1.setCheckable(False)
                         self.stop()
+
                     elif(self.cb5.isChecked()):
+
                         QMessageBox.warning(self, "Warning", "     Speed has not been entered. \nDefault value of 20 rpm will be given.", QMessageBox.Ok, QMessageBox.NoButton)
                         #print a.append(".0"), "20.0"
                         self.btn1.setText("Start")
                         self.btn1.setCheckable(False)
                         self.stop()
+
                     else:
+
                         QMessageBox.warning(self, "Error", "      Incomplete. \nSpecify Direction.", QMessageBox.Ok, QMessageBox.NoButton)
                         self.btn1.setText("Start")
                         self.btn1.setCheckable(False)
@@ -317,6 +360,7 @@ class StepperMotor(QDialog):
 
 
                 else:
+
                     QMessageBox.warning(self, "Error", "Incorrect Parameters. \n  Enter within range.", QMessageBox.Ok, QMessageBox.NoButton)
                     self.btn1.setText("Start")
                     self.btn1.setCheckable(False)
@@ -326,15 +370,22 @@ class StepperMotor(QDialog):
             elif(self.cb2.isChecked() and (not a or not s)):
 
                 if not a and not s:
+
                     QMessageBox.warning(self, "Warning", "   Angle and Speed has not been entered. \nDefault values of 90"+u"\u00B0"+" and 20 rpm have been given.", QMessageBox.Ok, QMessageBox.NoButton)
                     self.cb2.setEnabled(False)
+
                 elif (not a) and (float(s)>0.0 and float(s)<=60.0):
+
                     QMessageBox.warning(self, "Warning", "   Angle has not been entered. \nDefault value of 90"+u"\u00B0"+" will be given.", QMessageBox.Ok, QMessageBox.NoButton)
                     self.cb2.setEnabled(False)
+
                 elif (not s) and (float(a)>0.0 and float(a)<=360.0):
+
                     QMessageBox.warning(self, "Warning", "    Speed has not been entered. \nDefault value of 20 rpm will be given.", QMessageBox.Ok, QMessageBox.NoButton)
                     self.cb2.setEnabled(False)
+
                 else:
+
                     QMessageBox.warning(self, "Error", "Incorrect Parameters. \n  Enter within range.", QMessageBox.Ok, QMessageBox.NoButton)
                     self.btn1.setText("Start")
                     self.btn1.setCheckable(False)
@@ -343,15 +394,22 @@ class StepperMotor(QDialog):
             elif(self.cb3.isChecked() and (not a or not s)):
 
                 if not a and not s:
+
                     QMessageBox.warning(self, "Warning", "   Angle and Speed has not been entered. \nDefault values of 90"+u"\u00B0"+" and 20 rpm have been given.", QMessageBox.Ok, QMessageBox.NoButton)
                     self.cb3.setEnabled(False)
+
                 elif (not a) and (float(s)>0.0 and float(s)<=60.0):
+
                     QMessageBox.warning(self, "Warning", "   Angle has not been entered. \nDefault value of 90"+u"\u00B0"+"will be given.", QMessageBox.Ok, QMessageBox.NoButton)
                     self.cb3.setEnabled(False)
+
                 elif (not s) and (float(a)>0.0 and float(a)<=360.0):
+
                     QMessageBox.warning(self, "Warning", "    Speed has not been entered. \nDefault value of 20 rpm will be given.", QMessageBox.Ok, QMessageBox.NoButton)
                     self.cb3.setEnabled(False)
+
                 else:
+
                     QMessageBox.warning(self, "Error", "Incorrect Parameters. \n  Enter within range.", QMessageBox.Ok, QMessageBox.NoButton)
                     self.btn1.setText("Start")
                     self.btn1.setCheckable(False)
@@ -360,21 +418,29 @@ class StepperMotor(QDialog):
             elif(self.cbl.isChecked() and (not a or not s)):
 
                 if not a and not s:
+
                     QMessageBox.warning(self, "Warning", "   Angle and Speed has not been entered. \nDefault values of 90"+u"\u00B0"+" and 20 rpm have been given.", QMessageBox.Ok, QMessageBox.NoButton)
                     self.cbl.setEnabled(False)
+
                 elif (not a) and (float(s)>0.0 and float(s)<=60.0):
+
                     QMessageBox.warning(self, "Warning", "   Angle has not been entered. \nDefault value of 90"+u"\u00B0"+"will be given.", QMessageBox.Ok, QMessageBox.NoButton)
                     self.cbl.setEnabled(False)
+
                 elif (not s) and (float(a)>0.0 and float(a)<=360.0):
+
                     QMessageBox.warning(self, "Warning", "    Speed has not been entered. \nDefault value of 20 rpm will be given.", QMessageBox.Ok, QMessageBox.NoButton)
                     self.cbl.setEnabled(False)
+
                 else:
+
                     QMessageBox.warning(self, "Error", "Incorrect Parameters. \n  Enter within range.", QMessageBox.Ok, QMessageBox.NoButton)
                     self.btn1.setText("Start")
                     self.btn1.setCheckable(False)
                     self.stop()
 
             else:
+
                 QMessageBox.warning(self, "Error", "You need to select a type.", QMessageBox.Ok, QMessageBox.NoButton)
                 self.btn1.setText("Start")
                 self.btn1.setCheckable(False)
@@ -383,19 +449,28 @@ class StepperMotor(QDialog):
 
 
     def stop(self):
+
         self.angle.setEnabled(True)
         self.speed.setEnabled(True)
+
         if(self.cb1.isChecked()):
+
             self.cb1.setEnabled(True)
             self.labely.setEnabled(True)
             self.labelx.setEnabled(True)
             self.cb4.setEnabled(True)
             self.cb5.setEnabled(True)
+
         elif(self.cb2.isChecked()):
+
             self.cb2.setEnabled(True)
+
         elif(self.cb3.isChecked()):
+
             self.cb3.setEnabled(True)
+
         elif(self.cbl.isChecked()):
+
             self.cbl.setEnabled(True)
 
 
