@@ -6,8 +6,7 @@ set expandtab
 set softtabstop=4
 set shiftwidth=4
 set modelines=1
-filetype indent on
-filetype plugin on
+filetype plugin indent on
 set autoindent
 set number
 set showcmd
