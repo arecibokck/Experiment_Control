@@ -98,7 +98,6 @@ class StepperMotor(QDialog):
         self.cb3.stateChanged.connect(self.statusCheck3)
         self.cbl.stateChanged.connect(self.statusCheck4)
 
-
     def onStart(self, status):
 
         if status:
@@ -223,7 +222,7 @@ class StepperMotor(QDialog):
 
         try:
 
-            if (float(a)>0.0 and float(a)<=360.0 and float(s)>0.0 and float(s)<=60.0 ):
+            if (float(a) > 0.0 and float(a) <= 360.0 and float(s) > 0.0 and float(s) <= 60.0):
 
                 if (self.cb1.isChecked()):
 
@@ -283,7 +282,7 @@ class StepperMotor(QDialog):
 
                     self.cb3.setEnabled(False)
 
-                elif(self.cbl.ischecked()):
+                elif(self.cbl.isChecked()):
 
                     self.cbl.setEnabled(False)
 
@@ -365,7 +364,7 @@ class StepperMotor(QDialog):
                         self.stop()
 
 
-                elif (not s) and (float(a)>0.0 and float(a)<=360.0):
+                elif (not s) and (float(a) > 0.0 and float(a) <= 360.0):
 
                     if(self.cb4.isChecked()):
 
@@ -433,7 +432,7 @@ class StepperMotor(QDialog):
                         self.stop()
 
 
-                elif (not a) and (float(s)>0.0 and float(s)<=60.0):
+                elif (not a) and (float(s) > 0.0 and float(s) <= 60.0):
 
                     if(self.cb4.isChecked()):
 
@@ -460,7 +459,7 @@ class StepperMotor(QDialog):
                         self.stop()
 
 
-                elif (not s) and (float(a)>0.0 and float(a)<=360.0):
+                elif (not s) and (float(a) > 0.0 and float(a) <= 360.0):
 
                     if(self.cb4.isChecked()):
 
@@ -500,12 +499,12 @@ class StepperMotor(QDialog):
                     QMessageBox.warning(self, "Warning", "   Angle and Speed has not been entered. \nDefault values of 90"+u"\u00B0"+" and 20 rpm have been given.", QMessageBox.Ok, QMessageBox.NoButton)
                     self.cb3.setEnabled(False)
 
-                elif (not a) and (float(s)>0.0 and float(s)<=60.0):
+                elif (not a) and (float(s) > 0.0 and float(s) <= 60.0):
 
                     QMessageBox.warning(self, "Warning", "   Angle has not been entered. \nDefault value of 90"+u"\u00B0"+"will be given.", QMessageBox.Ok, QMessageBox.NoButton)
                     self.cb3.setEnabled(False)
 
-                elif (not s) and (float(a)>0.0 and float(a)<=360.0):
+                elif (not s) and (float(a) > 0.0 and float(a) <= 360.0):
 
                     QMessageBox.warning(self, "Warning", "    Speed has not been entered. \nDefault value of 20 rpm will be given.", QMessageBox.Ok, QMessageBox.NoButton)
                     self.cb3.setEnabled(False)
@@ -524,12 +523,12 @@ class StepperMotor(QDialog):
                     QMessageBox.warning(self, "Warning", "   Angle and Speed has not been entered. \nDefault values of 90"+u"\u00B0"+" and 20 rpm have been given.", QMessageBox.Ok, QMessageBox.NoButton)
                     self.cbl.setEnabled(False)
 
-                elif (not a) and (float(s)>0.0 and float(s)<=60.0):
+                elif (not a) and (float(s) > 0.0 and float(s) <= 60.0):
 
                     QMessageBox.warning(self, "Warning", "   Angle has not been entered. \nDefault value of 90"+u"\u00B0"+"will be given.", QMessageBox.Ok, QMessageBox.NoButton)
                     self.cbl.setEnabled(False)
 
-                elif (not s) and (float(a)>0.0 and float(a)<=360.0):
+                elif (not s) and (float(a) > 0.0 and float(a) <= 360.0):
 
                     QMessageBox.warning(self, "Warning", "    Speed has not been entered. \nDefault value of 20 rpm will be given.", QMessageBox.Ok, QMessageBox.NoButton)
                     self.cbl.setEnabled(False)
