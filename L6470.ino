@@ -88,100 +88,105 @@ volatile unsigned long last_interrupt_time_start = 0;
 
 //handles interrupt for home button
 void interrupt_set_home(){
-  
+  cli();
   unsigned long interrupt_time = millis();
   // If interrupts come faster than 200ms, assume it's a bounce and ignore
-  if (interrupt_time - last_interrupt_time1 > 200){
+  if (interrupt_time - last_interrupt_time_home > 200){
     lcd.setCursor(0,0);  //clears display
     lcd.print("Set as Home");
     stepper.setAsHome(); //sets current position as Home
   }
-  last_interrupt_time1 = interrupt_time;
+  last_interrupt_time_home = interrupt_time;
+  sei();
 }
 
 //handles interrupt for t_max button
 void interrupt_t_max(){
-  
+  cli();
   unsigned long interrupt_time = millis();
   // If interrupts come faster than 200ms, assume it's a bounce and ignore
-  if (interrupt_time - last_interrupt_time2 > 200){
+  if (interrupt_time - last_interrupt_time_t_max > 200){
     lcd.setCursor(0,0);  //clears display
     lcd.print("Set as Maximum");
     lcd.print("angle");
     t_max = stepper.getPos();
     stepper.goHome(); 
   }
-  last_interrupt_time2 = interrupt_time;
+  last_interrupt_time_t_max = interrupt_time;
+  sei();
 }
 
 //handles interrupt for plus_theta_button
 void interrupt_plus_theta(){
-  
+  cli();
   unsigned long interrupt_time = millis();
   // If interrupts come faster than 200ms, assume it's a bounce and ignore
-  if (interrupt_time - last_interrupt_time3 > 200){
+  if (interrupt_time - last_interrupt_time_plus_theta > 200){
     lcd.setCursor(0,0);  //clears display
     lcd.print("Move Clockwise");
     stepper.move(1); //moves stepper through one step in the clockwise direction on each button press 
   }
-  last_interrupt_time3 = interrupt_time;
+  last_interrupt_time_plus_theta = interrupt_time;
+  sei();
 }
 
 //handles interrupt for minus_theta_button
 void interrupt_minus_theta(){
-  
+  cli();
   unsigned long interrupt_time = millis();
   // If interrupts come faster than 200ms, assume it's a bounce and ignore
-  if (interrupt_time - last_interrupt_time4 > 200){
+  if (interrupt_time - last_interrupt_time_minus_theta > 200){
     lcd.setCursor(0,0);  //clears display
     lcd.print("Move Counter-");
     lcd.print("Clockwise");
     stepper.move(-1); //moves stepper through one step in the counter clockwise direction on each button press 
   }
-  last_interrupt_time4 = interrupt_time;
+  last_interrupt_time_minus_theta = interrupt_time;
+  sei();
 }
 
 //handles interrupt for speed_plus_button
 void interrupt_speed_plus(){
-  
+  cli();
   unsigned long interrupt_time = millis();
   // If interrupts come faster than 200ms, assume it's a bounce and ignore
-  if (interrupt_time - last_interrupt_time5 > 200){
+  if (interrupt_time - last_interrupt_time_speed_plus > 200){
     lcd.setCursor(0,0);  //clears display
     lcd.print("Increased Speed");
     stepper.setMaxSpeed(t_speed + 10); //Increases speed by 10 steps per second
   }
-  last_interrupt_time5 = interrupt_time;
+  last_interrupt_time_speed_plus = interrupt_time;
+  sei();
 }
 
 //handles interrupt for speed_minus_button
 void interrupt_speed_minus(){
-  
+  cli();
   unsigned long interrupt_time = millis();
   // If interrupts come faster than 200ms, assume it's a bounce and ignore
-  if (interrupt_time - last_interrupt_time6 > 200){
+  if (interrupt_time - last_interrupt_time_speed_minus > 200){
     lcd.setCursor(0,0);  //clears display
     lcd.print("Decreased Speed");
     stepper.setMaxSpeed(t_speed - 10); //Decreases speed by 10 steps per second
   }
-  last_interrupt_time6 = interrupt_time;
+  last_interrupt_time_speed_minus = interrupt_time;
+  sei();
 }
 
 //handles interrupt for start_button
 void interrupt_start(){
-  
+  cli();
   unsigned long interrupt_time = millis();
   // If interrupts come faster than 200ms, assume it's a bounce and ignore
-  if (interrupt_time - last_interrupt_time7 > 200){
-   cli();
-   motor_stopped = !motor_stopped;
-   lcd.setCursor(0,0);  //clears display
-   lcd.print("Start");
-   stepper.goHome();
-   stepper.softStop();
-   sei()
- }
-  last_interrupt_time7 = interrupt_time;
+  if (interrupt_time - last_interrupt_time_start > 200){
+    motor_stopped = !motor_stopped;
+    lcd.setCursor(0,0);  //clears display
+    lcd.print("Start");
+    stepper.goHome();
+    stepper.softStop();
+  }
+  last_interrupt_time_start = interrupt_time;
+  sei():
 }
 
 
