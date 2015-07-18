@@ -78,9 +78,17 @@ void loop(){
 
 }
 
+volatile unsigned long last_interrupt_time_home = 0;
+volatile unsigned long last_interrupt_time_t_max = 0;
+volatile unsigned long last_interrupt_time_plus_theta = 0;
+volatile unsigned long last_interrupt_time_minus_theta = 0;
+volatile unsigned long last_interrupt_time_speed_plus = 0;
+volatile unsigned long last_interrupt_time_speed_minus = 0;
+volatile unsigned long last_interrupt_time_start = 0;
+
 //handles interrupt for home button
 void interrupt_set_home(){
-  static unsigned long last_interrupt_time1 = 0;
+  
   unsigned long interrupt_time = millis();
   // If interrupts come faster than 200ms, assume it's a bounce and ignore
   if (interrupt_time - last_interrupt_time1 > 200){
@@ -93,7 +101,7 @@ void interrupt_set_home(){
 
 //handles interrupt for t_max button
 void interrupt_t_max(){
-  static unsigned long last_interrupt_time2 = 0;
+  
   unsigned long interrupt_time = millis();
   // If interrupts come faster than 200ms, assume it's a bounce and ignore
   if (interrupt_time - last_interrupt_time2 > 200){
@@ -108,7 +116,7 @@ void interrupt_t_max(){
 
 //handles interrupt for plus_theta_button
 void interrupt_plus_theta(){
-  static unsigned long last_interrupt_time3 = 0;
+  
   unsigned long interrupt_time = millis();
   // If interrupts come faster than 200ms, assume it's a bounce and ignore
   if (interrupt_time - last_interrupt_time3 > 200){
@@ -121,7 +129,7 @@ void interrupt_plus_theta(){
 
 //handles interrupt for minus_theta_button
 void interrupt_minus_theta(){
-  static unsigned long last_interrupt_time4 = 0;
+  
   unsigned long interrupt_time = millis();
   // If interrupts come faster than 200ms, assume it's a bounce and ignore
   if (interrupt_time - last_interrupt_time4 > 200){
@@ -135,7 +143,7 @@ void interrupt_minus_theta(){
 
 //handles interrupt for speed_plus_button
 void interrupt_speed_plus(){
-  static unsigned long last_interrupt_time4 = 0;
+  
   unsigned long interrupt_time = millis();
   // If interrupts come faster than 200ms, assume it's a bounce and ignore
   if (interrupt_time - last_interrupt_time5 > 200){
@@ -148,7 +156,7 @@ void interrupt_speed_plus(){
 
 //handles interrupt for speed_minus_button
 void interrupt_speed_minus(){
-  static unsigned long last_interrupt_time5 = 0;
+  
   unsigned long interrupt_time = millis();
   // If interrupts come faster than 200ms, assume it's a bounce and ignore
   if (interrupt_time - last_interrupt_time6 > 200){
@@ -161,7 +169,7 @@ void interrupt_speed_minus(){
 
 //handles interrupt for start_button
 void interrupt_start(){
-  static unsigned long last_interrupt_time7 = 0;
+  
   unsigned long interrupt_time = millis();
   // If interrupts come faster than 200ms, assume it's a bounce and ignore
   if (interrupt_time - last_interrupt_time7 > 200){
