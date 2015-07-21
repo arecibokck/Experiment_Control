@@ -10,10 +10,11 @@
 #define plus_theta_button 20
 #define speed_plus_button 21
 #define speed_minus_button 22
-#define start_button= 23
+#define start_button 23
 
 volatile int t_max= 50; // number of steps
 volatile int t_speed=111; //number of steps per second
+boolean motor_stopped = false;
 
 LiquidCrystal lcd(0, 1, 2, 3, 4, 5); //sets pins lcd is connected to, running in 4 bit mode, RW pin tied to gnd
 L6470 stepper(10);
@@ -89,6 +90,7 @@ volatile unsigned long last_interrupt_time_start = 0;
 //handles interrupt for home button
 void interrupt_set_home(){
   cli();
+  Serial.println("home");
   unsigned long interrupt_time = millis();
   // If interrupts come faster than 200ms, assume it's a bounce and ignore
   if (interrupt_time - last_interrupt_time_home > 200){
@@ -103,6 +105,7 @@ void interrupt_set_home(){
 //handles interrupt for t_max button
 void interrupt_t_max(){
   cli();
+  Serial.println("tmax");
   unsigned long interrupt_time = millis();
   // If interrupts come faster than 200ms, assume it's a bounce and ignore
   if (interrupt_time - last_interrupt_time_t_max > 200){
@@ -119,6 +122,7 @@ void interrupt_t_max(){
 //handles interrupt for plus_theta_button
 void interrupt_plus_theta(){
   cli();
+  Serial.println("plus theta");
   unsigned long interrupt_time = millis();
   // If interrupts come faster than 200ms, assume it's a bounce and ignore
   if (interrupt_time - last_interrupt_time_plus_theta > 200){
@@ -133,6 +137,7 @@ void interrupt_plus_theta(){
 //handles interrupt for minus_theta_button
 void interrupt_minus_theta(){
   cli();
+  Serial.println("minus theta");
   unsigned long interrupt_time = millis();
   // If interrupts come faster than 200ms, assume it's a bounce and ignore
   if (interrupt_time - last_interrupt_time_minus_theta > 200){
@@ -148,6 +153,7 @@ void interrupt_minus_theta(){
 //handles interrupt for speed_plus_button
 void interrupt_speed_plus(){
   cli();
+  Serial.println("speed plus");
   unsigned long interrupt_time = millis();
   // If interrupts come faster than 200ms, assume it's a bounce and ignore
   if (interrupt_time - last_interrupt_time_speed_plus > 200){
@@ -162,6 +168,7 @@ void interrupt_speed_plus(){
 //handles interrupt for speed_minus_button
 void interrupt_speed_minus(){
   cli();
+  Serial.println("speed minus");
   unsigned long interrupt_time = millis();
   // If interrupts come faster than 200ms, assume it's a bounce and ignore
   if (interrupt_time - last_interrupt_time_speed_minus > 200){
@@ -176,6 +183,7 @@ void interrupt_speed_minus(){
 //handles interrupt for start_button
 void interrupt_start(){
   cli();
+  Serial.println("start");
   unsigned long interrupt_time = millis();
   // If interrupts come faster than 200ms, assume it's a bounce and ignore
   if (interrupt_time - last_interrupt_time_start > 200){
@@ -186,7 +194,7 @@ void interrupt_start(){
     stepper.softStop();
   }
   last_interrupt_time_start = interrupt_time;
-  sei():
+  sei();
 }
 
 
