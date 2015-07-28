@@ -10,6 +10,11 @@
 #define speed_minus_button 22
 #define start_button 23
 
+#define SPEED 1200
+#define ACC 3000
+#define DELAY 1000
+#define MOVE 360
+
 boolean motor_stopped = false;
 
 LiquidCrystal lcd(0, 1, 2, 3, 4, 5); //sets pins lcd is connected to, running in 4 bit mode, RW pin tied to gnd
@@ -50,7 +55,6 @@ void setup(){
   //Serial.print(t,HEX);
   //Serial.println();
   
-  ;
   stepper.setAcc(ACC); //set acceleration
   stepper.SetDec(ACC);
   stepper.SetMaxSpeed(SPEED);
@@ -143,7 +147,7 @@ void interrupt_plus_theta(){
   if (interrupt_time - last_interrupt_time_plus_theta > 200){
     lcd.setCursor(0,0);  //clears display
     lcd.print("Move Clockwise");
-    stepper.move(1); //moves stepper through one step in the clockwise direction on each button press 
+    stepper.move(1000); //moves stepper through one step in the clockwise direction on each button press 
   }
   last_interrupt_time_plus_theta = interrupt_time;
   sei();
@@ -159,7 +163,7 @@ void interrupt_minus_theta(){
     lcd.setCursor(0,0);  //clears display
     lcd.print("Move Counter-");
     lcd.print("Clockwise");
-    stepper.move(-1); //moves stepper through one step in the counter clockwise direction on each button press 
+    stepper.move(-1000); //moves stepper through one step in the counter clockwise direction on each button press 
   }
   last_interrupt_time_minus_theta = interrupt_time;
   sei();
@@ -174,7 +178,7 @@ void interrupt_speed_plus(){
   if (interrupt_time - last_interrupt_time_speed_plus > 200){
     lcd.setCursor(0,0);  //clears display
     lcd.print("Increased Speed");
-    stepper.setMaxSpeed(t_speed + 10); //Increases speed by 10 steps per second
+    stepper.setMaxSpeed(SPEED + 10); //Increases speed by 10 steps per second
   }
   last_interrupt_time_speed_plus = interrupt_time;
   sei();
@@ -189,7 +193,7 @@ void interrupt_speed_minus(){
   if (interrupt_time - last_interrupt_time_speed_minus > 200){
     lcd.setCursor(0,0);  //clears display
     lcd.print("Decreased Speed");
-    stepper.setMaxSpeed(t_speed - 10); //Decreases speed by 10 steps per second
+    stepper.setMaxSpeed(SPEED - 10); //Decreases speed by 10 steps per second
   }
   last_interrupt_time_speed_minus = interrupt_time;
   sei();
