@@ -18,6 +18,23 @@ L6470 stepper;
 
 void setup(){
   Serial.begin(115200);
+  
+  pinMode(home_button, INPUT);  //assigns button pins as inputs
+  pinMode(theta_max_button, INPUT);
+  pinMode(minus_theta_button, INPUT);
+  pinMode(plus_theta_button, INPUT);
+  pinMode(speed_plus_button, INPUT);
+  pinMode(speed_minus_button, INPUT);
+  pinMode(start_button, INPUT);
+
+  digitalWrite(home_button, LOW);  //sets internal pulldown resistors
+  digitalWrite(theta_max_button, LOW);
+  digitalWrite(minus_theta_button, LOW);
+  digitalWrite(plus_theta_button, LOW);
+  digitalWrite(speed_plus_button, LOW);
+  digitalWrite(speed_minus_button, LOW);
+  digitalWrite(start_button, LOW);
+  
   while(!Serial){}
   Serial.println("Setup begun");
   
