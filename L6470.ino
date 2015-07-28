@@ -2,8 +2,6 @@
 #include <L6470.h>
 #include <LiquidCrystal.h>
 
-//sets pins buttons are connected to
-
 #define home_button 17  
 #define theta_max_button 18  
 #define minus_theta_button 19 
@@ -12,46 +10,44 @@
 #define speed_minus_button 22
 #define start_button 23
 
-volatile int t_max= 50; // number of steps
-volatile int t_speed=111; //number of steps per second
 boolean motor_stopped = false;
 
 LiquidCrystal lcd(0, 1, 2, 3, 4, 5); //sets pins lcd is connected to, running in 4 bit mode, RW pin tied to gnd
-L6470 stepper(10);
+L6470 stepper;
 
 
 void setup(){
-  Serial.begin(9600);
+  Serial.begin(115200);
+  while(!Serial){}
+  Serial.println("Setup begun");
   
-  pinMode(home_button, INPUT);  //assigns button pins as inputs
-  pinMode(theta_max_button, INPUT);
-  pinMode(minus_theta_button, INPUT);
-  pinMode(plus_theta_button, INPUT);
-  pinMode(speed_plus_button, INPUT);
-  pinMode(speed_minus_button, INPUT);
-  pinMode(start_button, INPUT);
-
-  digitalWrite(home_button, LOW);  //sets internal pulldown resistors
-  digitalWrite(theta_max_button, LOW);
-  digitalWrite(minus_theta_button, LOW);
-  digitalWrite(plus_theta_button, LOW);
-  digitalWrite(speed_plus_button, LOW);
-  digitalWrite(speed_minus_button, LOW);
-  digitalWrite(start_button, LOW);
-
+  delay(1000);
+  
+  int t = motor.GetConfig();
+  Serial.print("Got motor config:");
+  Serial.print(t,HEX);
+  Serial.println();
+  
+  //t = motor.GetStatus();
+  //Serial.print("Got motor status:");
+  //Serial.print(t,HEX);
+  //Serial.println();
+  
+  ;
+  stepper.setAcc(ACC); //set acceleration
+  stepper.SetDec(ACC);
+  stepper.SetMaxSpeed(SPEED);
+  stepper.setMinSpeed(0); //sets minimum speed
+  stepper.setMicroSteps(128); //1,2,4,8,16,32,64 or 128
+  stepper.setThresholdSpeed(1000);
+  stepper.setOverCurrent(6000); //set overcurrent protection
+  stepper.setStallCurrent(3000);
+  
   lcd.begin(20, 1);   //lcd size
   lcd.print("Stepper Motor");
   lcd.print("Control"); //welcome text
   delay(2000);  //displays for 2 secs
   lcd.clear();  //clears display
-  
-  stepper.init();
-  stepper.setAcc(100); //set acceleration
-  stepper.setMinSpeed(1); //sets minimum speed
-  stepper.setMicroSteps(128); //1,2,4,8,16,32,64 or 128
-  stepper.setThresholdSpeed(1000);
-  stepper.setOverCurrent(6000); //set overcurrent protection
-  stepper.setStallCurrent(3000);
   
   //interrupts for each button
   attachInterrupt(home_button, interrupt_set_home, CHANGE);  
@@ -67,13 +63,15 @@ void setup(){
 void loop(){  
   
   if (!motor_stopped){
-    stepper.move(t_max);
+    stepper.Move(MOVE);
+    Serial.println("\nMove+");
     while(stepper.isBusy()){
-     delay(10); 
+     delay(DELAY); 
     }
-    stepper.move(-t_max);
+    stepper.Move(-MOVE);
+    Serial.println("Move-");
     while(stepper.isBusy()){
-     delay(10); 
+     delay(DELAY); 
     }
   }
 
