@@ -12,6 +12,8 @@
 #define REG_Dec         0b00000110 // 0x06
 #define REG_Max_Speed   0b00000111 // 0x07
 #define REG_Min_Speed   0b00001000 // 0x08
+#define REG_OCD_TH      0b00010011 // 0x13
+#define REG_STALL_TH    0b00010100 // 0x14
 
 #define CMD_SetParam    0b00000000
 #define CMD_Move        0b01000000
@@ -75,9 +77,13 @@ l6470::l6470(){
   //Use Busy/Sync pin as Busy, 1/128 microstepping (3), 0, SYNC frequency set to f_{FS}
   io(CMD_SetParam | REG_FSspeed);
   io(0x03);io(0xff); // Do not switch to full steps.
-  /*******************************************************************
-  Over current threshold, Stall detection, BackEMF? need to be added
-  /*******************************************************************/
+  io(CMD_SetParam | REG_OCD_TH);
+  io((byte) 0b00000111); //Overcurrent threshold 2.625 A
+  io(CMD_SetParam | REG_STALL_TH);
+  io((byte) 0b01011100); // Stall threshold 2.875 A
+  /**************************
+  BackEMF? needs to be added
+  /**************************/
   
 }
 

@@ -59,10 +59,6 @@ void setup(){
   stepper.SetDec(ACC);
   stepper.SetMaxSpeed(SPEED);
   stepper.setMinSpeed(0); //sets minimum speed
-  stepper.setMicroSteps(128); //1,2,4,8,16,32,64 or 128
-  stepper.setThresholdSpeed(1000);
-  stepper.setOverCurrent(6000); //set overcurrent protection
-  stepper.setStallCurrent(3000);
   
   lcd.begin(20, 1);   //lcd size
   lcd.print("Stepper Motor");
