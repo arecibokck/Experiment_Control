@@ -26,6 +26,8 @@ set guifont=Menlo\for\Powerline:h12
 let g:Powerline_symbols='fancy'
 autocmd VimEnter * NERDTree | wincmd p
 execute pathogen#infect() 
+autocmd filetype c nnoremap <F6> :w <bar> exec '!gcc '.shellescape('%').' -o '.shellescape('%:r').' && ./'.shellescape('%:r')<CR>
+autocmd filetype cpp nnoremap <F7> :w <bar> exec '!g++ '.shellescape('%').' -o '.shellescape('%:r').' && ./'.shellescape('%:r')<CR>
 nmap <F8> :TagbarToggle<CR>
 autocmd FileType python nnoremap <buffer> <F9> :exec '!Python' shellescape(@%, 1) <cr>
 "autocmd FileType python call SetpythonOptions()
