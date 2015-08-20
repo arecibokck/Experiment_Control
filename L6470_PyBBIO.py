@@ -11,7 +11,7 @@ class L6470():
     reset_pin = GPIO3_21 # P9.25
 
     """
-      Motor Pins:
+      Mot| Pins:
         Red:2A
         Blue:1A
         Green:1B
@@ -32,176 +32,169 @@ class L6470():
     CMD_ResetDevice = 0b11000000 #0xc0
     CMD_GetStatus = 0b11010000 #0xd0
 
-    def __init__():
+    def __init__(self, spi = SPI1, cs=0):
 
-        setup()
+        self._spi = spi
+        self.cs = cs
+        self._cs = cs_pin
+        self._clk = clk_pin
+        self._sdo = sdo_pin
+        self._sdi = sdi_pin
+        self._busy = busy_pin
+        self._reset = reset_pin
 
-        G_c = GetConfig()
-        G_s = GetStatus()
+        for i in (self._cs, self._sdi, self._clk, self._busy, self._reset): pinMode(i, OUTPUT)
 
-        SetAcc(degreePerSec2)
-        SetDec(degreePerSec2)
-        SetMaxSpeed(degreePerSec)
-        SetMinSpeed(degreePerSec)
+        digitalWrite(self.cs, HIGH)
+        pinMode(self.sdo, INPUT)
 
-        i_B = isBusy()
+        digitalWrite(self._reset, HIGH)
+        delay(1)
+        digitalWrite(self._reset, LOW)
+        delay(1)
+        digitalWrite(self._reset, HIGH)
+        delay(1)
 
-        io(data_out)
-        D_c = DecCalc(stepsPerSecPerSec)
-        A_c = AccCalc(stepsPerSecPerSec)
-        MaxS_c = MaxSpdCalc(stepsPerSec)
-        MinS_c = MinSpdCalc(stepsPerSec)
-        steps = angleToSteps(angle)
-        G_a = GetAcc()
-        G_d = GetDec()
-        GMax_s = GetMaxSpeed()
-        GMin_s = GetMinSpeed()
+        self._spi.begin()
+        self._spi.setClockMode(self.cs, 3) #Mode - 3
+        self._spi.setMaxFrequency(self.cs, 2000000) #2MHz
+        self._spi.setBitsPerWord(self.cs, 8)  #8 bits per word
+        self._io([self.CMD_RESET_DEVICE])
+        self._io([self.CMD_SET_PARAM | self.REG_STEP_MODE])
+        self._io([0b01110111]) #SYNC_EN, SYN_SEL(3), 0, STEP_SEL(3)
+        #Use Busy/Sync pin as Busy, 1/128 microstepping (3), 0, SYNC frequency set to f_{FS}
+        self._io([self.CMD_SET_PARAM | self.REG_FS_SPEED])
+        self._io([0x03,0xff]) #Do not switch to full steps.
 
-def setup(self):
+        self.G_c = self._getConfig()
+        self.G_s = self._getStatus()
 
-    self._cs = cs_pin
-    self._clk = clk_pin
-    self._sdo = sdo_pin
-    self._sdi = sdi_pin
-    self._busy = busy_pin
-    self._reset = reset_pin
+        self._setAcc(degreePerSec2)
+        self._setDec(degreePerSec2)
+        self._setMaxSpeed(degreePerSec)
+        self._setMinSpeed(degreePerSec)
 
-    for i in (self._cs, self._sdi, self._clk, self._busy, self._reset): pinMode(i, OUTPUT)
+        self.i_B = isBusy()
 
-    digitalWrite(cs_pin, HIGH)
-    pinMode(sdo_pin, INPUT)
+        self._io(data_out)
+        self.D_c = self._decCalc(stepsPerSecPerSec)
+        self.A_c = self._accCalc(stepsPerSecPerSec)
+        self.MaxS_c = self._maxSpdCalc(stepsPerSec)
+        self.MinS_c = self._minSpdCalc(stepsPerSec)
+        self.steps = self._angleToSteps(angle)
+        self.G_a = self._getAcc()
+        self.G_d = self._getDec()
+        self.GMax_s = self._getMaxSpeed()
+        self.GMin_s = self._getMinSpeed()
 
-    digitalWrite(reset_pin, HIGH)
-    delay(1)
-    digitalWrite(reset_pin, LOW)
-    delay(1)
-    digitalWrite(reset_pin, HIGH)
-    delay(1)
+        def _io(self, data_out):
 
-    SPI1.begin();
-    SPI1.setClockMode(1, 3) #Mode - 3
-    SPI1.setMaxFrequency(1, 2000000) #2MHz
-    SPI1.setBitsPerWord(1, 8) #8 bits per word
+            digitalWrite(self._cs, LOW)
+            #data_in = shiftOut(self._sdo, self._clk, msbfirst, int(data_out, 16), FALLING)
+            self._spi.transfer(self.cs, data_out)
+            digitalWrite(self._cs, HIGH)
 
+        def _getConfig(self):
 
-    io(CMD_ResetDevice)
-    G_s = GetStatus()
-    io(CMD_SetParam or REG_StepMode)
-    io(0b01110111) #SYNC_EN, SYN_SEL(3), 0, STEP_SEL(3)
-    #Use Busy/Sync pin as Busy, 1/128 microstepping (3), 0, SYNC frequency set to f_{FS}
-    io(CMD_SetParam or REG_FSspeed)
-    io(0x03)
-    io(0xff) #Do not switch to full steps.
+            self._io([self.CMD_GetParam | self.REG_Config])
+            config_0 = self._io([0])
+            config_1 = self._io([0])
+            return ((config_0[0] << 8) | (config_1[0]))
 
+        def _getStatus(self):
 
-def io(data_out):
+            self._io(self.CMD_GetStatus)
+            status_0 = self._io([0])
+            status_1 = self._io([0])
+            return ((status_0[0] << 8) | (status_1[0]))
 
-    digitalWrite(cs_pin, LOW)
-    #data_in = shiftOut(self._sdo, self._clk, msbfirst, int(data_out, 16), FALLING)
-    SPI1.write(1, [int(data_out, 16)])
-    digitalWrite(cs_pin, HIGH)
+        def _move(self, angle):
 
-def Move(angle):
+            n_steps = self._angleToSteps(angle)
+            if (n_steps > 0):
+                dirtn = 1
+            else:
+                dirtn = 0
+                n_steps = 0 - n_steps
+            self._io(self.CMD_Move | dirtn);
+            self._io(bin(n_steps >> 16))
+            self._io(bin(n_steps >> 8))
+            self._io(bin(n_steps))
 
-    n_steps = angleToSteps(angle)
-    if (n_steps > 0):
-        dirtn = 1
-    else:
-        dirtn = 0
-        n_steps = 0 - n_steps
-    io(CMD_Move or dirtn);
-    io(bin(n_steps >> 16))
-    io(bin(n_steps >> 8))
-    io(bin(n_steps))
+        def _getAcc(self):
 
-def GetConfig():
+            self._io(self.CMD_GetParam | self.REG_Acc)
+            acc_0 = self._io([0])
+            acc_1 = self._io([0])
+            return ((acc_0[0] << 8) | (acc_1[0]))
 
-    io(CMD_GetParam or REG_Config)
-    Config = io(bin(0 << 8))
-    Config |= io(bin(0)) #?
-    return Config
+        def _setAcc(self, degreePerSec2):
+            acc = self._accCalc(self._angleToSteps(degreePerSec2))
+            self._io(self.CMD_SetParam | self.REG_Acc)
+            self._io(bin(acc << 8))
+            self._io(bin(acc))
 
-def GetStatus():
+        def _getDec():
 
-    io(CMD_GetStatus)
-    Status = io(bin(0 << 8))
-    Status |= io(bin(0)) #?
-    return Status
+            self._io(self.CMD_GetParam | self.REG_Dec)
+            dec_0 = self._io([0])
+            dec_1 = self._io([0])
+            return ((dec_0[0] << 8) | (dec_1[0]))
 
-def GetAcc():
+        def _setDec(self, degreePerSec2):
 
-    io(CMD_GetParam or REG_Acc)
-    acc = io(bin(0))
-    acc |= io(bin(0)) #?
-    return acc
+            dec = self.DecCalc(self._angleToSteps(degreePerSec2))
+            self._io(self.CMD_SetParam | self.REG_Dec)
+            self._io(bin(dec << 8))
+            self._io(bin(dec))
 
-def SetAcc(degreePerSec2):
-    acc = AccCalc(angleToSteps(degreePerSec2))
-    io(CMD_SetParam or REG_Acc)
-    io(bin(acc << 8))
-    io(bin(acc))
+        def _getMaxSpeed():
+            self._io(self.CMD_GetParam | self.REG_Max_Speed)
+            max_speed_0 = self._io([0])
+            max_speed_1 = self._io([0])
+            return ((max_speed_0[0] << 8) | (max_speed_1[0]))
 
-def GetDec():
+        def _getMaxSpeed(self, degreePerSec):
+            max_speed = self._maxSpdCalc(self._angleToSteps(degreePerSec))
+            self._io(self.CMD_SetParam | self.REG_Max_Speed)
+            self._io(bin(max_speed << 8))
+            self._io(bin(max_speed))
 
-    io(CMD_GetParam or REG_Dec)
-    dec = io(bin(0))
-    dec |= io(bin(0)) #?
-    return dec
+        def _getMinSpeed():
+            self._io(self.CMD_GetParam | self.REG_Min_Speed)
+            min_speed_0 = self._io([0])
+            min_speed_1 |= self._io([0])
+            return ((min_speed_0[0] << 8) | (min_speed_1[0]))
 
-def SetDec(degreePerSec2):
+        def _setMinSpeed(self, degreePerSec):
+            min_speed = self._minSpdCalc(angleToSteps(degreePerSec)))
+            self._io(self.CMD_SetParam | self.REG_Min_Speed)
+            self._io(bin(min_speed << 8))
+            self._io(bin(min_speed))
 
-    dec = DecCalc(angleToSteps(degreePerSec2))
-    io(CMD_SetParam or REG_Dec)
-    io(bin(dec << 8))
-    io(bin(dec))
+        def _accCalc(self, stepsPerSecPerSec):
+            temp = stepsPerSecPerSec * 0.137438
+            return temp
 
-def GetMaxSpeed():
-    io(CMD_GetParam or REG_Max_Speed)
-    max_speed = io(bin(0))
-    max_speed |= io(bin(0)) #?
-    return max_speed
+        def _decCalc(self, stepsPerSecPerSec):
+            temp = stepsPerSecPerSec * 0.137438
+            return temp
 
-def SetMaxSpeed(degreePerSec):
-    max_speed = MaxSpdCalc(angleToSteps(degreePerSec))
-    io(CMD_SetParam or REG_Max_Speed)
-    io(bin(max_speed << 8))
-    io(bin(max_speed))
+        def _maxSpdCalc(self, stepsPerSec):
+            temp = stepsPerSec * .065536
+            return temp
 
-def GetMinSpeed():
-    io(CMD_GetParam or REG_Min_Speed)
-    min_speed = io(bin(0))
-    min_speed |= io(bin(0)) #?
-    return min_speed;
+        def _minSpdCalc(self, stepsPerSec):
+            temp = stepsPerSec * 4.1943
+            return temp
 
-def SetMinSpeed(degreePerSec):
-    min_speed = MinSpdCalc(angleToSteps(degreePerSec)))
-    io(CMD_SetParam or REG_Min_Speed)
-    io(bin(min_speed << 8))
-    io(bin(min_speed))
+        def _isBusy(self):
+            temp = digitalRead(BUSYpin)
+            return (not temp)
 
-def AccCalc(stepsPerSecPerSec):
-    temp = stepsPerSecPerSec * 0.137438
-    return temp
+        def _angleToSteps(self, angle):
+            return (angle*71)
 
-def DecCalc(stepsPerSecPerSec):
-    temp = stepsPerSecPerSec * 0.137438
-    return temp
-
-def MaxSpdCalc(stepsPerSec):
-    temp = stepsPerSec * .065536
-    return temp
-
-def MinSpdCalc(stepsPerSec):
-    temp = stepsPerSec * 4.1943
-    return temp
-
-def isBusy():
-    temp = digitalRead(BUSYpin)
-    return (not temp)
-
-def angleToSteps(angle):
-    return (angle*71)
-
-def SpdCalc(stepsPerSec):
-    temp = stepsPerSec * .065536
-    return temp
+        def _spdCalc(self, stepsPerSec):
+            temp = stepsPerSec * .065536
+            return temp
