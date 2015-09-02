@@ -1,4 +1,4 @@
-import L6470_PyBBIO
+from L6470_PyBBIO import *
 
 def setup():
 
@@ -12,10 +12,10 @@ def setup():
     delay(1000)
 
     print("Got motor config:")
-    print(motor.self.getConfig())
+    print(motor.getConfig())
 
     print("Got motor status:")
-    print(motor.self.getStatus())
+    print(motor.getStatus())
 
     motor.move(10000)
     motor.setAcc(acc)
