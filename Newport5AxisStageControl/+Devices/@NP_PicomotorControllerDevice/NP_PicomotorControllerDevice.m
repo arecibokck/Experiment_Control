@@ -22,13 +22,11 @@ classdef NP_PicomotorControllerDevice < Devices.Device
         %-DeviceStatus
         ID;                                                                     %int, -1 if not connected, else ID of Connection
         IsConnected;                                                            %true if USB Connection is open
-        IsReady = false;                                                        %true if device ready to perform next command        
+        ReadyStatus = false;                                                    %true if device ready to perform next command        
         IsMoving;                                                               %true if at least one Axis is moving
         NumberOfStepsStillToBePerformed; 
-        ActiveChannel;                                                          %int, number of active Demultiplexer channel
         
         %-DeviceSettings:
-        MaxNumberOfSteps = 30000;                                               %Upper limit of steps per Move-Command
                 
         %-DeviceData
         TotalNumberOfStepsForwards  = 0;
@@ -49,8 +47,8 @@ classdef NP_PicomotorControllerDevice < Devices.Device
                              'MotorCheck', 'MC', ...
                              'MotorDoneStatusQuery', 'MD?', ... 
                              'IndefiniteMove', 'MV', ...
-                             'TargetPositionMove', 'PA', ...
-                             'TargetPositionQuery', 'PA?', ...
+                             'AbsoluteMove', 'PA', ...
+                             'AbsoluteTargetPositionQuery', 'PA?', ...
                              'RelativeMove', 'PR', ...
                              'RelativeTargetPositionQuery', 'PR?', ...
                              'SetMotorType', 'QM', ...
@@ -61,11 +59,7 @@ classdef NP_PicomotorControllerDevice < Devices.Device
                              'ErrorCodeQuery', 'TE?', ...
                              'ActualPositionQuery', 'TP?', ...
                              'SetVelocity', 'VA', ...
-                             'VelocityQuery', 'VA?', ...
-                             'ControllerFirmwareQuery', 'VE?', ...
-                             'PurgeSettings', 'XX', ...
-                             'SetConfigurationRegister', 'ZZ', ...
-                             'ConfigurationRegisterQuery', 'ZZ');
+                             'VelocityQuery', 'VA?');
     end
     
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%     
@@ -210,7 +204,7 @@ classdef NP_PicomotorControllerDevice < Devices.Device
         end
         
         %% Check if Picomotor device is ready by doing a Motor and Error check
-        function [IsReady] = IsPicomotorReady(this)
+        function ReadyStatus = IsReady(this)
             % Asks controller for ready status
             
             %-Check if Connection is Open
@@ -223,29 +217,427 @@ classdef NP_PicomotorControllerDevice < Devices.Device
             
             try
                 assert(this.query(this.CommandList.ErrorCodeQuery) == '0', ErrorMessage)
-                IsReady = true;
+                ReadyStatus = true;
             catch
                 disp(['ErrorMessage = ', ErrorMessage])
                 disp('No catch-routine for this. StopAll implemented')
-                IsReady = false;
+                ReadyStatus = false;
             end
             
-            this.IsReady = IsReady;
+            this.ReadyStatus = ReadyStatus;
         end
         
-        %% Get number of steps still to be performed 
+        %% Get Motor Type
+        function MotorChannel = GetMotorType(this, Channel)
+            
+            %-Check if Connection is Open
+            assert(this.ID~=-1,'The controller is not connected');
+            
+            isaninteger = @(x)isfinite(x) & x==floor(x);
+            assert(isaninteger(Channel) & Channel > 0 & Channel < 5 ,'Invalid channel number. Check if it is an integer between 1 and 4.');
+            MotorChannel = this.queryDouble([num2str(Channel) this.CommandList.MotorTypeQuery]);
+            
+            %- Error Handling
+            ErrorMessage = this.GetErrors;
+            
+            try
+                assert(this.queryDouble(this.CommandList.ErrorCodeQuery) == 0, ErrorMessage)
+            catch
+                disp(['ErrorMessage = ', ErrorMessage])
+                disp('No catch-routine for this. StopAll implemented')
+            end
+        end    
         
-        %% Test if any axis of ControllerDevice is moving
+        %% Set Motor Type
+        function SetMotorType(this, varargin)
+            
+            %-Check if Connection is Open
+            assert(this.ID~=-1,'The controller is not connected')
+            
+            isaninteger = @(x)isfinite(x) & x==floor(x);
+            TempHandle = Devices.NP_PicomotorController.getInstance();
+            
+            %-Input Handling
+            if nargin < 3
+                disp('Assuming first argument is Channel number and setting motor type to default...');
+                Channel = varargin{1};
+                assert(isaninteger(Channel) & Channel > 0 & Channel < 5 ,'Invalid channel number. Check if it is an integer between 1 and 4.');
+                type = TempHandle.PicomotorScrewsInfoDefault(Channel).MotorType;
+            else
+                Channel = varargin{1};
+                assert(isaninteger(Channel) & Channel > 0 & Channel < 5 ,'Invalid channel number. Check if it is an integer between 1 and 4.');
+                type = varargin{2};
+                assert(isaninteger(type) & type < 4 ,'Invalid type number. Check if it is an integer between 0 and 3.')
+            end
+            
+            if isequal(this.GetMotorType(Channel), type)
+                disp('Attention: Motor type already to set this value!');
+            else
+                this.write([num2str(Channel) this.CommandList.SetMotorType num2str(type)]);
+                disp(['Motor type set to ' num2str(type)]);
+            end
+            
+            %- Error Handling
+            ErrorMessage = this.GetErrors;
+            
+            try
+                assert(this.queryDouble(this.CommandList.ErrorCodeQuery) == 0, ErrorMessage)
+            catch
+                disp(['ErrorMessage = ', ErrorMessage])
+                disp('No catch-routine for this. StopAll implemented')
+            end
+        end    
         
-        %% WaitForStopOfMovement(this,varargin)
+        %% Get Acceleration
+        function Accn = GetAcceleration(this, Channel)
+            
+            %-Check if Connection is Open
+            assert(this.ID~=-1,'The controller is not connected');
+            
+            isaninteger = @(x)isfinite(x) & x==floor(x);
+            assert(isaninteger(Channel) & Channel > 0 & Channel < 5 ,'Invalid channel number. Check if it is an integer between 1 and 4.');
+            Accn = this.queryDouble([num2str(Channel) this.CommandList.AccelerationQuery]);
+            
+            %- Error Handling
+            ErrorMessage = this.GetErrors;
+            
+            try
+                assert(this.queryDouble(this.CommandList.ErrorCodeQuery) == 0, ErrorMessage)
+            catch
+                disp(['ErrorMessage = ', ErrorMessage])
+                disp('No catch-routine for this. StopAll implemented')
+            end
+        end 
         
-        %% SetActiveChannel(DemultiplexerChannelNumber)
+        %% Set Acceleration
+        function SetAcceleration(this, varargin)
+            
+            %-Check if Connection is Open
+            assert(this.ID~=-1,'The controller is not connected')
+            
+            isaninteger = @(x)isfinite(x) & x==floor(x);
+            TempHandle = Devices.NP_PicomotorController.getInstance();
+            
+            %-Input Handling
+            if nargin < 3
+                disp('Assuming first argument is Channel number and setting Acceleration to default...');
+                Channel = varargin{1};
+                assert(isaninteger(Channel) & Channel > 0 & Channel < 5 ,'Invalid channel number. Check if it is an integer between 1 and 4.');
+                Accn = TempHandle.PicomotorScrewsInfoDefault(Channel).Acceleration;
+            else
+                Channel = varargin{1};
+                assert(isaninteger(Channel) & Channel > 0 & Channel < 5 ,'Invalid channel number. Check if it is an integer between 1 and 4.');
+                Accn = varargin{2};
+                assert(isaninteger(Accn) & Accn > 0 & Accn < 200001 ,'Invalid Acceleration value. Check if it is an integer between 1 and 200000.')
+            end
+            
+            if isequal(this.GetAcceleration(Channel), Accn)
+                disp('Attention: Acceleration already to set this value!');
+            else
+                this.write([num2str(Channel) this.CommandList.SetAcceleration num2str(Accn)]);
+                disp(['Acceleration set to ' num2str(Accn)]);
+            end
+            
+            %- Error Handling
+            ErrorMessage = this.GetErrors;
+            
+            try
+                assert(this.queryDouble(this.CommandList.ErrorCodeQuery) == 0, ErrorMessage)
+            catch
+                disp(['ErrorMessage = ', ErrorMessage])
+                disp('No catch-routine for this. StopAll implemented')
+            end
+        end
         
-        %% GetActiveChannel
+        %% Get Velocity
+        function vel = GetVelocity(this, Channel)
+            
+            %-Check if Connection is Open
+            assert(this.ID~=-1,'The controller is not connected');
+            
+            isaninteger = @(x)isfinite(x) & x==floor(x);
+            assert(isaninteger(Channel) & Channel > 0 & Channel < 5 ,'Invalid channel number. Check if it is an integer between 1 and 4.');
+            vel = this.queryDouble([num2str(Channel) this.CommandList.VelocityQuery]);
+            
+            %- Error Handling
+            ErrorMessage = this.GetErrors;
+            
+            try
+                assert(this.queryDouble(this.CommandList.ErrorCodeQuery) == 0, ErrorMessage)
+            catch
+                disp(['ErrorMessage = ', ErrorMessage])
+                disp('No catch-routine for this. StopAll implemented')
+            end
+        end
         
-        %% MoveActiveChannel(NumberOfSteps)
+        %% Set Velocity
+        function SetVelocity(this, varargin)
+            
+            %-Check if Connection is Open
+            assert(this.ID~=-1,'The controller is not connected')
+            
+            isaninteger = @(x)isfinite(x) & x==floor(x);
+            TempHandle = Devices.NP_PicomotorController.getInstance();
+            
+            %-Input Handling
+            if nargin < 3
+                disp('Assuming first argument is Channel number and setting velocity to default...');
+                Channel = varargin{1};
+                assert(isaninteger(Channel) & Channel > 0 & Channel < 5 ,'Invalid channel number. Check if it is an integer between 1 and 4.');
+                vel = TempHandle.PicomotorScrewsInfoDefault(Channel).Velocity;
+            else
+                Channel = varargin{1};
+                assert(isaninteger(Channel) & Channel > 0 & Channel < 5 ,'Invalid channel number. Check if it is an integer between 1 and 4.');
+                vel = varargin{2};
+                assert(isaninteger(vel) & vel > 0 & vel < 2001 ,'Invalid Velocity value. Check if it is an integer between 1 and 2000.')
+            end
+            
+            if isequal(this.GetVelocity(Channel), vel)
+                disp('Attention: Velocity already to set this value!');
+            else
+                this.write([num2str(Channel) this.CommandList.SetVelocity num2str(vel)]);
+                disp(['Velocity set to ' num2str(vel)]);
+            end
+            
+            %- Error Handling
+            ErrorMessage = this.GetErrors;
+            
+            try
+                assert(this.queryDouble(this.CommandList.ErrorCodeQuery) == 0, ErrorMessage)
+            catch
+                disp(['ErrorMessage = ', ErrorMessage])
+                disp('No catch-routine for this. StopAll implemented')
+            end
+        end
         
-        %% Move(DemultiplexerChannelNumber,NumberOfSteps,varargin)
+        %% Get Home position
+        function home = GetHome(this, Channel)
+            
+            %-Check if Connection is Open
+            assert(this.ID~=-1,'The controller is not connected');
+            
+            isaninteger = @(x)isfinite(x) & x==floor(x);
+            assert(isaninteger(Channel) & Channel > 0 & Channel < 5 ,'Invalid channel number. Check if it is an integer between 1 and 4.');
+            home = this.queryDouble([num2str(Channel) this.CommandList.HomePositionQuery]);
+            
+            %- Error Handling
+            ErrorMessage = this.GetErrors;
+            
+            try
+                assert(this.queryDouble(this.CommandList.ErrorCodeQuery) == 0, ErrorMessage)
+            catch
+                disp(['ErrorMessage = ', ErrorMessage])
+                disp('No catch-routine for this. StopAll implemented')
+            end
+        end
+        
+        %% Set Home position
+        function SetHome(this, varargin)
+            
+            %-Check if Connection is Open
+            assert(this.ID~=-1,'The controller is not connected')
+            
+            isaninteger = @(x)isfinite(x) & x==floor(x);
+            TempHandle = Devices.NP_PicomotorController.getInstance();
+            
+            if nargin < 3
+                disp('Assuming first argument is Channel number and setting home position to default...');
+                Channel = varargin{1};
+                assert(isaninteger(Channel) & Channel > 0 & Channel < 5 ,'Invalid channel number. Check if it is an integer between 1 and 4.');
+                home = TempHandle.PicomotorScrewsInfoDefault(Channel).HomePosition;
+            else
+                Channel = varargin{1};
+                assert(isaninteger(Channel) & Channel > 0 & Channel < 5 ,'Invalid channel number. Check if it is an integer between 1 and 4.');
+                home = varargin{2};
+                assert(isaninteger(home) & home >=-2147483648 & home <= +2147483647 ,'Invalid Home position. Check if it is an integer between -2147483648 and +2147483647.')
+            end
+            
+            if isequal(this.GetHome(Channel), home)
+                disp('Attention: Home position already to set this value!');
+            else
+                this.write([num2str(Channel) this.CommandList.SetHomePosition num2str(home)]);
+                disp(['Home position set to ' num2str(home)]);
+            end
+            
+            %- Error Handling
+            ErrorMessage = this.GetErrors;
+            
+            try
+                assert(this.queryDouble(this.CommandList.ErrorCodeQuery) == 0, ErrorMessage)
+            catch
+                disp(['ErrorMessage = ', ErrorMessage])
+                disp('No catch-routine for this. StopAll implemented')
+            end
+        end
+        
+        %% Get absolute target position
+        function target = GetAbsoluteTargetPosition(this, Channel)
+            
+            %-Check if Connection is Open
+            assert(this.ID~=-1,'The controller is not connected');
+            
+            isaninteger = @(x)isfinite(x) & x==floor(x);
+            assert(isaninteger(Channel) & Channel > 0 & Channel < 5 ,'Invalid channel number. Check if it is an integer between 1 and 4.');
+            target = this.queryDouble([num2str(Channel) this.CommandList.AbsoluteTargetPositionQuery]);
+            
+            %- Error Handling
+            ErrorMessage = this.GetErrors;
+            
+            try
+                assert(this.queryDouble(this.CommandList.ErrorCodeQuery) == 0, ErrorMessage)
+            catch
+                disp(['ErrorMessage = ', ErrorMessage])
+                disp('No catch-routine for this. StopAll implemented')
+            end
+        end
+        
+        %% Get relative target position
+        function target = GetRelativeTargetPosition(this, Channel)
+            
+            %-Check if Connection is Open
+            assert(this.ID~=-1,'The controller is not connected');
+            
+            isaninteger = @(x)isfinite(x) & x==floor(x);
+            assert(isaninteger(Channel) & Channel > 0 & Channel < 5 ,'Invalid channel number. Check if it is an integer between 1 and 4.');
+            target = this.queryDouble([num2str(Channel) this.CommandList.RelativeTargetPositionQuery]);
+            
+            %- Error Handling
+            ErrorMessage = this.GetErrors;
+            
+            try
+                assert(this.queryDouble(this.CommandList.ErrorCodeQuery) == 0, ErrorMessage)
+            catch
+                disp(['ErrorMessage = ', ErrorMessage])
+                disp('No catch-routine for this. StopAll implemented')
+            end
+        end
+        
+        %% Check if an axis is moving
+        function isMoving = GetMotionDoneStatus(this, Channel)
+            
+            %-Check if Connection is Open
+            assert(this.ID~=-1,'The controller is not connected');
+            
+            isaninteger = @(x)isfinite(x) & x==floor(x);
+            assert(isaninteger(Channel) & Channel > 0 & Channel < 5 ,'Invalid channel number. Check if it is an integer between 1 and 4.');
+            isMoving = this.query([num2str(Channel) this.CommandList.MotorDoneStatusQuery]);
+            
+            %- Error Handling
+            ErrorMessage = this.GetErrors;
+            
+            try
+                assert(this.queryDouble(this.CommandList.ErrorCodeQuery) == 0, ErrorMessage)
+            catch
+                disp(['ErrorMessage = ', ErrorMessage])
+                disp('No catch-routine for this. StopAll implemented')
+            end
+        end
+        
+        %% Motion of an axis
+        
+        %Move indefinitely
+        function MoveIndefinitely(this, varargin)
+            %-Check if Connection is Open
+                assert(this.ID~=-1,'The controller is not connected')
+           
+            isaninteger = @(x)isfinite(x) & x==floor(x);
+            
+            if nargin < 3
+                disp('Assuming first argument is Channel number and moving indefinitely in positive direction...');
+                Channel = varargin{1};
+                assert(isaninteger(Channel) & Channel > 0 & Channel < 5 ,'Invalid channel number. Check if it is an integer between 1 and 4.');
+                dir = '+';
+            else
+                Channel = varargin{1};
+                assert(isaninteger(Channel) & Channel > 0 & Channel < 5 ,'Invalid channel number. Check if it is an integer between 1 and 4.');
+                dir = varargin{2};
+                assert(any(dir == ['+','-']),'Invalid direction. Specify as either + (positive direction) or - (negative direction).')
+                if isequal(dir, '+')
+                    disp('Moving indefinitely in the positive direction...');
+                else
+                    disp('Moving indefinitely in the negative direction...');
+                end
+            end
+            
+            this.write([num2str(Channel) this.CommandList.IndefiniteMove dir]);
+            
+            %- Error Handling
+            ErrorMessage = this.GetErrors;
+            
+            try
+                assert(this.queryDouble(this.CommandList.ErrorCodeQuery) == 0, ErrorMessage)
+            catch
+                disp(['ErrorMessage = ', ErrorMessage])
+                disp('No catch-routine for this. StopAll implemented')
+            end
+                
+        end
+        
+        %Move to target position
+        function AbsoluteMoveToTargetPosition(this, varargin)
+            %-Check if Connection is Open
+            assert(this.ID~=-1,'The controller is not connected')
+           
+            assert(nargin == 4, 'Insufficient number of arguments. Need Channel, target position to move to and direction in that order!');
+            
+            isaninteger = @(x)isfinite(x) & x==floor(x);
+            Channel = varargin{1};
+            assert(isaninteger(Channel) & Channel > 0 & Channel < 5 ,'Invalid channel number. Check if it is an integer between 1 and 4.');
+            target = varargin{2};
+            assert(isaninteger(target) & target >=-2147483648 & target <= +2147483647 ,'Invalid target position. Check if it is an integer between -2147483648 and +2147483647.')
+            dir = varargin{3};
+            assert(any(dir == ['+','-']),'Invalid direction. Specify as either + (positive direction) or - (negative direction).')
+            if isequal(dir, '+')
+                disp(['Moving to ' num2str(target) ' in the positive direction...']);
+            else
+                disp(['Moving to ' num2str(target) ' in the negative direction...']);
+            end
+                        
+            this.write([num2str(Channel) this.CommandList.AbsoluteMove dir num2str(target)]);
+            
+            %- Error Handling
+            ErrorMessage = this.GetErrors;
+            
+            try
+                assert(this.queryDouble(this.CommandList.ErrorCodeQuery) == 0, ErrorMessage)
+            catch
+                disp(['ErrorMessage = ', ErrorMessage])
+                disp('No catch-routine for this. StopAll implemented')
+            end
+        end
+        
+        %Move Relative
+        function RelativeMoveToTargetPosition(this, varargin)
+            %-Check if Connection is Open
+            assert(this.ID~=-1,'The controller is not connected')
+           
+            assert(nargin == 4, 'Insufficient number of arguments. Need Channel, target position to move to and direction in that order!');
+            
+            isaninteger = @(x)isfinite(x) & x==floor(x);
+            Channel = varargin{1};
+            assert(isaninteger(Channel) & Channel > 0 & Channel < 5 ,'Invalid channel number. Check if it is an integer between 1 and 4.');
+            target = varargin{2};
+            assert(isaninteger(target) & target >=-2147483648 & target <= +2147483647 ,'Invalid target position. Check if it is an integer between -2147483648 and +2147483647.')
+            dir = varargin{3};
+            assert(any(dir == ['+','-']),'Invalid direction. Specify as either + (positive direction) or - (negative direction).')
+            if isequal(dir, '+')
+                disp(['Moving to ' num2str(target) ' in the positive direction...']);
+            else
+                disp(['Moving to ' num2str(target) ' in the negative direction...']);
+            end
+                        
+            this.write([num2str(Channel) this.CommandList.RelativeMove dir num2str(target)]);
+            
+            %- Error Handling
+            ErrorMessage = this.GetErrors;
+            
+            try
+                assert(this.queryDouble(this.CommandList.ErrorCodeQuery) == 0, ErrorMessage)
+            catch
+                disp(['ErrorMessage = ', ErrorMessage])
+                disp('No catch-routine for this. StopAll implemented')
+            end
+        end
         
         %% Stop movement of all Axes
         function StopAll(this)
@@ -266,12 +658,6 @@ classdef NP_PicomotorControllerDevice < Devices.Device
                 disp('No catch-routine for this. StopAll implemented')
             end
         end
-        
-        %% Get TotalNumberOfSteps
-        
-        %% Set TotalNumberOfSteps
-        
-        %% Reset TotalNumberOfSteps
         
         %% Reset Device
         function reset(this)
@@ -316,7 +702,7 @@ classdef NP_PicomotorControllerDevice < Devices.Device
 
             switch errorcode 
                 case 0
-                    fprintf([optext ' operation correctly executed \n'])
+                    %fprintf([optext ' operation correctly executed \n'])
                 case 1
                     fprintf([optext ' error USBDUPLICATEADDRESS, More than one device on the bus has the same device ID \n'])
                 case -2
