@@ -184,6 +184,37 @@ classdef  NP_PicomotorController < Devices.Device
             end
         end
         
+        %% Disconnect from specified controller
+        function disconnectPicomotorController(this,NumberOfDevice)
+            % disconnects from ControllerDevice number "NumberOfDevice"
+            %
+            % input     NumberOfDevice   1|2|3 
+            
+            % - input control
+            assert(isnumeric(NumberOfDevice) && isscalar(NumberOfDevice) && mod(NumberOfDevice,1)==0,...
+                'InputError:  NumberOfDevice must be an integer corresponding to each plugged device.')
+            % - disconnect
+            if this.ControllerDevice{NumberOfDevice}.IsConnected
+                this.ControllerDevice{NumberOfDevice}.USB_disconnect();
+            end
+        end
+        
+        %% Reconnects to specified controller
+        function reconnectPicomotorController(this,NumberOfDevice)
+            % reconnects to ControllerDevice number "NumberOfDevice"
+            %
+            % input     NumberOfDevice   1|2|3 
+            
+            % - input control
+            assert(isnumeric(NumberOfDevice) && isscalar(NumberOfDevice) && mod(NumberOfDevice,1)==0,...
+                'InputError:  NumberOfDevice must be an integer corresponding to each plugged device.')
+            % - reconnect if necessary
+            if ~(this.ControllerDevice{NumberOfDevice}.IsConnected)
+                this.ControllerDevice{NumberOfDevice}.USB_connect();
+                disp('Reconnected!');
+            end
+        end
+        
         %%      ======= START SETTERS/GETTERS ========
         %
         % These functions are used to validate the configuration parameters.
