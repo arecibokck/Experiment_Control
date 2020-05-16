@@ -36,7 +36,7 @@ classdef NP_PicomotorControllerDevice < Devices.Device
         NumberOfStepsStillToBePerformed = 0; 
         TotalNumberOfStepsForwards  = [0;0;0;0];
         TotalNumberOfStepsBackwards = [0;0;0;0];
-        MaxNumberOfSteps = struct('UserDefined'  ,30000, ...
+        MaxNumberOfSteps = struct('UserDefined'  ,3000, ...
                                   'HardwareLimit',2^31);                        % Upper limit of steps per Move-Command
         
     end
@@ -126,7 +126,7 @@ classdef NP_PicomotorControllerDevice < Devices.Device
             
             try 
                 %-Stop all motion
-                this.StopAll
+                this.AbortAllMotion()
 
                 %-Close Connection
                 if(this.IsConnected)
@@ -266,7 +266,7 @@ classdef NP_PicomotorControllerDevice < Devices.Device
             if nargin < 3
                 disp('Assuming first argument is Channel number and setting motor type to default...');
                 assert(isaninteger(ChannelNumber) & ChannelNumber > 0 & ChannelNumber < 5 ,'Invalid channel number. Check if it is an integer between 1 and 4.');
-                motortype = TempHandle.PicomotorScrewsInfoDefault(ChannelNumber).MotorType;
+                motortype = TempHandle.PicomotorScrewsInfoDefault(ChannelNumber).MotorProperties.MotorType;
             else
                 assert(isaninteger(ChannelNumber) & ChannelNumber > 0 & ChannelNumber < 5 ,'Invalid channel number. Check if it is an integer between 1 and 4.');
                 assert(isaninteger(motortype) & motortype < 4 ,'Invalid type number. Check if it is an integer between 0 and 3.')
@@ -322,7 +322,7 @@ classdef NP_PicomotorControllerDevice < Devices.Device
             if nargin < 3
                 disp('Assuming first argument is Channel number and setting Acceleration to default...');
                 assert(isaninteger(ChannelNumber) & ChannelNumber > 0 & ChannelNumber < 5 ,'Invalid channel number. Check if it is an integer between 1 and 4.');
-                acceleration = TempHandle.PicomotorScrewsInfoDefault(ChannelNumber).Acceleration;
+                acceleration = TempHandle.PicomotorScrewsInfoDefault(ChannelNumber).MotorProperties.Acceleration;
             else
                 assert(isaninteger(ChannelNumber) & ChannelNumber > 0 & ChannelNumber < 5 ,'Invalid channel number. Check if it is an integer between 1 and 4.');
                 assert(isaninteger(acceleration) & acceleration > 0 & acceleration < 200001 ,'Invalid Acceleration value. Check if it is an integer between 1 and 200000.')
@@ -378,7 +378,7 @@ classdef NP_PicomotorControllerDevice < Devices.Device
             if nargin < 3
                 disp('Assuming first argument is Channel number and setting velocity to default...');
                 assert(isaninteger(ChannelNumber) & ChannelNumber > 0 & ChannelNumber < 5 ,'Invalid channel number. Check if it is an integer between 1 and 4.');
-                velocity = TempHandle.PicomotorScrewsInfoDefault(ChannelNumber).Velocity;
+                velocity = TempHandle.PicomotorScrewsInfoDefault(ChannelNumber).MotorProperties.Velocity;
             else
                 assert(isaninteger(ChannelNumber) & ChannelNumber > 0 & ChannelNumber < 5 ,'Invalid channel number. Check if it is an integer between 1 and 4.');
                 assert(isaninteger(velocity) & velocity > 0 & velocity < 2001 ,'Invalid Velocity value. Check if it is an integer between 1 and 2000.')
@@ -433,7 +433,7 @@ classdef NP_PicomotorControllerDevice < Devices.Device
             if nargin < 3
                 disp('Assuming first argument is Channel number and setting home position to default...');
                 assert(isaninteger(ChannelNumber) & ChannelNumber > 0 & ChannelNumber < 5 ,'Invalid channel number. Check if it is an integer between 1 and 4.');
-                home = TempHandle.PicomotorScrewsInfoDefault(ChannelNumber).HomePosition;
+                home = TempHandle.PicomotorScrewsInfoDefault(ChannelNumber).MotorProperties.HomePosition;
             else
                 assert(isaninteger(ChannelNumber) & ChannelNumber > 0 & ChannelNumber < 5 ,'Invalid channel number. Check if it is an integer between 1 and 4.');
                 assert(isaninteger(home) & home >= -this.MaxNumberOfSteps.HardwareLimit ... 2^31 ... -2147483648 ... 
@@ -528,7 +528,7 @@ classdef NP_PicomotorControllerDevice < Devices.Device
             
             isaninteger = @(x)isfinite(x) & x==floor(x);
             assert(isaninteger(ChannelNumber) & ChannelNumber > 0 & ChannelNumber < 5 ,'Invalid channel number. Check if it is an integer between 1 and 4.');
-            isMoving = this.queryDouble([num2str(ChannelNumber) this.CommandList.MotorDoneStatusQuery]);
+            isMoving = ~this.queryDouble([num2str(ChannelNumber) this.CommandList.MotorDoneStatusQuery]);
             
             %- Error Handling
             ErrorMessage = this.GetErrors;
@@ -569,17 +569,12 @@ classdef NP_PicomotorControllerDevice < Devices.Device
                 ChannelNumber = varargin{1};
             elseif nargin == 3
                 MaxIter = varargin{2}; 
-            else
                 PauseTime = varargin{2}; 
             end
             
             %-Start Loop
             while MaxIter~=0
-                if this.IsPicomotorMoving(ChannelNumber)==0  % Check if Moving
-                    break
-                elseif this.TotalNumberOfStepsForwards(ChannelNumber) < this.MaxNumberOfSteps.UserDefined  && this.TotalNumberOfStepsForwards(ChannelNumber) >= -this.MaxNumberOfSteps.UserDefined
-                    this.Stop(ChannelNumber);
-                    disp('Motion stopped: Number of steps taken from home position exceeds user-defined maximum.');
+                if ~this.IsPicomotorMoving(ChannelNumber)                     % Check if Moving
                     break
                 end
                 pause(PauseTime)                % Wait
@@ -618,10 +613,11 @@ classdef NP_PicomotorControllerDevice < Devices.Device
             
             this.write([num2str(ChannelNumber) this.CommandList.IndefiniteMove direction]);
             
-            while ~this.IsPicomotorMoving(ChannelNumber)
-                if this.TotalNumberOfStepsForwards(ChannelNumber) < this.MaxNumberOfSteps.UserDefined  && this.TotalNumberOfStepsForwards(ChannelNumber) >= -this.MaxNumberOfSteps.UserDefined
-                    this.Stop(ChannelNumber);
-                    disp('Motion aborted: Number of steps taken from home position exceeds user-defined maximum.');
+            while this.IsPicomotorMoving(ChannelNumber)
+                if this.TotalNumberOfStepsForwards(ChannelNumber) == this.MaxNumberOfSteps.UserDefined || this.TotalNumberOfStepsForwards(ChannelNumber) == -this.MaxNumberOfSteps.UserDefined
+                    this.StopMotion(ChannelNumber);
+                    disp('Motion stopped: Number of steps taken from home position has reached user-defined maximum in one direction.');
+                    break
                 end
             end
             
@@ -648,13 +644,33 @@ classdef NP_PicomotorControllerDevice < Devices.Device
                                        ,'Invalid target position. Check if it is an integer between -2147483648 and +2147483647.')
             this.TargetPosition = target;
             
-            if target > 0
-                disp(['Moving to ' num2str(abs(target)) ' in the positive direction...']);
+            currentPos = this.GetCurrentPosition(ChannelNumber);
+            NumberOfSteps = this.GetNumberOfStepsStillToBePerformed(ChannelNumber);
+            
+            if target ~= currentPos 
+                if target == 0
+                    disp('Moving to home...');
+                elseif target > 0 && target <= this.MaxNumberOfSteps.UserDefined
+                    disp(['Moving to +' num2str(abs(target)) '...']);
+                elseif target < 0 && target >= -this.MaxNumberOfSteps.UserDefined 
+                    disp(['Moving to -' num2str(abs(target)) '...']);
+                else 
+                    disp('Target position exceeds user-defined limit on number of steps from home position. Axis will not be moved in either direction.');
+                    target = currentPos;
+                end
+            
+                this.write([num2str(ChannelNumber) this.CommandList.AbsoluteMove num2str(target)]);
             else
-                disp(['Moving to ' num2str(abs(target)) ' in the negative direction...']);
+                disp('Currently at target position.')
             end
-                        
-            this.write([num2str(ChannelNumber) this.CommandList.AbsoluteMove num2str(target)]);
+            
+            %-Wait till movement stops
+            WaitResult=this.WaitForStopOfMovement(ChannelNumber);
+            
+            if WaitResult
+                %-Update Total Number of Steps taken
+                this.UpdateTotalNumberOfSteps(ChannelNumber, NumberOfSteps)
+            end
             
             %- Error Handling
             ErrorMessage = this.GetErrors;
@@ -663,14 +679,6 @@ classdef NP_PicomotorControllerDevice < Devices.Device
                 assert(this.queryDouble(this.CommandList.ErrorCodeQuery) == 0, ErrorMessage)
             catch
                 disp(['ErrorMessage = ', ErrorMessage])
-            end
-            
-            %-Wait till movement stops
-            WaitResult=this.WaitForStopOfMovement;
-            
-            if WaitResult
-                %-Update Total Number of Steps taken
-                this.UpdateTotalNumberOfSteps(ChannelNumber, this.GetNumberOfStepsStillToBePerformed(ChannelNumber))
             end
         end
         
@@ -686,13 +694,27 @@ classdef NP_PicomotorControllerDevice < Devices.Device
                                               ,'Invalid number of steps. Check if it is an integer between -2147483648 and +2147483647.')
             this.TargetPosition = this.GetCurrentPosition(ChannelNumber) + NumberOfSteps;
             
-            if NumberOfSteps > 0
-                disp(['Moving to ' num2str(abs(NumberOfSteps)) ' in the positive direction...']);
+            if NumberOfSteps ~= 0
+                if NumberOfSteps > 0 && this.TargetPosition <= this.MaxNumberOfSteps.UserDefined
+                    disp(['Moving by ' num2str(abs(NumberOfSteps)) ' steps in the positive direction...']);
+                elseif NumberOfSteps < 0 && this.TargetPosition >= -this.MaxNumberOfSteps.UserDefined 
+                    disp(['Moving by ' num2str(abs(NumberOfSteps)) ' steps in the negative direction...']);
+                else 
+                    NumberOfSteps = 0;
+                    disp('Target position exceeds user-defined limit on number of steps from home position. Axis not moved in either direction.');
+                end
+                this.write([num2str(ChannelNumber) this.CommandList.RelativeMove num2str(NumberOfSteps)]);
             else
-                disp(['Moving to ' num2str(abs(NumberOfSteps)) ' in the negative direction...']);
+                disp('Axis will not be moved in either direction.');
             end
-                        
-            this.write([num2str(ChannelNumber) this.CommandList.RelativeMove num2str(NumberOfSteps)]);
+            
+            %-Wait till movement stops
+            WaitResult=this.WaitForStopOfMovement(ChannelNumber);
+            
+            if WaitResult
+                %-Update Total Number of Steps taken
+                this.UpdateTotalNumberOfSteps(ChannelNumber, NumberOfSteps)
+            end
             
             %- Error Handling
             ErrorMessage = this.GetErrors;
@@ -702,19 +724,11 @@ classdef NP_PicomotorControllerDevice < Devices.Device
             catch
                 disp(['ErrorMessage = ', ErrorMessage])
             end
-            
-            %-Wait till movement stops
-            WaitResult=this.WaitForStopOfMovement;
-            
-            if WaitResult
-                %-Update Total Number of Steps taken
-                this.UpdateTotalNumberOfSteps(ChannelNumber, NumberOfSteps)
-            end
         end
         
         % Stop movement of an axis with deceleration (the negative of the
         % specified acceleration)
-        function Stop(this, ChannelNumber)
+        function StopMotion(this, ChannelNumber)
             assert(this.ID~=-1,'The controller is not connected')
             
             isaninteger = @(x)isfinite(x) & x==floor(x);
@@ -738,7 +752,7 @@ classdef NP_PicomotorControllerDevice < Devices.Device
         end
         
         % Abort Motion of all axes without deceleration
-        function Abort(this)
+        function AbortAllMotion(this)
             assert(this.ID~=-1,'The controller is not connected')
             
             disp('Aborting motion of all axes...');             

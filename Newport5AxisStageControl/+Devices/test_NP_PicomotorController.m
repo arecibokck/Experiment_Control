@@ -12,6 +12,7 @@
 if true
     %% - Create Object with Default ID
     Controller = Devices.NP_PicomotorController.getInstance();
+    
     %% - Destroy Object
     clear Controller
     %% - delete Object
@@ -34,46 +35,57 @@ if true
     Controller.reconnectPicomotorController(1); 
     %% - Test: ControllerDevice-Method: IsPicomotorReady
     Controller.ControllerDevice{1}.IsPicomotorReady
+    
+    %% - Test: ControllerDevice-Method: Get and Set MotorType
+    Controller.ControllerDevice{1}.GetMotorType(1)
+    Controller.ControllerDevice{1}.SetMotorType(1,2)
+    
+    %% - Test: ControllerDevice-Method: Get and Set Acceleration
+    Controller.ControllerDevice{1}.GetAcceleration(1)
+    Controller.ControllerDevice{1}.SetAcceleration(1,200);
+    
+    %% - Test: ControllerDevice-Method: Get and Set Velocity
+    Controller.ControllerDevice{1}.GetVelocity(1)
+    Controller.ControllerDevice{1}.SetVelocity(1,400);
+    
+    %% - Test: ControllerDevice-Method: Get and Set Home position
+    Controller.ControllerDevice{1}.GetHome(1)
+    Controller.ControllerDevice{1}.SetHome(1)
+    
+    %% - Test: ControllerDevice-Method: Get Target Position
+    Controller.ControllerDevice{1}.GetAbsoluteTargetPosition(1)
+    Controller.ControllerDevice{1}.GetRelativeTargetPosition(1)
+    
+    %% - Test: ControllerDevice-Method: Move
+    ChannelNumber = 1;
+    Target = 0;
+    Controller.ControllerDevice{1}.MoveAbsolute(ChannelNumber,Target)
+    [F,B] = Controller.ControllerDevice{1}.GetTotalNumberOfSteps(ChannelNumber);      
+    
+    %% - Test: ControllerDevice-Method: IsPicomotorMoving
+    Controller.ControllerDevice{1}.IsPicomotorMoving(1) % ControllerDeviceIndex==1, Axis==1
+    
     %% - Test: ControllerDevice-Method: GetNumberOfStepsStillToBePerformed
     Controller.ControllerDevice{1}.GetNumberOfStepsStillToBePerformed(1)
-    %% - Test: ControllerDevice-Method: Move(this, ChannelNumber, Target, varargin)
-    ChannelNumber = 1;
-    Target = 2000;
-    %
-    Controller.ControllerDevice{1}.AbsoluteMoveToTargetPosition(ChannelNumber,Target) 
-    [F,B] = Controller.ControllerDevice{1}.GetTotalNumberOfSteps(ChannelNumber);      
-    %-
-    Controller.ControllerDevice{1}.TotalNumberOfStepsForwards                         
-    Controller.ControllerDevice{1}.TotalNumberOfStepsBackwards                        
     
-    
-    %% - Test: ControllerDevice-Method: GetMotionDoneStatus
-    Controller.ControllerDevice{1}.GetMotionDoneStatus(1) % ControllerDeviceIndex==1, Axis==1
-    
-    %% - Test: ControllerDevice-Method: StopAll
+    %% - Test: ControllerDevice-Method: Stop motion of one axis (Currently NOT functional)
     %- Move
-    Target=2000;
+    Target=500;
     DelayTime=0.5;  %in sec
 
-    Controller.ControllerDevice{1}.IsPicomotorReady
-
-    %
-    Controller.ControllerDevice{1}.RelativeMoveToTargetPosition(ChannelNumber,Target) % ControllerDeviceIndex==1
-
+    Controller.ControllerDevice{1}.MoveRelative(ChannelNumber,Target) % ControllerDeviceIndex==1
     %-stop after delay-time
     pause(DelayTime)
-    Controller.ControllerDevice{1}.StopAll % ControllerDeviceIndex==1, Axis==1
+    Controller.ControllerDevice{1}.StopMotion(ChannelNumber) % ControllerDeviceIndex==1, Axis==1
+    
+    
     
     %% - Test: ControllerDevice-Method: ResetTotalNumberOfSteps
-
     ChannelNumber = 1;
-
-    [ForwardsOld,BackwardsOld] = Controller.ControllerDevice{1}.GetTotalNumberOfSteps(ChannelNumber);
-
-    [Forwards,Backwards] = Controller.ControllerDevice{1}.ResetTotalNumberOfSteps(ChannelNumber);
-
-    assert(ForwardsOld-Forwards==0)
-    assert(BackwardsOld-Backwards==0)
+    [F_Old,B_Old] = Controller.ControllerDevice{1}.GetTotalNumberOfSteps(ChannelNumber);
+    [F,B] = Controller.ControllerDevice{1}.ResetTotalNumberOfSteps(ChannelNumber);
+    assert(F_Old-F==0)
+    assert(B_Old-B==0)
     
 end
 
@@ -85,28 +97,5 @@ end
 %%%
 %%%%%%%%% 
 if true
-    %% Write to and Read from Picomotor through Built-In Handlers
-
-    % set = '2AC400';
-    % query = 'TB?';
-    % movesteps= '1PR-100';
-
-    % picomotor.ControllerDevice{1}.write(set)
-    % picomotor.ControllerDevice{1}.query(query)
-    % picomotor.ControllerDevice{1}.GetErrors()
-    % picomotor.ControllerDevice{1}.IsControllerReady()
-    % picomotor.ControllerDevice{1}.GetMotorType(1)
-    % picomotor.ControllerDevice{1}.SetMotorType(1)
-    % picomotor.ControllerDevice{1}.GetAcceleration(1)
-    % picomotor.ControllerDevice{1}.SetAcceleration(1);
-    % picomotor.ControllerDevice{1}.GetAcceleration(1)
-    % picomotor.ControllerDevice{1}.GetVelocity(1)
-    % picomotor.ControllerDevice{1}.SetVelocity(1,400);
-    % picomotor.ControllerDevice{1}.GetVelocity(1)
-    % picomotor.ControllerDevice{1}.GetHome(1)
-    % picomotor.ControllerDevice{1}.SetHome(1)
-    % picomotor.ControllerDevice{1}.GetAbsoluteTargetPosition(1)
-    % picomotor.ControllerDevice{1}.GetRelativeTargetPosition(1)
-    % picomotor.ControllerDevice{1}.AbsoluteMoveToTargetPosition(1,1,'-')
-    % picomotor.ControllerDevice{1}.RelativeMoveToTargetPosition(1,100,'-')
+    
 end

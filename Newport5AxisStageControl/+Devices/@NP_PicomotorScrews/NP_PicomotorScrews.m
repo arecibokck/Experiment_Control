@@ -228,13 +228,13 @@ classdef  NP_PicomotorScrews < Devices.Device
         end
         
         %% Stop Movement
-        function Stop(this)
+        function StopMotion(this)
             
             %-GetHandle, to get Access to NP-Class
             TempHandle=Devices.NP_PicomotorController.getInstance();
             
             %-Send Command
-            TempHandle.ControllerDevice{this.ControllerDeviceNumber}.Stop(this.ControllerDeviceChannelNumber);
+            TempHandle.ControllerDevice{this.ControllerDeviceNumber}.StopMotion(this.ControllerDeviceChannelNumber);
 
         end
         
