@@ -11,17 +11,17 @@ classdef  NP_PicomotorScrews < Devices.Device
         
         
         %-ControllerDeviceStatus
-        ControllerDeviceNumber=-1;         % ControllerDevice can be called using ControllerDevice(ControllerDeviceNumber)
+        ControllerDeviceNumber;         % ControllerDevice can be called using ControllerDevice(ControllerDeviceNumber)
     end
     
     properties (Access=private) % Can only be set by members of same class
         
         %-ControllerDeviceStatus
-        ControllerDeviceConnected=false;                % true, if USB connection to ControllerDevice is open
-        ControllerDeviceReady=false;                    % true, if ControllerDevice is ready to perform next command
+        ControllerDeviceConnected = false;                % true, if USB connection to ControllerDevice is open
+        ControllerDeviceReady = false;                    % true, if ControllerDevice is ready to perform next command
         
         %-PicomotorScrewStatus
-        IsConnected=0;                                  % 1, move(this,0) does not throw an error, 0 otherwise
+        IsConnected=0;                                    % 1, move(this,0) does not throw an error, 0 otherwise
         
 
     end
@@ -31,162 +31,113 @@ classdef  NP_PicomotorScrews < Devices.Device
 %- Methods 
     methods 
         %% Class Constructor
-        function this = NP_PicomotorScrews(Alias,MotorProperties,varargin)
+        function this = NP_PicomotorScrews(Alias,MotorProperties,ControllerDeviceNumber)
             disp('NP_PicomotorScrews object is being constructed...')
             this@Devices.Device;
-            
             assert(ischar(Alias),'Error: input Alias is not of type: char')
-            
             if isnan(MotorProperties.ChannelNumber)
-                warning('One of the axes is not connected to any channel of the Controller device!');
+                warning([Alias ' is not connected to any channel of any Controller device!']);
             else
-                assert(any(MotorProperties.ChannelNumber==[1,2,3,4,5]),'Error: input Channel Number must be in [1,2,3,4,5]');
-                
-                narginchk(2,3)  %nargin==3 -> ControllerDeviceNumber=varargin{1}
-            
-                %-from Input
-                this.Alias=Alias;        
-                this.ControllerDeviceChannelNumber=MotorProperties.ChannelNumber;
-
-
-                if nargin==3
-                    %-Get ControllerDeviceNumber from Input
-                    this.ControllerDeviceNumber=varargin{1};
-
-                else
-                    error('Error: Invalid Controller device number!')
-                end
-
-                disp([Alias ' successfully initialized!'])
-                
+                isaninteger = @(x)isfinite(x) & x==floor(x);
+                assert(isaninteger(MotorProperties.ChannelNumber) & MotorProperties.ChannelNumber > 0 & MotorProperties.ChannelNumber < 5 ,'Invalid channel number. Check if it is an integer between 1 and 4.');
             end
+            %-from Input
+            this.Alias=Alias;        
+            this.ControllerDeviceChannelNumber=MotorProperties.ChannelNumber;
+            %-Get ControllerDeviceNumber from Input
+            this.ControllerDeviceNumber = ControllerDeviceNumber;
+            disp([Alias ' successfully initialized!'])
         end
         
         %% Class Destructor
         function delete(this)
             className = class(this);
-            disp(['Destructor called for class ',className])
-            
+            disp(['Destructor called for class ' className ' object ' this.Alias])
             try
-%                 %-GetHandle, to get Access to NP-Class
-%                 TempHandle=Devices.NP_PicomotorController.getInstance();
-%             
-%                 %-Stop all motion
-%                 TempHandle.ControllerDevice{this.ControllerDeviceNumber}.StopAll
-% 
-%                 %-Close Connection
-%                 if(this.IsConnected)
-%                     TempHandle.ControllerDevice{this.ControllerDeviceNumber}.USB_disconnect;
-%                 end
-                
                 disp(['Deleting ' className ' object...']);
-                
                 %-delete PicomotorScrews-Objects
                 this.delete
-                
                 disp(['Stopped all motion, closed connection and deleted ' className ' object.']);
-                 
             catch ME
                 warning(ME.message)
+                rethrow(ME)
             end
-            
         end
         
         %% Check if Picomotor device is ready by doing a Motor and Error check
-        function ReadyStatus = IsPicomotorReady(this)
+        function ReadyStatus = IsControllerReady(this)
             %-GetHandle, to get Access to NP-Class
             TempHandle=Devices.NP_PicomotorController.getInstance();
-            
             %-Send Command
-            ReadyStatus = TempHandle.ControllerDevice{this.ControllerDeviceNumber}.IsPicomotorReady();
+            ReadyStatus = TempHandle.ControllerDevice{this.ControllerDeviceNumber}.IsControllerReady();
         end
         
         %% Get Motor Type
-        function MotorType = GetMotorType(this)
-            
+        function [MotorType,Error] = GetMotorType(this)
             %-GetHandle, to get Access to NP-Class
             TempHandle=Devices.NP_PicomotorController.getInstance();
-            
             %-Send Command
-            MotorType = TempHandle.ControllerDevice{this.ControllerDeviceNumber}.GetMotorType(this.ControllerDeviceChannelNumber);
-            
+            [MotorType, Error] = TempHandle.ControllerDevice{this.ControllerDeviceNumber}.GetMotorType(this.ControllerDeviceChannelNumber);
         end
         
         %% Set Motor Type
-        function SetMotorType(this, motortype)
-            
+        function Error = SetMotorType(this, motortype)
             %-GetHandle, to get Access to NP-Class
             TempHandle=Devices.NP_PicomotorController.getInstance();
-            
             %-Send Command
-            TempHandle.ControllerDevice{this.ControllerDeviceNumber}.SetMotorType(this.ControllerDeviceChannelNumber, motortype);
-            
+            Error = TempHandle.ControllerDevice{this.ControllerDeviceNumber}.SetMotorType(this.ControllerDeviceChannelNumber, motortype);
         end
         
         %% Get Home Position
-        function Home = GetHome(this)
-            
+        function [Home,Error] = GetHome(this)
             %-GetHandle, to get Access to NP-Class
             TempHandle=Devices.NP_PicomotorController.getInstance();
-            
             %-Send Command
-            Home = TempHandle.ControllerDevice{this.ControllerDeviceNumber}.GetHome(this.ControllerDeviceChannelNumber);
-            
+            [Home, Error] = TempHandle.ControllerDevice{this.ControllerDeviceNumber}.GetHome(this.ControllerDeviceChannelNumber);
         end
         
         %% Set Home Position
-        function SetHome(this, home)
-            
+        function Error = SetHome(this, home)
             %-GetHandle, to get Access to NP-Class
             TempHandle=Devices.NP_PicomotorController.getInstance();
-            
             %-Send Command
-            TempHandle.ControllerDevice{this.ControllerDeviceNumber}.SetHome(this.ControllerDeviceChannelNumber, home);
-            
+            Error = TempHandle.ControllerDevice{this.ControllerDeviceNumber}.SetHome(this.ControllerDeviceChannelNumber, home);
         end
         
         %% Get Velocity
-        function Velocity = GetVelocity(this)
-            
+        function [Velocity,Error] = GetVelocity(this)
             %-GetHandle, to get Access to NP-Class
             TempHandle=Devices.NP_PicomotorController.getInstance();
-            
             %-Send Command
-            Velocity = TempHandle.ControllerDevice{this.ControllerDeviceNumber}.GetVelocity(this.ControllerDeviceChannelNumber);
-            
+            [Velocity, Error] = TempHandle.ControllerDevice{this.ControllerDeviceNumber}.GetVelocity(this.ControllerDeviceChannelNumber);
         end
         
         %% Set Velocity
-        function SetVelocity(this, velocity)
+        function Error = SetVelocity(this, velocity)
             %-GetHandle, to get Access to NP-Class
             TempHandle=Devices.NP_PicomotorController.getInstance();
-            
             %-Send Command
-            TempHandle.ControllerDevice{this.ControllerDeviceNumber}.SetVelocity(this.ControllerDeviceChannelNumber, velocity);
+            Error = TempHandle.ControllerDevice{this.ControllerDeviceNumber}.SetVelocity(this.ControllerDeviceChannelNumber, velocity);
         end
         
         %% Get Acceleration
-        function Acceleration = GetAcceleration(this)
-            
+        function [Acceleration,Error] = GetAcceleration(this)
             %-GetHandle, to get Access to NP-Class
             TempHandle=Devices.NP_PicomotorController.getInstance();
-            
             %-Send Command
-            Acceleration = TempHandle.ControllerDevice{this.ControllerDeviceNumber}.GetAcceleration(this.ControllerDeviceChannelNumber);
-            
+            [Acceleration, Error] = TempHandle.ControllerDevice{this.ControllerDeviceNumber}.GetAcceleration(this.ControllerDeviceChannelNumber);
         end
         
         %% Set Acceleration
-        function SetAcceleration(this, acceleration)
+        function Error = SetAcceleration(this, acceleration)
             %-GetHandle, to get Access to NP-Class
             TempHandle=Devices.NP_PicomotorController.getInstance();
-            
             %-Send Command
-            TempHandle.ControllerDevice{this.ControllerDeviceNumber}.SetAcceleration(this.ControllerDeviceChannelNumber, acceleration);
+            Error = TempHandle.ControllerDevice{this.ControllerDeviceNumber}.SetAcceleration(this.ControllerDeviceChannelNumber, acceleration);
         end
         
         %% Move Indefinitely
-        function MoveIndefinitely(this,Direction)
+        function Error = MoveIndefinitely(this,Direction)
             % Move(NumberOfSteps,varargin) moves PiezoDrive NumberOfSteps 
             % Steps if abs(NumberOfSteps)<min(MaxNumberOfSteps,varargin{1})
             % where MaxNumberOfSteps is a Property of the ControllerDevice
@@ -199,95 +150,80 @@ classdef  NP_PicomotorScrews < Devices.Device
             
             %-GetHandle, to get Access to NP-Class
             TempHandle=Devices.NP_PicomotorController.getInstance();
-            
             %-Send Command
-            TempHandle.ControllerDevice{this.ControllerDeviceNumber}.MoveIndefinitely(this.ControllerDeviceChannelNumber,Direction);
-            
+            Error = TempHandle.ControllerDevice{this.ControllerDeviceNumber}.MoveIndefinitely(this.ControllerDeviceChannelNumber,Direction);
         end
         
         %% Absolute Move to target position
-        function MoveAbsolute(this,target)
-            
+        function Error = MoveAbsolute(this,target)
             %-GetHandle, to get Access to NP-Class
             TempHandle=Devices.NP_PicomotorController.getInstance();
-            
             %-Send Command
-            TempHandle.ControllerDevice{this.ControllerDeviceNumber}.MoveAbsolute(this.ControllerDeviceChannelNumber,target);
-            
+            Error = TempHandle.ControllerDevice{this.ControllerDeviceNumber}.MoveAbsolute(this.ControllerDeviceChannelNumber,target);
         end
         
         %% Relative Move to target position
-        function MoveRelative(this,NumberofSteps)
-            
+        function Error = MoveRelative(this,NumberofSteps)
             %-GetHandle, to get Access to NP-Class
             TempHandle=Devices.NP_PicomotorController.getInstance();
-            
             %-Send Command
-            TempHandle.ControllerDevice{this.ControllerDeviceNumber}.MoveRelative(this.ControllerDeviceChannelNumber,NumberofSteps);
-            
+            Error = TempHandle.ControllerDevice{this.ControllerDeviceNumber}.MoveRelative(this.ControllerDeviceChannelNumber,NumberofSteps);
         end
         
         %% Stop Movement
-        function StopMotion(this)
-            
+        function Error = StopMotion(this)
             %-GetHandle, to get Access to NP-Class
             TempHandle=Devices.NP_PicomotorController.getInstance();
-            
             %-Send Command
-            TempHandle.ControllerDevice{this.ControllerDeviceNumber}.StopMotion(this.ControllerDeviceChannelNumber);
-
+            Error = TempHandle.ControllerDevice{this.ControllerDeviceNumber}.StopMotion(this.ControllerDeviceChannelNumber);
         end
         
         %% Abort Movement
-        function Abort(this)
-            
+        function Error = AbortMotion(this)
             %-GetHandle, to get Access to NP-Class
             TempHandle=Devices.NP_PicomotorController.getInstance();
-            
             %-Send Command
-            TempHandle.ControllerDevice{this.ControllerDeviceNumber}.Abort();
-
+            Error = TempHandle.ControllerDevice{this.ControllerDeviceNumber}.AbortMotion();
         end
         
         %% Get current position
-        function currentPos = GetCurrentPosition(this)
-            
+        function [currentPos,Error] = GetCurrentPosition(this)
             %-GetHandle, to get Access to NP-Class
             TempHandle=Devices.NP_PicomotorController.getInstance();
-            
             %-Send Command
-            currentPos = TempHandle.ControllerDevice{this.ControllerDeviceNumber}.GetCurrentPosition(this.ControllerDeviceChannelNumber);
-            
+            [currentPos, Error] = TempHandle.ControllerDevice{this.ControllerDeviceNumber}.GetCurrentPosition(this.ControllerDeviceChannelNumber);
         end
         
         %% Get number of steps still to be performed
         function NumberOfSteps = GetNumberOfStepsStillToBePerformed(this)
-            
             %-GetHandle, to get Access to NP-Class
             TempHandle=Devices.NP_PicomotorController.getInstance();
-            
             %-Send Command
-            NumberOfSteps = TempHandle.ControllerDevice{this.ControllerDeviceNumber}.GetNumberOfStepsStillToBePerformed(this.ControllerDeviceChannelNumber);
-            
+            [NumberOfSteps, Error] = TempHandle.ControllerDevice{this.ControllerDeviceNumber}.GetNumberOfStepsStillToBePerformed(this.ControllerDeviceChannelNumber);
         end
         
         %% Get TotalNumberOfSteps
         function [Forwards,Backwards] = GetTotalNumberOfSteps(this)
             %-GetHandle, to get Access to NP-Class
             TempHandle=Devices.NP_PicomotorController.getInstance();
-            
             %-Send Command
             [Forwards,Backwards] = TempHandle.ControllerDevice{this.ControllerDeviceNumber}.GetTotalNumberOfSteps(this.ControllerDeviceChannelNumber);
         end
         
-        %% Get Motion done Status
-        function IsMoving = IsPicomotorMoving(this)
-            
+        %% Reset TotalNumberOfSteps
+        function [Forwards,Backwards] = ResetTotalNumberOfSteps(this)
             %-GetHandle, to get Access to NP-Class
             TempHandle=Devices.NP_PicomotorController.getInstance();
-            
             %-Send Command
-            IsMoving=TempHandle.ControllerDevice{this.ControllerDeviceNumber}.IsPicomotorMoving(this.ControllerDeviceChannelNumber);
+            [Forwards,Backwards] = TempHandle.ControllerDevice{this.ControllerDeviceNumber}.ResetTotalNumberOfSteps(this.ControllerDeviceChannelNumber);
+        end
+        
+        %% Get Motion done Status
+        function [IsMoving,Error] = IsPicomotorMoving(this)
+            %-GetHandle, to get Access to NP-Class
+            TempHandle=Devices.NP_PicomotorController.getInstance();
+            %-Send Command
+            [IsMoving, Error] = TempHandle.ControllerDevice{this.ControllerDeviceNumber}.IsPicomotorMoving(this.ControllerDeviceChannelNumber);
         end
         
         %% Get Connection status
@@ -297,30 +233,30 @@ classdef  NP_PicomotorScrews < Devices.Device
             % 'ControllerDeviceDemultiplexerChannelNumber' by 0 steps
             % output:    1       if no error occured
             %            0       otherwise
-            
             %- tries to send the move-command
             try
-                this.AbsoluteMoveToTargetPosition(0,'+')
-                IsConnected = 1;
+                error = this.MoveRelative(3);
+                if error.Code ~= this.ControllerDeviceChannelNumber*100+8
+                    this.MoveRelative(-3);
+                    IsConnected = 1;
+                else
+                    warning('Axis not moved since motor is not connected to Controller device!');
+                    IsConnected = 0;
+                end
+                %- Update IsConnected-Property
+                this.IsConnected=IsConnected;
             catch ME
-                %-if an error occures, its text will be shown as a warning
                 warning(ME.message)
-                IsConnected=0;
+                rethrow(ME)
             end
-            
-            %- Update IsConnected-Property
-            this.IsConnected=IsConnected;
-            
         end
         
         %% Reset Controller Device
         function reset(this)
             %-GetHandle, to get Access to NP-Class
             TempHandle=Devices.NP_PicomotorController.getInstance();
-            
             %-Send Command
             TempHandle.ControllerDevice{this.ControllerDeviceNumber}.reset();
-
         end
         
         %% Reset Device parameters
@@ -330,10 +266,8 @@ classdef  NP_PicomotorScrews < Devices.Device
         % changing parameters (e.g., velocity) but then chooses to reload from previously stored, 
         % qualified settings.  Note that “*RCL 0” command just restores the working parameters to 
         % factory default settings. “*RCL 1” Restores last saved settings.  
-        
            %-GetHandle, to get Access to NP-Class
            TempHandle=Devices.NP_PicomotorController.getInstance();
-            
            %-Send Command
            TempHandle.ControllerDevice{this.ControllerDeviceNumber}.recallParameters(binVal);
         end
@@ -341,11 +275,9 @@ classdef  NP_PicomotorScrews < Devices.Device
         %% Disconnect from specified controller
         function disconnectPicomotorController(this)
             % disconnects from ControllerDevice
-            
             %-GetHandle, to get Access to NP-Class
             TempHandle=Devices.NP_PicomotorController.getInstance();
-           
-            % - disconnect
+           % - disconnect
             if TempHandle.ControllerDevice{this.ControllerDeviceNumber}.IsConnected
                 TempHandle.ControllerDevice{this.ControllerDeviceNumber}.USB_disconnect();
             end
@@ -354,10 +286,8 @@ classdef  NP_PicomotorScrews < Devices.Device
         %% Reconnects to specified controller
         function reconnectPicomotorController(this)
             % reconnects to ControllerDevice
-            
             %-GetHandle, to get Access to NP-Class
             TempHandle=Devices.NP_PicomotorController.getInstance();
-            
             % - reconnect if necessary
             if ~(TempHandle.ControllerDevice{this.ControllerDeviceNumber}.IsConnected)
                 TempHandle.ControllerDevice{this.ControllerDeviceNumber}.USB_connect();
@@ -372,4 +302,3 @@ classdef  NP_PicomotorScrews < Devices.Device
         % These functions are used to validate the configuration parameters.
     end
 end
-
