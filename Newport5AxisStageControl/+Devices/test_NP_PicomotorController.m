@@ -12,10 +12,10 @@
 if true
     %% - Create Object with Default ID
     Controller = Devices.NP_PicomotorController.getInstance();
-    %% - Destroy Object
-    clear Controller
     %% - delete Object
     Controller.delete()
+    %% - Destroy Object
+    clear Controller
 end
 
 %% - Testing the ControllerDevice-Class
@@ -51,7 +51,7 @@ if true
     Controller.ControllerDevice{1}.GetRelativeTargetPosition(1)
     %% - Test: ControllerDevice-Method: Move
     ChannelNumber = 4;
-    Target = 10;
+    Target = 0;
     Controller.ControllerDevice{1}.MoveAbsolute(ChannelNumber,Target)
     [Forwards,Backwards] = Controller.ControllerDevice{1}.GetTotalNumberOfSteps(ChannelNumber);     
     %% - Test: ControllerDevice-Method: IsPicomotorMoving

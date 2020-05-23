@@ -38,8 +38,8 @@ classdef  NP_PicomotorScrews < Devices.Device
             if isnan(MotorProperties.ChannelNumber)
                 warning([Alias ' is not connected to any channel of any Controller device!']);
             else
-                isaninteger = @(x)isfinite(x) & x==floor(x);
-                assert(isaninteger(MotorProperties.ChannelNumber) & MotorProperties.ChannelNumber > 0 & MotorProperties.ChannelNumber < 5 ,'Invalid channel number. Check if it is an integer between 1 and 4.');
+                isaninteger = @(x)isfinite(x) && x==floor(x);
+                assert(isaninteger(MotorProperties.ChannelNumber) && MotorProperties.ChannelNumber > 0 && MotorProperties.ChannelNumber < 5 ,'Invalid channel number. Check if it is an integer between 1 and 4.');
             end
             %-from Input
             this.Alias=Alias;        

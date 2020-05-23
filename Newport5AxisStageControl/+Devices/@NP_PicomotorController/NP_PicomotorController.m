@@ -171,7 +171,7 @@ classdef  NP_PicomotorController < Devices.Device
                             this.ControllerDeviceInfo(Index).IsConnected2PCViaETHERNET=1;
                             disp([this.ControllerDeviceInfo(Index).Alias ' with IP Address ' Temp_IPAddress ' connected to PC via ETHERNET.'])
                         else
-                            disp(['Warning: ' this.ControllerDeviceInfo(Index).Alias ' not connected to PC via ETHERNET.'])
+                            warning([this.ControllerDeviceInfo(Index).Alias ' not connected to PC via ETHERNET.'])
                         end
                     end
                     clear Index
@@ -197,24 +197,30 @@ classdef  NP_PicomotorController < Devices.Device
                 Alias = this.PicomotorScrewsInfo(Index).Alias;
                 Temp_ControllerDeviceKey = this.PicomotorScrewsInfo(Index).ControllerDeviceKey;
                 MotorProperties=this.PicomotorScrewsInfo(Index).MotorProperties;
+                Temp_ControllerDeviceNumber = double.empty;
                 %-Get Temp_ControllerDeviceNumber
                 %-search list of Controller-Devices
                 for IndexTwo=1:length(this.ControllerDevice)
                     Temp_deviceKey=this.ControllerDevice{IndexTwo}.deviceKey;
-                    if(strcmp(Temp_deviceKey,Temp_ControllerDeviceKey))
+                    Temp_IsConnected = this.ControllerDeviceInfo(IndexTwo).IsConnected2PCViaUSB || this.ControllerDeviceInfo(IndexTwo).IsConnected2PCViaETHERNET ;
+                    if(strcmp(Temp_deviceKey,Temp_ControllerDeviceKey)) && Temp_IsConnected == 1
                         Temp_ControllerDeviceNumber=IndexTwo;
                     end
                 end
-                %-Test if 'Alias' is declared as Property
-                assert(isfield(this.PicomotorScrews,Alias),'Error: Alias of PicomotorScrews does not exist as Property, check Properties.')
-                %-Create Object
-                this.PicomotorScrews.(Alias) = Devices.NP_PicomotorScrews(Alias, MotorProperties, Temp_ControllerDeviceNumber);
-                if ~isnan(MotorProperties.ChannelNumber)
-                    %Set defaults
-                    this.ControllerDevice{Temp_ControllerDeviceNumber}.SetMotorType(MotorProperties.ChannelNumber, MotorProperties.MotorType);
-                    this.ControllerDevice{Temp_ControllerDeviceNumber}.SetHome(MotorProperties.ChannelNumber, MotorProperties.HomePosition);
-                    this.ControllerDevice{Temp_ControllerDeviceNumber}.SetVelocity(MotorProperties.ChannelNumber, MotorProperties.Velocity);
-                    this.ControllerDevice{Temp_ControllerDeviceNumber}.SetAcceleration(MotorProperties.ChannelNumber, MotorProperties.Acceleration);
+                if ~isempty(Temp_ControllerDeviceNumber)
+                    %-Test if 'Alias' is declared as Property
+                    assert(isfield(this.PicomotorScrews,Alias),'Error: Alias of PicomotorScrews does not exist as Property, check Properties.')
+                    %-Create Object
+                    this.PicomotorScrews.(Alias) = Devices.NP_PicomotorScrews(Alias, MotorProperties, Temp_ControllerDeviceNumber);
+                    if ~isnan(MotorProperties.ChannelNumber)
+                        %Set defaults
+                        this.ControllerDevice{Temp_ControllerDeviceNumber}.SetMotorType(MotorProperties.ChannelNumber, MotorProperties.MotorType);
+                        this.ControllerDevice{Temp_ControllerDeviceNumber}.SetHome(MotorProperties.ChannelNumber, MotorProperties.HomePosition);
+                        this.ControllerDevice{Temp_ControllerDeviceNumber}.SetVelocity(MotorProperties.ChannelNumber, MotorProperties.Velocity);
+                        this.ControllerDevice{Temp_ControllerDeviceNumber}.SetAcceleration(MotorProperties.ChannelNumber, MotorProperties.Acceleration);
+                    end
+                else
+                    warning(['Screw object for ' Alias ' not created since its controller is not connected to PC!'])
                 end
             end
             
@@ -260,7 +266,12 @@ classdef  NP_PicomotorController < Devices.Device
                 'InputError:  NumberOfDevice must be an integer corresponding to each plugged device.')
             % - reconnect if necessary
             if ~(this.ControllerDevice{NumberOfDevice}.IsConnected)
-                this.ControllerDevice{NumberOfDevice}.ConnectToDevice();
+                switch this.ConnectionType
+                    case 'USB'
+                        this.ControllerDevice{NumberOfDevice}.ConnectToDevice('USB');
+                    case 'ETHERNET'
+                        this.ControllerDevice{NumberOfDevice}.ConnectToDevice('ETHERNET');
+                end
                 disp('Reconnected!');
             end
         end
