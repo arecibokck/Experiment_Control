@@ -90,7 +90,7 @@ classdef  NP_PicomotorController < Devices.Device
     end
     
     properties
-        ControllerDevice={};                %Contains ControllerDevice Objects
+        ControllerDevice={};                %Contains ControllerDevice objects
         ControllerDeviceInfo=struct();      %Contains Information
         PicomotorScrewsInfo=struct();       %Contains structs with Info
         %about Picomotor screws
@@ -127,7 +127,6 @@ classdef  NP_PicomotorController < Devices.Device
                     Temp_ListOfConnectedDevices = Temp_ListOfConnectedDevices(:);
                     for Index = 1:length(this.ControllerDeviceInfo)
                         Temp_productID = this.ControllerDeviceInfo(Index).productID;
-
                         if any(contains(vertcat(Temp_ListOfConnectedDevices{:}), ['PID_' Temp_productID]))
                             this.ControllerDeviceInfo(Index).IsConnected2PCViaUSB=1;
                             disp([this.ControllerDeviceInfo(Index).Alias ' with product class ID ' Temp_productID ' connected to PC via USB.'])
@@ -136,15 +135,17 @@ classdef  NP_PicomotorController < Devices.Device
                         end
                     end
                     clear Index
-                    %-Create Objects for each ControllerDevice and open connection
+                    %-Create objects for each ControllerDevice and open connection
                     for Index=1:length(this.ControllerDeviceInfo)
                         Temp_productID    = this.ControllerDeviceInfo(Index).productID;
                         Temp_deviceKey    = this.ControllerDeviceInfo(Index).deviceKey;
                         Temp_USBAddress   = this.ControllerDeviceInfo(Index).USBAddress;
                         Temp_Name         = this.ControllerDeviceInfo(Index).Alias;
-                        %create Object
-                        this.ControllerDevice{Index}=Devices.NP_PicomotorControllerDevice(Temp_productID, Temp_deviceKey, 'USBADDR', Temp_USBAddress);
                         if this.ControllerDeviceInfo(Index).IsConnected2PCViaUSB==1
+                            disp('NP_PicomotorControllerDevice object is being constructed...')
+                            %create object
+                            this.ControllerDevice{Index}=Devices.NP_PicomotorControllerDevice(Temp_productID, Temp_deviceKey, 'USBADDR', Temp_USBAddress);
+                            disp('NP_PicomotorControllerDevice object created.')
                             if Index == 1
                                 %Establish USB-Connection
                                 this.ControllerDevice{Index}.ConnectToDevice('USB');
@@ -175,23 +176,25 @@ classdef  NP_PicomotorController < Devices.Device
                         end
                     end
                     clear Index
-                    %-Create Objects for each ControllerDevice and open connection
+                    %-Create objects for each ControllerDevice and open connection
                     for Index=1:length(this.ControllerDeviceInfo)
                         Temp_productID          = this.ControllerDeviceInfo(Index).productID;
                         Temp_deviceKey          = this.ControllerDeviceInfo(Index).deviceKey;
                         Temp_IPAddress          = this.ControllerDeviceInfo(Index).IPAddress;
                         Temp_Port          = this.ControllerDeviceInfo(Index).Port;
                         Temp_Name               = this.ControllerDeviceInfo(Index).Alias;
-                        %create Object
-                        this.ControllerDevice{Index}=Devices.NP_PicomotorControllerDevice(Temp_productID, Temp_deviceKey, 'IPADDR', Temp_IPAddress, 'Port', Temp_Port);
                         if this.ControllerDeviceInfo(Index).IsConnected2PCViaETHERNET==1
+                            disp('NP_PicomotorControllerDevice object is being constructed...')
+                            %create object
+                            this.ControllerDevice{Index}=Devices.NP_PicomotorControllerDevice(Temp_productID, Temp_deviceKey, 'IPADDR', Temp_IPAddress, 'Port', Temp_Port);
+                            disp('NP_PicomotorControllerDevice object created.')
                             this.ControllerDevice{Index}.ConnectToDevice('ETHERNET');
                             disp(['ETHERNET-connection to ControllerDevice ',num2str(Index),'(',Temp_Name,') established'])
                         end
                     end
                     clear Index
             end
-            %-Create Objects for each PicomotorScrew
+            %-Create objects for each PicomotorScrew
             for Index=1:length(this.PicomotorScrewsInfo)
                 %-Get temporary Variables
                 Alias = this.PicomotorScrewsInfo(Index).Alias;
@@ -210,42 +213,31 @@ classdef  NP_PicomotorController < Devices.Device
                 if ~isempty(Temp_ControllerDeviceNumber)
                     %-Test if 'Alias' is declared as Property
                     assert(isfield(this.PicomotorScrews,Alias),'Error: Alias of PicomotorScrews does not exist as Property, check Properties.')
-                    %-Create Object
-                    this.PicomotorScrews.(Alias) = Devices.NP_PicomotorScrews(Alias, MotorProperties, Temp_ControllerDeviceNumber);
-                    if ~isnan(MotorProperties.ChannelNumber)
-                        %Set defaults
-                        this.ControllerDevice{Temp_ControllerDeviceNumber}.SetMotorType(MotorProperties.ChannelNumber, MotorProperties.MotorType);
-                        this.ControllerDevice{Temp_ControllerDeviceNumber}.SetHome(MotorProperties.ChannelNumber, MotorProperties.HomePosition);
-                        this.ControllerDevice{Temp_ControllerDeviceNumber}.SetVelocity(MotorProperties.ChannelNumber, MotorProperties.Velocity);
-                        this.ControllerDevice{Temp_ControllerDeviceNumber}.SetAcceleration(MotorProperties.ChannelNumber, MotorProperties.Acceleration);
-                    end
+                    disp('NP_PicomotorScrews object is being constructed...')
+                    %-Create object
+                    this.PicomotorScrews.(Alias) = Devices.NP_PicomotorScrews(Alias, MotorProperties, Temp_ControllerDeviceNumber, 'ControllerDeviceObject', this.ControllerDevice{Temp_ControllerDeviceNumber});
+                    disp([Alias ' NP_PicomotorScrews object created.'])
                 else
-                    warning(['Screw object for ' Alias ' not created since its controller is not connected to PC!'])
+                    warning(['NP_PicomotorScrews object for ' Alias ' not created since its controller is not connected to PC!'])
                 end
             end
-            
             %- Show finish message:
-            disp('NP_PicomotorController Object created.')
+            disp('NP_PicomotorController object created.')
             
         end
-        
         %% Class Destructor (Closes Connection, Clears object)
         function delete(this)
             className = class(this);
             disp(['Destructor called for class ',className])
-            
-            %-delete all Controller Objects
+            %-delete all Controller objects
             if (~isempty(this.ControllerDevice))
                 cellfun(@(m)m.delete,this.ControllerDevice);
             end
         end
-        
         %% Disconnect from specified controller
         function disconnectPicomotorController(this,NumberOfDevice)
             % disconnects from ControllerDevice number "NumberOfDevice"
-            %
             % input     NumberOfDevice   1|2|3
-            
             % - input control
             assert(isnumeric(NumberOfDevice) && isscalar(NumberOfDevice) && mod(NumberOfDevice,1)==0,...
                 'InputError:  NumberOfDevice must be an integer corresponding to each plugged device.')
@@ -254,13 +246,10 @@ classdef  NP_PicomotorController < Devices.Device
                 this.ControllerDevice{NumberOfDevice}.DisconnectFromDevice();
             end
         end
-        
         %% Reconnects to specified controller
         function reconnectPicomotorController(this,NumberOfDevice)
             % reconnects to ControllerDevice number "NumberOfDevice"
-            %
             % input     NumberOfDevice   1|2|3
-            
             % - input control
             assert(isnumeric(NumberOfDevice) && isscalar(NumberOfDevice) && mod(NumberOfDevice,1)==0,...
                 'InputError:  NumberOfDevice must be an integer corresponding to each plugged device.')
@@ -275,16 +264,12 @@ classdef  NP_PicomotorController < Devices.Device
                 disp('Reconnected!');
             end
         end
-        
         %%      ======= START SETTERS/GETTERS ========
         %
         % These functions are used to validate the configuration parameters.
-        
     end
-    
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    %- Methods (Static)
-    
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%- Methods (Static)
     methods (Static)
         
         % Creates an Instance of Class, ensures singleton behaviour (that there

@@ -90,9 +90,7 @@ classdef NP_PicomotorControllerDevice < Devices.Device
             %
             %
             %
-            disp('NP_PicomotorControllerDevice object is being constructed...')
             this@Devices.Device;
-            
             input = inputParser;
             addRequired(input,'productID',@ischar);
             addRequired(input,'deviceKey',@ischar);
@@ -102,55 +100,39 @@ classdef NP_PicomotorControllerDevice < Devices.Device
             isaninteger = @(x)isfinite(x) && x==floor(x);
             addParameter(input,'Port',this.DEFAULTPORT,isaninteger);
             parse(input, productID, deviceKey, varargin{:});
-            
             this.productID = input.Results.productID;
             this.deviceKey = input.Results.deviceKey;
             this.USBADDR  = input.Results.USBADDR;
             this.IPADDR = input.Results.IPADDR;
             this.Port  = input.Results.Port;
-                    
             %-Default values
             this.IsConnected = 0; % not connected
-            
-            disp('NP_PicomotorControllerDevice Object created')
         end
-        
         %% Class Destructor (Closes Connection, Unloads DLL, Clears object)
         function delete(this)
-            
             className = class(this);
             disp(['Destructor called for class ',className])
-            
             try 
                 %-Abort all motion & Close Connection
                 if(this.IsConnected)
                     this.AbortMotion();
                     this.DisconnectFromDevice;
                 end
-                
                 disp(['Deleting ' className ' object...']);
-                
-                %-delete ControllerDevice-Objects
+                %-delete ControllerDevice-objects
                 this.delete
-                
                 disp(['Stopped all motion, closed connection and deleted ' className ' object.']);
-                 
             catch ME
                 warning(ME.message)
                 rethrow(ME)
             end
-                
         end
-        
         %% Establish USB Connection
         function ConnectToDevice(this, ctype)
         % This method establishes connection with the controller device.
-        %
         % For connecting to the device by USB, the method loads the Newport USB Driver .NET Wrapper.
         % For connecting to the device by Ethernet, the method uses tcpip from the Instrumentation Control Toolbox.
-        % 
         % Establishes and verifies connection with device self-identification [Newport Name Firmware Date SN]
-        % 
         % Sometimes requires a reboot of the Newport Device to ensure connectivity!
                    
             disp('Looking for Controller device(s)...')
@@ -158,7 +140,7 @@ classdef NP_PicomotorControllerDevice < Devices.Device
             try
                 switch this.ConnectionType
                     case 'USB'
-                        %-Create Objects for each or the one Controller
+                        %-Create objects for each or the one Controller
                         NPasm = NET.addAssembly('C:\Program Files\Newport\Newport USB Driver\Bin\UsbDllWrap.dll');
                         %Get a handle on the USB class
                         NPASMtype = NPasm.AssemblyHandle.GetType('Newport.USBComm.USB');
@@ -195,6 +177,10 @@ classdef NP_PicomotorControllerDevice < Devices.Device
                         try
                             fopen(this.NP_ETHERNET);
                             devInfo = this.query(this.CommandList.IdentificationQuery);
+                            %String cleanup: Input buffer often has unreadable ascii characters that need to be removed. Flushinput did not
+                            %work so here is a nifty two-line code to pick out only those characters from the string that are ascii characters
+                            %found between 32 and 127. This requires device ID to be restricted to these characters. This can be changed by
+                            %increasing the range of ascii characters to check against.
                             ascii = char(32:127);
                             devInfo = devInfo(arrayfun(@(f) any(strcmp(devInfo(f),arrayfun(@(x) ascii(x), 1:length(ascii),'UniformOutput',false))), 1:length(devInfo)));
                             if contains(this.deviceKey,devInfo(end-4:end))    %Dirty fix: Hostname is by default the device key but this could be changed!
@@ -211,7 +197,6 @@ classdef NP_PicomotorControllerDevice < Devices.Device
                 rethrow(ME)
             end
         end   
-        
         %% Write
         function write(this, cmd)
             switch this.ConnectionType
@@ -221,7 +206,6 @@ classdef NP_PicomotorControllerDevice < Devices.Device
                     fprintf(this.NP_ETHERNET, cmd);
             end        
         end
-        
         %% Read
         function ret = read(this)
             switch this.ConnectionType
@@ -234,46 +218,38 @@ classdef NP_PicomotorControllerDevice < Devices.Device
                     ret = strtrim(fscanf(this.NP_ETHERNET));
             end
         end
-        
         %% Query
         function ret=query(this, query)
             this.write(query)
             ret = this.read;
         end
-        
         %% Query and convert the result to a double precision floating point number
         function ret=queryDouble(this, query)
             ret=str2double(this.query(query));
         end
-        
-        %% Check if Controller device is ready by doing a Connection and Error check
+        %% Check if Controller device is ready by doing a Connection and error check if connected
         function ReadyStatus = IsControllerReady(this)
             % Asks controller for ready status
             %-Check if Connection is Open
             try
                 devInfo = this.query(this.CommandList.IdentificationQuery);
-                ascii = char(32:127);
-                devInfo = devInfo(arrayfun(@(f) any(strcmp(devInfo(f),arrayfun(@(x) ascii(x), 1:length(ascii),'UniformOutput',false))), 1:length(devInfo)));
-                if contains(this.deviceKey,devInfo(end-4:end)) %Dirty fix: Figure out how to read out device keys 
+                if ~isempty(devInfo) && contains(this.deviceKey,devInfo(end-4:end)) %Dirty fix: Figure out how to read out device keys 
                     this.IsConnected = 1;
+                    Error = this.GetError;
+                    if Error.Code == 0
+                        ReadyStatus = true;
+                    end
                 else
                     this.IsConnected = 0;
+                    ReadyStatus = false;
+                    warning('Possible loss of connection! Troubleshoot connection issues!');
                 end
             catch ME
                 warning(ME.message)
                 rethrow(ME)
             end
-            %- Check for Non-Axis specific errors
-            Error = this.GetError;
-            
-            if this.IsConnected==1 && Error.Code == 0 
-                ReadyStatus = true;
-            else
-                ReadyStatus = false;
-            end
             this.ReadyStatus = ReadyStatus;
         end
-        
         %% Get Motor Type
         function [MotorType, Error] = GetMotorType(this, ChannelNumber)
             isaninteger = @(x)isfinite(x) && x==floor(x);
@@ -281,7 +257,6 @@ classdef NP_PicomotorControllerDevice < Devices.Device
             MotorType = this.queryDouble([num2str(ChannelNumber) this.CommandList.MotorTypeQuery]);
             Error = this.GetError;
         end    
-        
         %% Set Motor Type
         function Error = SetMotorType(this, ChannelNumber, motortype)
             isaninteger = @(x)isfinite(x) && x==floor(x);
@@ -295,7 +270,6 @@ classdef NP_PicomotorControllerDevice < Devices.Device
             end
             Error = this.GetError;
         end    
-        
         %% Get Acceleration
         function [Accn, Error] = GetAcceleration(this, ChannelNumber)
             isaninteger = @(x)isfinite(x) && x==floor(x);
@@ -303,7 +277,6 @@ classdef NP_PicomotorControllerDevice < Devices.Device
             Accn = this.queryDouble([num2str(ChannelNumber) this.CommandList.AccelerationQuery]);
             Error = this.GetError;
         end 
-        
         %% Set Acceleration
         function Error = SetAcceleration(this, ChannelNumber, acceleration)
             isaninteger = @(x)isfinite(x) && x==floor(x);
@@ -317,7 +290,6 @@ classdef NP_PicomotorControllerDevice < Devices.Device
             end
             Error = this.GetError;
         end
-        
         %% Get Velocity
         function [vel, Error] = GetVelocity(this, ChannelNumber)
             isaninteger = @(x)isfinite(x) && x==floor(x);
@@ -325,7 +297,6 @@ classdef NP_PicomotorControllerDevice < Devices.Device
             vel = this.queryDouble([num2str(ChannelNumber) this.CommandList.VelocityQuery]);
             Error = this.GetError;
         end
-        
         %% Set Velocity
         function Error = SetVelocity(this, ChannelNumber, velocity)
             isaninteger = @(x)isfinite(x) && x==floor(x);
@@ -339,7 +310,6 @@ classdef NP_PicomotorControllerDevice < Devices.Device
             end
             Error = this.GetError;
         end
-        
         %% Get Home position
         function [home,Error] = GetHome(this, ChannelNumber)
             isaninteger = @(x)isfinite(x) && x==floor(x);
@@ -347,7 +317,6 @@ classdef NP_PicomotorControllerDevice < Devices.Device
             home = this.queryDouble([num2str(ChannelNumber) this.CommandList.HomePositionQuery]);
             Error = this.GetError;
         end
-        
         %% Set Home position
         function Error = SetHome(this, ChannelNumber, home)
             isaninteger = @(x)isfinite(x) && x==floor(x);
@@ -363,7 +332,6 @@ classdef NP_PicomotorControllerDevice < Devices.Device
             end
             Error = this.GetError;
         end
-        
         %% Get absolute target position
         function [target, Error] = GetAbsoluteTargetPosition(this, ChannelNumber)
             isaninteger = @(x)isfinite(x) && x==floor(x);
@@ -372,7 +340,6 @@ classdef NP_PicomotorControllerDevice < Devices.Device
             this.TargetPosition = target;
             Error = this.GetError;
         end
-        
         %% Get relative target position
         function [target, Error] = GetRelativeTargetPosition(this, ChannelNumber)
             isaninteger = @(x)isfinite(x) && x==floor(x);
@@ -381,7 +348,6 @@ classdef NP_PicomotorControllerDevice < Devices.Device
             this.TargetPosition = target;
             Error = this.GetError;
         end
-        
         %% Get current position
         function [pos, Error] = GetCurrentPosition(this, ChannelNumber)
             isaninteger = @(x)isfinite(x) && x==floor(x);
@@ -389,7 +355,6 @@ classdef NP_PicomotorControllerDevice < Devices.Device
             pos = this.queryDouble([num2str(ChannelNumber) this.CommandList.CurrentPositionQuery]);
             Error = this.GetError;
         end
-        
         %% Check if an axis is moving
         function [isMoving, Error] = IsPicomotorMoving(this, ChannelNumber)
             isaninteger = @(x)isfinite(x) && x==floor(x);
@@ -402,14 +367,11 @@ classdef NP_PicomotorControllerDevice < Devices.Device
             end    
             Error = this.GetError;
         end 
-        
         %% Motion of an axis
-        
         % WaitForStopOfMovement(this,varargin)
         function WaitResult=WaitForStopOfMovement(this,varargin)
             % Runs a while loop until IsPicomotorMoving(this)==0, each
             % loop contains pause(Pause_Time)
-            %
             %input varargin	
             %           nargin=0    Pause_Time=this.Pause_Time
             %                       MaxIter=this.Pause_Max_Iterations
@@ -417,22 +379,18 @@ classdef NP_PicomotorControllerDevice < Devices.Device
             %           nargin=2    Pause_Time=varagin{2}
             %output WaitResult      true,   if MovementStopped  
             %                       false,  if MaxIter is reached
-            %   
             %Note:     MaxIter=-1 will cause infinite loop
             %-Set default values
             MaxIter=this.Pause_Max_Iterations;
             PauseTime=this.Pause_Time;
-            
             %-Input handling
             narginchk(1,4); % checks if Number of arguments is between 1 and 3
-            
             if  nargin == 2
                 ChannelNumber = varargin{1};
             elseif nargin == 3
                 MaxIter = varargin{2}; 
                 PauseTime = varargin{2}; 
             end
-            
             %-Start Loop
             while MaxIter~=0
                 [isMoving, ~] = this.IsPicomotorMoving(ChannelNumber);
@@ -442,7 +400,6 @@ classdef NP_PicomotorControllerDevice < Devices.Device
                 pause(PauseTime)                % Wait
                 MaxIter=MaxIter-1;              % CountDown
             end
-         
             %-Set Output
             if MaxIter==0
                 WaitResult=false;
@@ -451,7 +408,6 @@ classdef NP_PicomotorControllerDevice < Devices.Device
                 WaitResult=true;
             end
         end
-        
         %Move indefinitely
         function Error = MoveIndefinitely(this, ChannelNumber, direction)
             isaninteger = @(x)isfinite(x) && x==floor(x);
@@ -472,7 +428,6 @@ classdef NP_PicomotorControllerDevice < Devices.Device
             end
             Error = this.GetError;
         end
-        
         %Move to target position
         function Error = MoveAbsolute(this, ChannelNumber, target)
             isaninteger = @(x)isfinite(x) && x==floor(x);
@@ -482,8 +437,11 @@ classdef NP_PicomotorControllerDevice < Devices.Device
                                        ,'Invalid target position. Check if it is an integer between -2147483648 and +2147483647.')
             this.TargetPosition = target;
             currentPos = this.GetCurrentPosition(ChannelNumber);
-            NumberOfSteps = this.GetNumberOfStepsStillToBePerformed(ChannelNumber);
+            NumberOfSteps = abs(target - currentPos);
             if target ~= currentPos 
+                if NumberOfSteps < 3
+                    warning('No error will be detected even if the motor is not connected for less than 3 steps! Manual check required!')
+                end
                 if target == 0
                     disp('Moving to home...');
                 elseif target > 0 && NumberOfSteps <= this.MaxNumberOfSteps.UserDefined
@@ -506,7 +464,6 @@ classdef NP_PicomotorControllerDevice < Devices.Device
                 this.UpdateTotalNumberOfSteps(ChannelNumber, NumberOfSteps)
             end
         end
-        
         %Move Relative
         function Error = MoveRelative(this, ChannelNumber, NumberOfSteps)
             isaninteger = @(x)isfinite(x) && x==floor(x);
@@ -516,6 +473,9 @@ classdef NP_PicomotorControllerDevice < Devices.Device
                                               ,'Invalid number of steps. Check if it is an integer between -2147483648 and +2147483647.')
             this.TargetPosition = this.GetCurrentPosition(ChannelNumber) + NumberOfSteps;
             if NumberOfSteps ~= 0
+                if NumberOfSteps < 3
+                    warning('No error will be detected even if the motor is not connected for less than 3 steps! Manual check required!')
+                end
                 if NumberOfSteps > 0 && NumberOfSteps <= this.MaxNumberOfSteps.UserDefined
                     disp(['Moving by ' num2str(abs(NumberOfSteps)) ' steps in the positive direction...']);
                 elseif NumberOfSteps < 0 && NumberOfSteps >= -this.MaxNumberOfSteps.UserDefined 
@@ -536,7 +496,6 @@ classdef NP_PicomotorControllerDevice < Devices.Device
                 this.UpdateTotalNumberOfSteps(ChannelNumber, NumberOfSteps)
             end
         end
-        
         % Stop movement of an axis with deceleration (the negative of the
         % specified acceleration)
         function Error = StopMotion(this, ChannelNumber)
@@ -551,14 +510,12 @@ classdef NP_PicomotorControllerDevice < Devices.Device
             end
             Error = this.GetError;
         end
-        
         % Abort Motion of all axes without deceleration
         function Error = AbortMotion(this)
             disp('Aborting motion of all axes...');             
             this.write(this.CommandList.AbortMotion);
             Error = this.GetError;
         end
-        
         %% Get number of steps still to be performed 
         function [NumberOfSteps, Error] = GetNumberOfStepsStillToBePerformed(this, ChannelNumber)
             % Get number of steps still to be performed 
@@ -571,7 +528,6 @@ classdef NP_PicomotorControllerDevice < Devices.Device
             this.NumberOfStepsStillToBePerformed = NumberOfSteps;
             Error = this.GetError;
         end
-        
         %% Get TotalNumberOfSteps
         function [Forwards,Backwards] = GetTotalNumberOfSteps(this,ChannelNumber)
             % [Forwards,Backwards]=GetTotalNumberOfSteps(ChannelNumber)
@@ -584,7 +540,6 @@ classdef NP_PicomotorControllerDevice < Devices.Device
             Forwards=this.TotalNumberOfStepsForwards(ChannelNumber);
             Backwards=this.TotalNumberOfStepsBackwards(ChannelNumber);
         end
-        
         %% Set TotalNumberOfSteps
         function UpdateTotalNumberOfSteps(this, ChannelNumber, NumberOfSteps)
             % UpdateTotalNumberOfSteps(this,DemultiplexerChannelNumber,NumberOfSteps)
@@ -603,7 +558,6 @@ classdef NP_PicomotorControllerDevice < Devices.Device
                 this.TotalNumberOfStepsBackwards(ChannelNumber) = this.TotalNumberOfStepsBackwards(ChannelNumber) - NumberOfSteps;
             end
         end
-        
         %% Reset TotalNumberOfSteps
         function [Forwards,Backwards] = ResetTotalNumberOfSteps(this, ChannelNumber)
             %[Forwards,Backwards]=ResetTotalNumberOfSteps(this,DemultiplexerChannelNumber)
@@ -619,12 +573,10 @@ classdef NP_PicomotorControllerDevice < Devices.Device
             this.TotalNumberOfStepsForwards(ChannelNumber) = 0;
             this.TotalNumberOfStepsBackwards(ChannelNumber) = 0;
         end
-        
         %% Reset Device
         function reset(this)
             this.write(this.CommandList.Reset);
         end
-        
         %% Disconnect Device
         function DisconnectFromDevice(this)
             disp('Disconnecting...');
@@ -643,7 +595,6 @@ classdef NP_PicomotorControllerDevice < Devices.Device
                 rethrow(ME)
             end
         end
-        
         %% Reset Device parameters
         function recallParameters(this, binVal)
         % This command restores the controller working parameters from values saved in its non-
@@ -653,7 +604,6 @@ classdef NP_PicomotorControllerDevice < Devices.Device
         % factory default settings. “*RCL 1” Restores last saved settings.  
            this.write([this.CommandList.RecallParams num2str(binVal)])
         end
-        
         %% Query for errors 
         function ret=GetError(this)
             pause(0.4);
@@ -663,16 +613,13 @@ classdef NP_PicomotorControllerDevice < Devices.Device
             message = extractAfter(remain, ', ');
             ret = struct('Code', code, 'Message', message);
         end
-        
         %%      ======= START SETTERS/GETTERS ========
         %
         % These functions are used to validate the configuration parameters.
         
     end
-  
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%     
 %- Methods (Static)
-
     methods (Static)
     
         function USB_reperror(errorcode, optext)
