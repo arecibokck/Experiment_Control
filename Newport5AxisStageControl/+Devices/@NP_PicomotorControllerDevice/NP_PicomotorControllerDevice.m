@@ -426,6 +426,7 @@ classdef NP_PicomotorControllerDevice < Devices.Device
                     break
                 end
             end
+            pause(0.4); % Pause necessary for reliable error readout
             Error = this.GetError;
         end
         %Move to target position
@@ -456,6 +457,7 @@ classdef NP_PicomotorControllerDevice < Devices.Device
             else
                 disp('Currently at target position.')
             end
+            pause(0.4); % Pause necessary for reliable error readout
             Error = this.GetError;
             %-Wait till movement stops
             WaitResult=this.WaitForStopOfMovement(ChannelNumber);
@@ -488,7 +490,8 @@ classdef NP_PicomotorControllerDevice < Devices.Device
             else
                 disp('Axis will not be moved in either direction.');
             end
-            Error = this.GetError;
+            pause(0.4); % Pause necessary for reliable error readout
+            Error = this.GetError; 
             %-Wait till movement stops
             WaitResult=this.WaitForStopOfMovement(ChannelNumber);            
             if WaitResult && Error.Code==0
@@ -606,7 +609,6 @@ classdef NP_PicomotorControllerDevice < Devices.Device
         end
         %% Query for errors 
         function ret=GetError(this)
-            pause(0.4);
             err = this.query(this.CommandList.ErrorMessageQuery); 
             [token,remain] = strtok(err,',');
             code = str2double(token);

@@ -16,6 +16,7 @@ if true
     Controller.delete()
     %% - Destroy Object
     clear Controller
+    clear all
 end
 
 %% - Testing the ControllerDevice-Class
@@ -46,12 +47,14 @@ if true
     %% - Test: ControllerDevice-Method: Get and Set Home position
     Controller.ControllerDevice{1}.GetHome(1)
     %Controller.ControllerDevice{1}.SetHome(1)
+    %% - Test: ControllerDevice-Method: Get Current Position
+    Controller.ControllerDevice{1}.GetCurrentPosition(1);
     %% - Test: ControllerDevice-Method: Get Target Position
     Controller.ControllerDevice{1}.GetAbsoluteTargetPosition(1)
     Controller.ControllerDevice{1}.GetRelativeTargetPosition(1)
     %% - Test: ControllerDevice-Method: Move
-    ChannelNumber = 4;
-    Target = 0;
+    ChannelNumber = 1;
+    Target = 200;
     Controller.ControllerDevice{1}.MoveAbsolute(ChannelNumber,Target)
     [Forwards,Backwards] = Controller.ControllerDevice{1}.GetTotalNumberOfSteps(ChannelNumber);     
     %% - Test: ControllerDevice-Method: IsPicomotorMoving
@@ -62,7 +65,6 @@ if true
     %- Move
     Target=500;
     DelayTime=0.1;  %in sec
-
     Controller.ControllerDevice{1}.MoveRelative(ChannelNumber,Target) % ControllerDeviceIndex==1
     %-stop after delay-time
     pause(DelayTime)
@@ -150,7 +152,7 @@ if true
     Axis.GetHome
     Axis.SetHome(20)
     %% -Call ControllerDevice: -Call ControllerDevice:  MoveAbsolute
-    Target=0;
+    Target=300;
     Axis.MoveAbsolute(Target);
     %% -Call ControllerDevice: -Call ControllerDevice:  MoveRelative
     NumberOfSteps=1000;

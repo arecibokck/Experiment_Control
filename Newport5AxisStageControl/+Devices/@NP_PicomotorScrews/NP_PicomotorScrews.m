@@ -43,13 +43,13 @@ classdef  NP_PicomotorScrews < Devices.Device
                 assert(isaninteger(MotorProperties.ChannelNumber) && MotorProperties.ChannelNumber > 0 && MotorProperties.ChannelNumber < 5 ,'Invalid channel number. Check if it is an integer between 1 and 4.');
             end
             this.ControllerDeviceChannelNumber=MotorProperties.ChannelNumber;
-            if ~isempty(ControllerDeviceObj) && ~isnan(MotorProperties.ChannelNumber)
+            if ~isempty(ControllerDeviceObj) 
                 %Set defaults
                 ControllerDeviceObj.SetMotorType(MotorProperties.ChannelNumber, MotorProperties.MotorType);
                 ControllerDeviceObj.SetHome(MotorProperties.ChannelNumber, MotorProperties.HomePosition);
                 ControllerDeviceObj.SetVelocity(MotorProperties.ChannelNumber, MotorProperties.Velocity);
                 ControllerDeviceObj.SetAcceleration(MotorProperties.ChannelNumber, MotorProperties.Acceleration);
-            elseif ~isnan(MotorProperties.ChannelNumber)
+            else
                 this.SetMotorType(MotorProperties.MotorType);
                 this.SetHome(MotorProperties.HomePosition);
                 this.SetVelocity(MotorProperties.Velocity);

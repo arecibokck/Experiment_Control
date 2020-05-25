@@ -111,6 +111,8 @@ classdef  NP_PicomotorController < Devices.Device
     methods %Lifecycle functions
         %% Class Constructor
         function this = NP_PicomotorController()
+            progressbar = waitbar(0, sprintf('Creating picomotor controller object...(%.f%%)', 0), 'Name','Please Wait');
+            pause(1)
             disp('NP_PicomotorController object is being constructed...')
             this@Devices.Device;
             %-Load DefaultData
@@ -176,6 +178,8 @@ classdef  NP_PicomotorController < Devices.Device
                         end
                     end
                     clear Index
+                    waitbar(.02, progressbar, sprintf('Creating controller device objects...(%.f%%)', 2));
+                    pause(1)
                     %-Create objects for each ControllerDevice and open connection
                     for Index=1:length(this.ControllerDeviceInfo)
                         Temp_productID          = this.ControllerDeviceInfo(Index).productID;
@@ -194,6 +198,9 @@ classdef  NP_PicomotorController < Devices.Device
                     end
                     clear Index
             end
+            
+            waitbar(.04, progressbar, sprintf('Creating & initializing picomotor screw objects...(%.f%%)', 4));
+            pause(1)
             %-Create objects for each PicomotorScrew
             for Index=1:length(this.PicomotorScrewsInfo)
                 %-Get temporary Variables
@@ -220,10 +227,17 @@ classdef  NP_PicomotorController < Devices.Device
                 else
                     warning(['NP_PicomotorScrews object for ' Alias ' not created since its controller is not connected to PC!'])
                 end
+                if Index ~= length(this.PicomotorScrewsInfo)
+                    p = Index/length(this.PicomotorScrewsInfo);
+                    waitbar(p, progressbar, sprintf('Creating & initializing picomotor screw objects...(%.f%%)', p*100));
+                    pause(1)
+                end
             end
+            waitbar(1, progressbar,sprintf('Finishing...(%.f%%)', 100));
+            pause(1)
             %- Show finish message:
             disp('NP_PicomotorController object created.')
-            
+            close(progressbar)
         end
         %% Class Destructor (Closes Connection, Clears object)
         function delete(this)
