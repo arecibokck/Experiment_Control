@@ -60,6 +60,7 @@ classdef NP_PicomotorControllerDevice < Devices.Device
         ReadyStatus = false;
         % true if at least one Axis is moving
         IsMoving;
+        abortMotionFlag = 0;
         
         
         %-DeviceSettings:
@@ -75,8 +76,9 @@ classdef NP_PicomotorControllerDevice < Devices.Device
         NumberOfStepsStillToBePerformed = 0;
         TotalNumberOfStepsForwards  = [0;0;0;0];
         TotalNumberOfStepsBackwards = [0;0;0;0];
-        MaxNumberOfSteps = struct('UserDefined'  ,3000, ...
-            'HardwareLimit',2^31);                        % Upper limit of steps per Move-Command
+        IgnoreMaxNumberOfSteps = [0;0;0;0];
+        MaxNumberOfSteps = struct('UserDefined'  ,[3000;2000;500;4000], ...
+                                  'HardwareLimit',2^31);   % Upper limit of steps per Move-Command
         
     end
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -358,6 +360,8 @@ classdef NP_PicomotorControllerDevice < Devices.Device
                 [isMoving, ~] = this.IsPicomotorMoving(ChannelNumber);
                 if ~isMoving                    % Check if Moving
                     break
+                elseif  this.abortMotionFlag
+                    break
                 end
                 pause(PauseTime)                % Wait
                 MaxIter=MaxIter-1;              % CountDown
@@ -382,10 +386,12 @@ classdef NP_PicomotorControllerDevice < Devices.Device
             end
             this.write([num2str(ChannelNumber) this.CommandList.IndefiniteMove direction]);
             while this.IsPicomotorMoving(ChannelNumber)
-                if this.TotalNumberOfStepsForwards(ChannelNumber) == this.MaxNumberOfSteps.UserDefined || this.TotalNumberOfStepsForwards(ChannelNumber) == -this.MaxNumberOfSteps.UserDefined
-                    this.StopMotion(ChannelNumber);
-                    warning('Motion stopped: Number of steps taken from home position has reached user-defined maximum in one direction.');
-                    break
+                if ~this.IgnoreMaxNumberOfSteps(ChannelNumber) 
+                    if this.TotalNumberOfStepsForwards(ChannelNumber) == this.MaxNumberOfSteps.UserDefined(ChannelNumber) || this.TotalNumberOfStepsForwards(ChannelNumber) == -this.MaxNumberOfSteps.UserDefined(ChannelNumber)
+                        this.StopMotion(ChannelNumber);
+                        warning('Motion stopped: Number of steps taken from home position has reached user-defined maximum in one direction.');
+                        break
+                    end
                 end
             end
             pause(0.4); % Pause necessary for reliable error readout
@@ -405,15 +411,25 @@ classdef NP_PicomotorControllerDevice < Devices.Device
                 if NumberOfSteps < 3
                     warning('No error will be detected even if the motor is not connected for less than 3 steps! Manual check required!')
                 end
-                if target == 0
-                    disp(['Moving Channel ' num2str(ChannelNumber) ' to home...']);
-                elseif target > 0 && NumberOfSteps <= this.MaxNumberOfSteps.UserDefined
-                    disp(['Moving Channel ' num2str(ChannelNumber) ' to +' num2str(abs(target)) '...']);
-                elseif target < 0 && NumberOfSteps >= -this.MaxNumberOfSteps.UserDefined
-                    disp(['Moving Channel ' num2str(ChannelNumber) ' to -' num2str(abs(target)) '...']);
+                if ~this.IgnoreMaxNumberOfSteps(ChannelNumber) 
+                    if target == 0
+                        disp(['Moving Channel ' num2str(ChannelNumber) ' to home...']);
+                    elseif target > 0 && NumberOfSteps <= this.MaxNumberOfSteps.UserDefined(ChannelNumber)
+                        disp(['Moving Channel ' num2str(ChannelNumber) ' to +' num2str(abs(target)) '...']);
+                    elseif target < 0 && NumberOfSteps >= -this.MaxNumberOfSteps.UserDefined(ChannelNumber)
+                        disp(['Moving Channel ' num2str(ChannelNumber) ' to -' num2str(abs(target)) '...']);
+                    else
+                        warning('Number of steps exceeds user-defined limit. Axis will not be moved in either direction.');
+                        target = currentPos;
+                    end
                 else
-                    warning('Number of steps exceeds user-defined limit. Axis will not be moved in either direction.');
-                    target = currentPos;
+                    if target == 0
+                        disp(['Moving Channel ' num2str(ChannelNumber) ' to home...']);
+                    elseif target > 0 
+                        disp(['Moving Channel ' num2str(ChannelNumber) ' to +' num2str(abs(target)) '...']);
+                    else 
+                        disp(['Moving Channel ' num2str(ChannelNumber) ' to -' num2str(abs(target)) '...']);
+                    end
                 end
                 this.write([num2str(ChannelNumber) this.CommandList.AbsoluteMove num2str(target)]);
             else
@@ -440,13 +456,21 @@ classdef NP_PicomotorControllerDevice < Devices.Device
                 if abs(NumberOfSteps) < 3
                     warning('No error will be detected even if the motor is not connected for less than 3 steps! Manual check required!')
                 end
-                if NumberOfSteps > 0 && NumberOfSteps <= this.MaxNumberOfSteps.UserDefined
-                    disp(['Moving Channel ' num2str(ChannelNumber) ' by ' num2str(abs(NumberOfSteps)) ' steps in the positive direction...']);
-                elseif NumberOfSteps < 0 && NumberOfSteps >= -this.MaxNumberOfSteps.UserDefined
-                    disp(['Moving Channel ' num2str(ChannelNumber) ' by ' num2str(abs(NumberOfSteps)) ' steps in the negative direction...']);
+                if ~this.IgnoreMaxNumberOfSteps(ChannelNumber) 
+                    if NumberOfSteps > 0 && NumberOfSteps <= this.MaxNumberOfSteps.UserDefined(ChannelNumber)
+                        disp(['Moving Channel ' num2str(ChannelNumber) ' by ' num2str(abs(NumberOfSteps)) ' steps in the positive direction...']);
+                    elseif NumberOfSteps < 0 && NumberOfSteps >= -this.MaxNumberOfSteps.UserDefined(ChannelNumber)
+                        disp(['Moving Channel ' num2str(ChannelNumber) ' by ' num2str(abs(NumberOfSteps)) ' steps in the negative direction...']);
+                    else
+                        NumberOfSteps = 0;
+                        warning('Number of steps exceeds user-defined limit. Axis will not be moved in either direction.');
+                    end
                 else
-                    NumberOfSteps = 0;
-                    warning('Number of steps exceeds user-defined limit. Axis will not be moved in either direction.');
+                    if NumberOfSteps > 0 
+                        disp(['Moving Channel ' num2str(ChannelNumber) ' by ' num2str(abs(NumberOfSteps)) ' steps in the positive direction...']);
+                    else
+                        disp(['Moving Channel ' num2str(ChannelNumber) ' by ' num2str(abs(NumberOfSteps)) ' steps in the negative direction...']);
+                    end
                 end
                 this.write([num2str(ChannelNumber) this.CommandList.RelativeMove num2str(NumberOfSteps)]);
             else
@@ -466,7 +490,6 @@ classdef NP_PicomotorControllerDevice < Devices.Device
         function Error = StopMotion(this, ChannelNumber)
             isaninteger = @(x)isfinite(x) && x==floor(x);
             assert(isaninteger(ChannelNumber) && ChannelNumber > 0 && ChannelNumber < 5 ,'Invalid channel number. Check if it is an integer between 1 and 4.');
-            
             if this.IsPicomotorMoving(ChannelNumber)
                 disp(['Stopping motion of Channel ' num2str(ChannelNumber) ' ...']);
                 this.write([num2str(ChannelNumber) this.CommandList.StopMotion]);
@@ -690,6 +713,10 @@ classdef NP_PicomotorControllerDevice < Devices.Device
             %- set TotalNumberOfSteps to zero
             this.TotalNumberOfStepsForwards(ChannelNumber) = 0;
             this.TotalNumberOfStepsBackwards(ChannelNumber) = 0;
+        end
+        %% Set MaxNumberOfSteps
+        function SetMaxNumberOfSteps(this, ChannelNumber, maxnumberofsteps)
+           this.MaxNumberOfSteps.UserDefined(ChannelNumber) = maxnumberofsteps;  
         end
     end % - Set/Get
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

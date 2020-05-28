@@ -249,7 +249,7 @@ classdef  NP_PicomotorController < Devices.Device
             end
         end
         %% Create GUI
-        function GUI(this, NumberOfDevice)
+        function GUI(~, NumberOfDevice)
         % GUI(this) invokes the Graphical User Interface (GUI) by calling
         % the script 'NF8082StageControllerGui' which currently is for
         % individual controller devices  

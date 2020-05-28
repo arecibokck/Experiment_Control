@@ -5,6 +5,8 @@ classdef NF8082StageControllerGui < matlab.apps.AppBase
         ControllerDeviceNumber
         stopPlot
         MaxNumberOfSteps
+        MoveHistory = struct('Timestamps', {}, ...
+                             'Moves'    , {});  
     end
     % Properties that correspond to app components
     properties (Access = public)
@@ -152,23 +154,44 @@ classdef NF8082StageControllerGui < matlab.apps.AppBase
         StartPlotButton                matlab.ui.control.Button
         StopPlotButton                 matlab.ui.control.Button
         ResetPlotButton                matlab.ui.control.Button
-        plotPanel
+        deactivateButton_1             matlab.ui.control.Button
+        deactivateButton_2             matlab.ui.control.Button
+        deactivateButton_3             matlab.ui.control.Button
+        deactivateButton_4             matlab.ui.control.Button
+        saveButton                     matlab.ui.control.Button
     end
     
     % Callbacks that handle component events
     methods (Access = private)
          % Button pushed function: RefreshGUIButton
         function RefreshGUIButtonPushed(app, event)
-            set(app.NofstepsEditField_1, 'Value', 0);
-            set(app.NofstepsEditField_2, 'Value', 0);
-            set(app.NofstepsEditField_3, 'Value', 0);
-            set(app.NofstepsEditField_4, 'Value', 0);
-            app.refresh_1();
-            app.refresh_2();
-            app.refresh_3();
-            app.refresh_4();
-            app.stopPlot = true;
-            app.UIAxes.cla;
+            [Forwards,Backwards] = app.Controller.ControllerDevice{app.ControllerDeviceNumber}.GetTotalNumberOfSteps(1);
+            set(app.ForwardsEditField_1, 'Value', Forwards);
+            set(app.BackwardsEditField_1, 'Value', Backwards);
+            set(app.TotalEditField_1, 'Value', Forwards - Backwards);
+            set(app.CurrentPositionEditField_1, 'Value', app.Controller.ControllerDevice{app.ControllerDeviceNumber}.GetCurrentPosition(1));
+            set(app.MaxstepsEditField_1, 'Value', app.MaxNumberOfSteps(1));
+            
+            [Forwards,Backwards] = app.Controller.ControllerDevice{app.ControllerDeviceNumber}.GetTotalNumberOfSteps(2);
+            set(app.ForwardsEditField_2, 'Value', Forwards);
+            set(app.BackwardsEditField_2, 'Value', Backwards);
+            set(app.TotalEditField_2, 'Value', Forwards - Backwards);
+            set(app.CurrentPositionEditField_2, 'Value', app.Controller.ControllerDevice{app.ControllerDeviceNumber}.GetCurrentPosition(2));
+            set(app.MaxstepsEditField_2, 'Value', app.MaxNumberOfSteps(2));
+            
+            [Forwards,Backwards] = app.Controller.ControllerDevice{app.ControllerDeviceNumber}.GetTotalNumberOfSteps(3);
+            set(app.ForwardsEditField_3, 'Value', Forwards);
+            set(app.BackwardsEditField_3, 'Value', Backwards);
+            set(app.TotalEditField_3, 'Value', Forwards - Backwards);
+            set(app.CurrentPositionEditField_3, 'Value', app.Controller.ControllerDevice{app.ControllerDeviceNumber}.GetCurrentPosition(3));
+            set(app.MaxstepsEditField_3, 'Value', app.MaxNumberOfSteps(3));
+            
+            [Forwards,Backwards] = app.Controller.ControllerDevice{app.ControllerDeviceNumber}.GetTotalNumberOfSteps(4);
+            set(app.ForwardsEditField_4, 'Value', Forwards);
+            set(app.BackwardsEditField_4, 'Value', Backwards);
+            set(app.TotalEditField_4, 'Value', Forwards - Backwards);
+            set(app.CurrentPositionEditField_4, 'Value', app.Controller.ControllerDevice{app.ControllerDeviceNumber}.GetCurrentPosition(4));
+            set(app.MaxstepsEditField_4, 'Value', app.MaxNumberOfSteps(4));
         end
         
         % Button pushed function: DisconnectButton
@@ -181,18 +204,63 @@ classdef NF8082StageControllerGui < matlab.apps.AppBase
                 %set(app.DisconnectButton,'BackgroundColor', 'red');
                 %set(app.DisconnectButton,'FontColor', [0.96,0.96,0.96]);
                 set(app.ReadyStatusLamp, 'Color', 'red');
+                set(app.RefreshGUIButton,'Enable', 0);
+                set(app.AbortallmotionButton,'Enable', 0);
+                app.deactivateControl(1);
+                app.deactivateControl(2);
+                app.deactivateControl(3);
+                app.deactivateControl(4);
+                axis(app.UIAxes, 'off');
+                set(app.saveButton, 'Enable', 0);
+                set(app.StartPlotButton, 'Enable', 0);
+                set(app.StopPlotButton, 'Enable', 0);
+                set(app.ResetPlotButton, 'Enable', 0);
             else
                 app.Controller.reconnectPicomotorController(app.ControllerDeviceNumber);
                 set(app.DisconnectButton,'Text', 'Disconnect');
                 %set(app.DisconnectButton,'BackgroundColor', [0.96,0.96,0.96]);
                 %set(app.DisconnectButton,'FontColor', [0,0,0]);
                 set(app.ReadyStatusLamp, 'Color', 'green');
+                set(app.RefreshGUIButton,'Enable', 1);
+                set(app.AbortallmotionButton,'Enable', 1);
+                if strcmp(get(app.deactivateButton_1,'Text'),'Deactivate')
+                    set(app.deactivateButton_1, 'Text', 'Reactivate')
+                end
+                set(app.deactivateButton_1, 'Enable', 1)
+                if strcmp(get(app.deactivateButton_2,'Text'),'Deactivate')
+                    set(app.deactivateButton_2, 'Text', 'Reactivate')
+                end
+                set(app.deactivateButton_2, 'Enable', 1)
+                if strcmp(get(app.deactivateButton_3,'Text'),'Deactivate')
+                    set(app.deactivateButton_3, 'Text', 'Reactivate')
+                end
+                set(app.deactivateButton_3, 'Enable', 1)
+                if strcmp(get(app.deactivateButton_4,'Text'),'Deactivate')
+                    set(app.deactivateButton_4, 'Text', 'Reactivate')
+                end
+                set(app.deactivateButton_4, 'Enable', 1)
+                axis(app.UIAxes, 'on');
+                set(app.saveButton, 'Enable', 1);
+                set(app.StartPlotButton, 'Enable', 1);
+                set(app.StopPlotButton, 'Enable', 1);
+                set(app.ResetPlotButton, 'Enable', 1);
             end
         end
         
          % Button pushed function: AbortallmotionButton
         function AbortallmotionButtonPushed(app, event)
+            app.Controller.ControllerDevice{app.ControllerDeviceNumber}.abortMotionFlag = 1;
             app.Controller.ControllerDevice{app.ControllerDeviceNumber}.AbortMotion;
+            app.Controller.ControllerDevice{app.ControllerDeviceNumber}.abortMotionFlag = 0;
+        end
+        
+        function saveButtonPushed(app, event)
+            filename = ['MovesUpto_' char(strrep(strrep(strrep(string(datetime('now', 'Format', 'yyyy-MM-dd HH:mm')), '-', ''), ' ', '_'), ':', '')) '.csv']; 
+            [file, path] = uiputfile(filename);
+            if ~(isequal(file,0) || isequal(path,0))
+                temp_table = struct2table(app.MoveHistory);
+                writetable(temp_table,[path file]);
+            end
         end
         
         % Button pushed function: ResetButton
@@ -205,9 +273,9 @@ classdef NF8082StageControllerGui < matlab.apps.AppBase
             axis4 = animatedline(app.UIAxes, 'Color', Colors2Use{4}, 'Linewidth', 1.5);
             leg = legend(app.UIAxes, 'Axis 1', 'Axis 2', 'Axis 3', 'Axis 4');
             set(leg,'Box','off');
+            set(gcf,'visible','off')
             app.stopPlot = false;
             startTime = datetime('now');
-            set(gcf,'visible','off')
             while ~app.stopPlot
                 t = fix(24*3600*datenum(datetime('now') - startTime));
                 addpoints(axis1, t, app.Controller.ControllerDevice{app.ControllerDeviceNumber}.GetCurrentPosition(1));  
@@ -218,7 +286,7 @@ classdef NF8082StageControllerGui < matlab.apps.AppBase
                     app.UIAxes.XLim = [t-refreshduration t];
                 end
                 datetick('x', 'keeplimits');
-                drawnow
+                drawnow limitrate
             end    
         end
         
@@ -233,6 +301,55 @@ classdef NF8082StageControllerGui < matlab.apps.AppBase
             app.stopPlot = false;
         end
         
+        function deactivateControl(app, axis)
+            switch axis
+                case 1
+                    children_axis = get(app.Axis1Panel,'Children');
+                    children_move = get(app.MovePanel_1,'Children');
+                    set(children_axis(isprop(children_axis,'Enable')),'Enable',0)
+                    set(children_move(isprop(children_move,'Enable')),'Enable',0)
+                case 2
+                    children_axis = get(app.Axis2Panel,'Children');
+                    children_move = get(app.MovePanel_2,'Children');
+                    set(children_axis(isprop(children_axis,'Enable')),'Enable',0)
+                    set(children_move(isprop(children_move,'Enable')),'Enable',0)
+                case 3
+                    children_axis = get(app.Axis3Panel,'Children');
+                    children_move = get(app.MovePanel_3,'Children');
+                    set(children_axis(isprop(children_axis,'Enable')),'Enable',0)
+                    set(children_move(isprop(children_move,'Enable')),'Enable',0)
+                case 4
+                    children_axis = get(app.Axis4Panel,'Children');
+                    children_move = get(app.MovePanel_4,'Children');
+                    set(children_axis(isprop(children_axis,'Enable')),'Enable',0)
+                    set(children_move(isprop(children_move,'Enable')),'Enable',0) 
+            end
+        end
+        
+        function reactivateControl(app, axis)
+            switch axis
+                case 1
+                    children_axis = get(app.Axis1Panel,'Children');
+                    children_move = get(app.MovePanel_1,'Children');
+                    set(children_axis(isprop(children_axis,'Enable')),'Enable',1)
+                    set(children_move(isprop(children_move,'Enable')),'Enable',1)
+                case 2
+                    children_axis = get(app.Axis2Panel,'Children');
+                    children_move = get(app.MovePanel_2,'Children');
+                    set(children_axis(isprop(children_axis,'Enable')),'Enable',1)
+                    set(children_move(isprop(children_move,'Enable')),'Enable',1)
+                case 3
+                    children_axis = get(app.Axis3Panel,'Children');
+                    children_move = get(app.MovePanel_3,'Children');
+                    set(children_axis(isprop(children_axis,'Enable')),'Enable',1)
+                    set(children_move(isprop(children_move,'Enable')),'Enable',1)
+                case 4
+                    children_axis = get(app.Axis4Panel,'Children');
+                    children_move = get(app.MovePanel_4,'Children');
+                    set(children_axis(isprop(children_axis,'Enable')),'Enable',1)
+                    set(children_move(isprop(children_move,'Enable')),'Enable',1)
+            end
+        end
         
         %% Axis 1
         % Value changed function: DropDown_1
@@ -277,22 +394,26 @@ classdef NF8082StageControllerGui < matlab.apps.AppBase
         
         % Button pushed function: GoButton_1
         function GoButton_1Pushed(app, event)
-           set(app.MotionStatusLamp_1, 'Color', 'green');
-           error = app.Controller.ControllerDevice{app.ControllerDeviceNumber}.MoveRelative(1,app.NofstepsEditField_1.Value);
-           if error.Code ~= 108
-               set(app.ConnectionStatusLamp_1, 'Color', 'green');
-           else
-               set(app.ConnectionStatusLamp_1, 'Color', 'red');
-               set(app.MotionStatusLamp_1, 'Color', [0.96,0.96,0.96]);
-           end
-           set(app.MotionStatusLamp_1, 'Color', [0.96,0.96,0.96]);
-           app.updateNumbers_1;
-        end
-        
-        % Button pushed function: GoButton_1
-        function GoButton_2Pushed(app, event)
+            app.deactivateControl(2);
+            app.deactivateControl(3);
+            app.deactivateControl(4);
             set(app.MotionStatusLamp_1, 'Color', 'green');
-            error = app.Controller.ControllerDevice{app.ControllerDeviceNumber}.MoveRelative(1,app.NofstepsEditField_1.Value*(-1));
+            error = app.Controller.ControllerDevice{app.ControllerDeviceNumber}.MoveRelative(1,app.NofstepsEditField_1.Value);
+            if strcmp(get(app.deactivateButton_2,'Text'),'Deactivate')
+               app.reactivateControl(2);
+            else
+                set(app.deactivateButton_2, 'Enable', 1)
+            end
+            if strcmp(get(app.deactivateButton_3,'Text'),'Deactivate')
+               app.reactivateControl(3);
+            else
+                set(app.deactivateButton_3, 'Enable', 1)
+            end
+            if strcmp(get(app.deactivateButton_4,'Text'),'Deactivate')
+                app.reactivateControl(4);
+            else
+                set(app.deactivateButton_4, 'Enable', 1)
+            end
             if error.Code ~= 108
                 set(app.ConnectionStatusLamp_1, 'Color', 'green');
             else
@@ -301,6 +422,40 @@ classdef NF8082StageControllerGui < matlab.apps.AppBase
             end
             set(app.MotionStatusLamp_1, 'Color', [0.96,0.96,0.96]);
             app.updateNumbers_1;
+            app.MoveHistory(end+1)= struct('Timestamps', char(datetime('now')), 'Moves', ['1R+' num2str(app.NofstepsEditField_1.Value)]);
+        end
+        
+        % Button pushed function: GoButton_1
+        function GoButton_2Pushed(app, event)
+            app.deactivateControl(2);
+            app.deactivateControl(3);
+            app.deactivateControl(4);
+            set(app.MotionStatusLamp_1, 'Color', 'green');
+            error = app.Controller.ControllerDevice{app.ControllerDeviceNumber}.MoveRelative(1,app.NofstepsEditField_1.Value*(-1));
+            if strcmp(get(app.deactivateButton_2,'Text'),'Deactivate')
+               app.reactivateControl(2);
+            else
+                set(app.deactivateButton_2, 'Enable', 1)
+            end
+            if strcmp(get(app.deactivateButton_3,'Text'),'Deactivate')
+               app.reactivateControl(3);
+            else
+                set(app.deactivateButton_3, 'Enable', 1)
+            end
+            if strcmp(get(app.deactivateButton_4,'Text'),'Dectivate')
+                app.reactivateControl(4);
+            else
+                set(app.deactivateButton_4, 'Enable', 1)
+            end
+            if error.Code ~= 108
+                set(app.ConnectionStatusLamp_1, 'Color', 'green');
+            else
+                set(app.ConnectionStatusLamp_1, 'Color', 'red');
+                set(app.MotionStatusLamp_1, 'Color', [0.96,0.96,0.96]);
+            end
+            set(app.MotionStatusLamp_1, 'Color', [0.96,0.96,0.96]);
+            app.updateNumbers_1;
+            app.MoveHistory(end+1)= struct('Timestamps', char(datetime('now')), 'Moves', ['1R-' num2str(app.NofstepsEditField_1.Value)]);
         end
         
         function updateNumbers_1(app)
@@ -316,13 +471,35 @@ classdef NF8082StageControllerGui < matlab.apps.AppBase
            app.refresh_1; 
         end
         
+        % Value changed function: MaxstepsEditField
+        function MaxstepsEditField_1ValueChanged(app, event)
+            value = app.MaxstepsEditField_1.Value;
+            app.Controller.ControllerDevice{app.ControllerDeviceNumber}.SetMaxNumberOfSteps(1, value);
+            app.MaxNumberOfSteps = app.Controller.ControllerDevice{app.ControllerDeviceNumber}.MaxNumberOfSteps.UserDefined;
+            set(app.MaxstepsEditField_1, 'Value', app.MaxNumberOfSteps(1));
+        end
+        
         % Value changed function: IgnoreCheckBox_1
         function IgnoreCheckBox_1ValueChanged(app, event)
             value = app.IgnoreCheckBox_1.Value;
             if value == 1
-                app.Controller.ControllerDevice{app.ControllerDeviceNumber}.MaxNumberOfSteps.UserDefined = 0;
+                app.Controller.ControllerDevice{app.ControllerDeviceNumber}.IgnoreMaxNumberOfSteps(1) = 1;
             else
-                app.Controller.ControllerDevice{app.ControllerDeviceNumber}.MaxNumberOfSteps.UserDefined = app.MaxNumberOfSteps;
+                app.Controller.ControllerDevice{app.ControllerDeviceNumber}.IgnoreMaxNumberOfSteps(1) = 0;
+            end
+        end
+        
+        function deactivateButton_1Pushed(app, event)
+            if strcmp(get(app.deactivateButton_1,'Text'),'Activate')
+                app.reactivateControl(1);
+                set(app.deactivateButton_1, 'Text', 'Deactivate')
+            elseif strcmp(get(app.deactivateButton_1,'Text'),'Deactivate')
+                app.deactivateControl(1);
+                set(app.deactivateButton_1, 'Enable', 1)
+                set(app.deactivateButton_1, 'Text', 'Reactivate')
+            else
+                app.reactivateControl(1);
+                set(app.deactivateButton_1, 'Text', 'Deactivate')
             end
         end
         
@@ -378,8 +555,26 @@ classdef NF8082StageControllerGui < matlab.apps.AppBase
         
         % Button pushed function: GoButton_3
         function GoButton_3Pushed(app, event)
+           app.deactivateControl(1);
+           app.deactivateControl(3);
+           app.deactivateControl(4);
            set(app.MotionStatusLamp_2, 'Color', 'green');
            error = app.Controller.ControllerDevice{app.ControllerDeviceNumber}.MoveRelative(2,app.NofstepsEditField_2.Value);
+           if strcmp(get(app.deactivateButton_1,'Text'),'Deactivate')
+               app.reactivateControl(1);
+           else
+                set(app.deactivateButton_1, 'Enable', 1)
+           end
+           if strcmp(get(app.deactivateButton_3,'Text'),'Deactivate')
+               app.reactivateControl(3);
+           else
+                set(app.deactivateButton_3, 'Enable', 1)
+           end
+           if strcmp(get(app.deactivateButton_4,'Text'),'Deactivate')
+               app.reactivateControl(4);
+           else
+                set(app.deactivateButton_4, 'Enable', 1)
+           end
            if error.Code ~= 208
                set(app.ConnectionStatusLamp_2, 'Color', 'green');
            else
@@ -388,20 +583,40 @@ classdef NF8082StageControllerGui < matlab.apps.AppBase
            end
            set(app.MotionStatusLamp_2, 'Color', [0.96,0.96,0.96]);
            app.updateNumbers_2;
+           app.MoveHistory(end+1)= struct('Timestamps', char(datetime('now')), 'Moves', ['2R+' num2str(app.NofstepsEditField_2.Value)]); 
         end
         
         % Button pushed function: GoButton_4
         function GoButton_4Pushed(app, event)
-            set(app.MotionStatusLamp_2, 'Color', 'green');
-            error = app.Controller.ControllerDevice{app.ControllerDeviceNumber}.MoveRelative(2,app.NofstepsEditField_2.Value*(-1));
-            if error.Code ~= 208
-                set(app.ConnectionStatusLamp_2, 'Color', 'green');
-            else
-                set(app.ConnectionStatusLamp_2, 'Color', 'red');
-                set(app.MotionStatusLamp_2, 'Color', [0.96,0.96,0.96]);
-            end
-            set(app.MotionStatusLamp_2, 'Color', [0.96,0.96,0.96]);
-            app.updateNumbers_2;
+           app.deactivateControl(1);
+           app.deactivateControl(3);
+           app.deactivateControl(4);
+           set(app.MotionStatusLamp_2, 'Color', 'green');
+           error = app.Controller.ControllerDevice{app.ControllerDeviceNumber}.MoveRelative(2,app.NofstepsEditField_2.Value*(-1));
+           if strcmp(get(app.deactivateButton_1,'Text'),'Deactivate')
+               app.reactivateControl(1);
+           else
+                set(app.deactivateButton_1, 'Enable', 1)
+           end
+           if strcmp(get(app.deactivateButton_3,'Text'),'Deactivate')
+               app.reactivateControl(3);
+           else
+                set(app.deactivateButton_3, 'Enable', 1)
+           end
+           if strcmp(get(app.deactivateButton_4,'Text'),'Deactivate')
+               app.reactivateControl(4);
+           else
+                set(app.deactivateButton_4, 'Enable', 1)
+           end
+           if error.Code ~= 208
+               set(app.ConnectionStatusLamp_2, 'Color', 'green');
+           else
+               set(app.ConnectionStatusLamp_2, 'Color', 'red');
+               set(app.MotionStatusLamp_2, 'Color', [0.96,0.96,0.96]);
+           end
+           set(app.MotionStatusLamp_2, 'Color', [0.96,0.96,0.96]);
+           app.updateNumbers_2;
+           app.MoveHistory(end+1)= struct('Timestamps', char(datetime('now')), 'Moves', ['2R-' num2str(app.NofstepsEditField_2.Value)]);  
         end
         
         function updateNumbers_2(app)
@@ -417,13 +632,34 @@ classdef NF8082StageControllerGui < matlab.apps.AppBase
            app.refresh_2; 
         end
         
+        function MaxstepsEditField_2ValueChanged(app, event)
+            value = app.MaxstepsEditField_2.Value;
+            app.Controller.ControllerDevice{app.ControllerDeviceNumber}.SetMaxNumberOfSteps(2, value);
+            app.MaxNumberOfSteps = app.Controller.ControllerDevice{app.ControllerDeviceNumber}.MaxNumberOfSteps.UserDefined;
+            set(app.MaxstepsEditField_2, 'Value', app.MaxNumberOfSteps(2));
+        end
+        
         % Value changed function: IgnoreCheckBox_2
         function IgnoreCheckBox_2ValueChanged(app, event)
             value = app.IgnoreCheckBox_2.Value;
             if value == 1
-                app.Controller.ControllerDevice{app.ControllerDeviceNumber}.MaxNumberOfSteps.UserDefined = 0;
+                app.Controller.ControllerDevice{app.ControllerDeviceNumber}.IgnoreMaxNumberOfSteps(2) = 1;
             else
-                app.Controller.ControllerDevice{app.ControllerDeviceNumber}.MaxNumberOfSteps.UserDefined = app.MaxNumberOfSteps;
+                app.Controller.ControllerDevice{app.ControllerDeviceNumber}.IgnoreMaxNumberOfSteps(2) = 0;
+            end
+        end
+        
+        function deactivateButton_2Pushed(app, event)
+            if strcmp(get(app.deactivateButton_2,'Text'),'Activate')
+                app.reactivateControl(2);
+                set(app.deactivateButton_2, 'Text', 'Deactivate')
+            elseif strcmp(get(app.deactivateButton_2,'Text'),'Deactivate')
+                app.deactivateControl(2);
+                set(app.deactivateButton_2, 'Enable', 1)
+                set(app.deactivateButton_2, 'Text', 'Reactivate')
+            else
+                app.reactivateControl(2);
+                set(app.deactivateButton_2, 'Text', 'Deactivate')
             end
         end
         
@@ -479,8 +715,26 @@ classdef NF8082StageControllerGui < matlab.apps.AppBase
         
         % Button pushed function: GoButton_3
         function GoButton_5Pushed(app, event)
+           app.deactivateControl(1);
+           app.deactivateControl(2);
+           app.deactivateControl(4);
            set(app.MotionStatusLamp_3, 'Color', 'green');
            error = app.Controller.ControllerDevice{app.ControllerDeviceNumber}.MoveRelative(3,app.NofstepsEditField_3.Value);
+           if strcmp(get(app.deactivateButton_1,'Text'),'Deactivate')
+               app.reactivateControl(1);
+           else
+               set(app.deactivateButton_1, 'Enable', 1)
+           end
+           if strcmp(get(app.deactivateButton_2,'Text'),'Deactivate')
+               app.reactivateControl(2);
+           else
+               set(app.deactivateButton_2, 'Enable', 1)
+           end
+           if strcmp(get(app.deactivateButton_4,'Text'),'Deactivate')
+               app.reactivateControl(4);
+           else
+                set(app.deactivateButton_4, 'Enable', 1)
+           end
            if error.Code ~= 308
                set(app.ConnectionStatusLamp_3, 'Color', 'green');
            else
@@ -489,12 +743,31 @@ classdef NF8082StageControllerGui < matlab.apps.AppBase
            end
            set(app.MotionStatusLamp_3, 'Color', [0.96,0.96,0.96]);
            app.updateNumbers_3;
+           app.MoveHistory(end+1)= struct('Timestamps', char(datetime('now')), 'Moves', ['3R+' num2str(app.NofstepsEditField_3.Value)]);  
         end
         
         % Button pushed function: GoButton_4
         function GoButton_6Pushed(app, event)
+            app.deactivateControl(1);
+            app.deactivateControl(2);
+            app.deactivateControl(4);
             set(app.MotionStatusLamp_3, 'Color', 'green');
             error = app.Controller.ControllerDevice{app.ControllerDeviceNumber}.MoveRelative(3,app.NofstepsEditField_3.Value*(-1));
+            if strcmp(get(app.deactivateButton_1,'Text'),'Deactivate')
+               app.reactivateControl(1);
+            else
+               set(app.deactivateButton_1, 'Enable', 1)
+            end
+            if strcmp(get(app.deactivateButton_2,'Text'),'Deactivate')
+               app.reactivateControl(2);
+            else
+               set(app.deactivateButton_2, 'Enable', 1)
+            end
+            if strcmp(get(app.deactivateButton_4,'Text'),'Deactivate')
+               app.reactivateControl(4);
+            else
+               set(app.deactivateButton_4, 'Enable', 1)
+            end
             if error.Code ~= 308
                 set(app.ConnectionStatusLamp_3, 'Color', 'green');
             else
@@ -503,6 +776,7 @@ classdef NF8082StageControllerGui < matlab.apps.AppBase
             end
             set(app.MotionStatusLamp_3, 'Color', [0.96,0.96,0.96]);
             app.updateNumbers_3;
+            app.MoveHistory(end+1)= struct('Timestamps', char(datetime('now')), 'Moves', ['3R-' num2str(app.NofstepsEditField_3.Value)]);  
         end
         
         function updateNumbers_3(app)
@@ -518,13 +792,34 @@ classdef NF8082StageControllerGui < matlab.apps.AppBase
            app.refresh_3; 
         end
         
+        function MaxstepsEditField_3ValueChanged(app, event)
+            value = app.MaxstepsEditField_3.Value;
+            app.Controller.ControllerDevice{app.ControllerDeviceNumber}.SetMaxNumberOfSteps(3, value);
+            app.MaxNumberOfSteps = app.Controller.ControllerDevice{app.ControllerDeviceNumber}.MaxNumberOfSteps.UserDefined;
+            set(app.MaxstepsEditField_3, 'Value', app.MaxNumberOfSteps(3));
+        end
+        
         % Value changed function: IgnoreCheckBox_3
         function IgnoreCheckBox_3ValueChanged(app, event)
             value = app.IgnoreCheckBox_3.Value;
             if value == 1
-                app.Controller.ControllerDevice{app.ControllerDeviceNumber}.MaxNumberOfSteps.UserDefined = 0;
+                app.Controller.ControllerDevice{app.ControllerDeviceNumber}.IgnoreMaxNumberOfSteps(3) = 1;
             else
-                app.Controller.ControllerDevice{app.ControllerDeviceNumber}.MaxNumberOfSteps.UserDefined = app.MaxNumberOfSteps;
+                app.Controller.ControllerDevice{app.ControllerDeviceNumber}.IgnoreMaxNumberOfSteps(3) = 0;
+            end
+        end
+        
+        function deactivateButton_3Pushed(app, event)
+            if strcmp(get(app.deactivateButton_3,'Text'),'Activate')
+                app.reactivateControl(3);
+                set(app.deactivateButton_3, 'Text', 'Deactivate')
+            elseif strcmp(get(app.deactivateButton_3,'Text'),'Deactivate')
+                app.deactivateControl(3);
+                set(app.deactivateButton_3, 'Enable', 1)
+                set(app.deactivateButton_3, 'Text', 'Reactivate')
+            else
+                app.reactivateControl(3);
+                set(app.deactivateButton_3, 'Text', 'Deactivate')
             end
         end
         
@@ -580,8 +875,26 @@ classdef NF8082StageControllerGui < matlab.apps.AppBase
         
         % Button pushed function: GoButton_4
         function GoButton_7Pushed(app, event)
+           app.deactivateControl(1);
+           app.deactivateControl(2);
+           app.deactivateControl(3); 
            set(app.MotionStatusLamp_4, 'Color', 'green');
            error = app.Controller.ControllerDevice{app.ControllerDeviceNumber}.MoveRelative(4,app.NofstepsEditField_4.Value);
+           if strcmp(get(app.deactivateButton_1,'Text'),'Deactivate') 
+                app.reactivateControl(1);
+           else
+               set(app.deactivateButton_1, 'Enable', 1)
+           end
+           if strcmp(get(app.deactivateButton_2,'Text'),'Deactivate')
+               app.reactivateControl(2);
+           else
+               set(app.deactivateButton_2, 'Enable', 1)
+           end
+           if strcmp(get(app.deactivateButton_3,'Text'),'Deactivate')
+               app.reactivateControl(3);
+           else
+               set(app.deactivateButton_3, 'Enable', 1)
+           end
            if error.Code ~= 408
                set(app.ConnectionStatusLamp_4, 'Color', 'green');
            else
@@ -590,12 +903,31 @@ classdef NF8082StageControllerGui < matlab.apps.AppBase
            end
            set(app.MotionStatusLamp_4, 'Color', [0.96,0.96,0.96]);
            app.updateNumbers_4;
+           app.MoveHistory(end+1)= struct('Timestamps', char(datetime('now')), 'Moves', ['4R+' num2str(app.NofstepsEditField_4.Value)]);  
         end
         
         % Button pushed function: GoButton_4
         function GoButton_8Pushed(app, event)
+            app.deactivateControl(1);
+            app.deactivateControl(2);
+            app.deactivateControl(3);
             set(app.MotionStatusLamp_4, 'Color', 'green');
             error = app.Controller.ControllerDevice{app.ControllerDeviceNumber}.MoveRelative(4,app.NofstepsEditField_4.Value*(-1));
+            if strcmp(get(app.deactivateButton_1,'Text'),'Deactivate') 
+                app.reactivateControl(1);
+            else
+                set(app.deactivateButton_1, 'Enable', 1)
+            end
+            if strcmp(get(app.deactivateButton_2,'Text'),'Deactivate')
+                app.reactivateControl(2);
+            else
+                set(app.deactivateButton_2, 'Enable', 1)
+            end
+            if strcmp(get(app.deactivateButton_3,'Text'),'Deactivate')
+                app.reactivateControl(3);
+            else
+                set(app.deactivateButton_3, 'Enable', 1)
+            end
             if error.Code ~= 408
                 set(app.ConnectionStatusLamp_4, 'Color', 'green');
             else
@@ -604,6 +936,7 @@ classdef NF8082StageControllerGui < matlab.apps.AppBase
             end
             set(app.MotionStatusLamp_4, 'Color', [0.96,0.96,0.96]);
             app.updateNumbers_4;
+            app.MoveHistory(end+1)= struct('Timestamps', char(datetime('now')), 'Moves', ['4R-' num2str(app.NofstepsEditField_4.Value)]);  
         end
         
         function updateNumbers_4(app)
@@ -619,13 +952,34 @@ classdef NF8082StageControllerGui < matlab.apps.AppBase
             app.refresh_4;
         end
         
+        function MaxstepsEditField_4ValueChanged(app, event)
+            value = app.MaxstepsEditField_4.Value;
+            app.Controller.ControllerDevice{app.ControllerDeviceNumber}.SetMaxNumberOfSteps(4, value);
+            app.MaxNumberOfSteps = app.Controller.ControllerDevice{app.ControllerDeviceNumber}.MaxNumberOfSteps.UserDefined;
+            set(app.MaxstepsEditField_4, 'Value', app.MaxNumberOfSteps(4));
+        end
+        
         % Value changed function: IgnoreCheckBox_4
         function IgnoreCheckBox_4ValueChanged(app, event)
             value = app.IgnoreCheckBox_4.Value;
             if value == 1
-                app.Controller.ControllerDevice{app.ControllerDeviceNumber}.MaxNumberOfSteps.UserDefined = 0;
+                app.Controller.ControllerDevice{app.ControllerDeviceNumber}.IgnoreMaxNumberOfSteps(4) = 1;
             else
-                app.Controller.ControllerDevice{app.ControllerDeviceNumber}.MaxNumberOfSteps.UserDefined = app.MaxNumberOfSteps;
+                app.Controller.ControllerDevice{app.ControllerDeviceNumber}.IgnoreMaxNumberOfSteps(4) = 0;
+            end
+        end
+        
+        function deactivateButton_4Pushed(app, event)
+            if strcmp(get(app.deactivateButton_4,'Text'),'Activate')
+                app.reactivateControl(4);
+                set(app.deactivateButton_4, 'Text', 'Deactivate')
+            elseif strcmp(get(app.deactivateButton_4,'Text'),'Deactivate')
+                app.deactivateControl(4);
+                set(app.deactivateButton_4, 'Enable', 1)
+                set(app.deactivateButton_4, 'Text', 'Reactivate')
+            else
+                app.reactivateControl(4);
+                set(app.deactivateButton_4, 'Text', 'Deactivate')
             end
         end
         
@@ -639,7 +993,7 @@ classdef NF8082StageControllerGui < matlab.apps.AppBase
         end
         
     end
-
+    
     % Component initialization
     methods (Access = private)
         
@@ -691,12 +1045,6 @@ classdef NF8082StageControllerGui < matlab.apps.AppBase
             app.MovePanel_1 = uipanel(app.Axis1Panel);
             app.MovePanel_1.Title = 'Move';
             app.MovePanel_1.Position = [18 43 285 158];
-            
-            % Create ResetButton_1
-            app.ResetButton_1 = uibutton(app.MovePanel_1, 'push');
-            app.ResetButton_1.ButtonPushedFcn = createCallbackFcn(app, @ResetButton_1Pushed, true);
-            app.ResetButton_1.Position = [201 8 74 23];
-            app.ResetButton_1.Text = 'Reset #';
             
             % Create NofstepsEditField_1Label
             app.NofstepsEditField_1Label = uilabel(app.MovePanel_1);
@@ -769,15 +1117,33 @@ classdef NF8082StageControllerGui < matlab.apps.AppBase
 
             % Create MaxstepsEditField_1
             app.MaxstepsEditField_1 = uieditfield(app.MovePanel_1, 'numeric');
+            app.MaxstepsEditField_1.ValueChangedFcn = createCallbackFcn(app, @MaxstepsEditField_1ValueChanged, true);
             app.MaxstepsEditField_1.HorizontalAlignment = 'center';
             app.MaxstepsEditField_1.Position = [86 36 58 22];
-            set(app.MaxstepsEditField_1, 'Value', app.MaxNumberOfSteps);
+            set(app.MaxstepsEditField_1, 'Value', app.MaxNumberOfSteps(1));
 
             % Create IgnoreCheckBox_1
             app.IgnoreCheckBox_1 = uicheckbox(app.MovePanel_1);
             app.IgnoreCheckBox_1.ValueChangedFcn = createCallbackFcn(app, @IgnoreCheckBox_1ValueChanged, true);
             app.IgnoreCheckBox_1.Text = 'Ignore';
             app.IgnoreCheckBox_1.Position = [151 36 56 22];
+            if app.Controller.ControllerDevice{app.ControllerDeviceNumber}.IgnoreMaxNumberOfSteps(1)
+                set(app.IgnoreCheckBox_1, 'Value', 1)
+            else
+                set(app.IgnoreCheckBox_1, 'Value', 0)
+            end
+            
+            % Create deactivateButton_1
+            app.deactivateButton_1 = uibutton(app.MovePanel_1, 'push');
+            app.deactivateButton_1.ButtonPushedFcn = createCallbackFcn(app, @deactivateButton_1Pushed, true);
+            app.deactivateButton_1.Position = [10 8 74 23];
+            app.deactivateButton_1.Text = 'Activate';
+            
+            % Create ResetButton_1
+            app.ResetButton_1 = uibutton(app.MovePanel_1, 'push');
+            app.ResetButton_1.ButtonPushedFcn = createCallbackFcn(app, @ResetButton_1Pushed, true);
+            app.ResetButton_1.Position = [201 8 74 23];
+            app.ResetButton_1.Text = 'Reset #';
 
             % Create MotionStatusLamp_1Label
             app.MotionStatusLamp_1Label = uilabel(app.Axis1Panel);
@@ -851,12 +1217,6 @@ classdef NF8082StageControllerGui < matlab.apps.AppBase
             app.MovePanel_2.Title = 'Move';
             app.MovePanel_2.Position = [18 43 285 158];
             
-            % Create ResetButton_2
-            app.ResetButton_2 = uibutton(app.MovePanel_2, 'push');
-            app.ResetButton_2.ButtonPushedFcn = createCallbackFcn(app, @ResetButton_2Pushed, true);
-            app.ResetButton_2.Position = [201 8 74 23];
-            app.ResetButton_2.Text = 'Reset #';
-            
             % Create NofstepsEditField_2Label
             app.NofstepsEditField_2Label = uilabel(app.MovePanel_2);
             app.NofstepsEditField_2Label.HorizontalAlignment = 'right';
@@ -928,15 +1288,33 @@ classdef NF8082StageControllerGui < matlab.apps.AppBase
 
             % Create MaxstepsEditField_2
             app.MaxstepsEditField_2 = uieditfield(app.MovePanel_2, 'numeric');
+            app.MaxstepsEditField_2.ValueChangedFcn = createCallbackFcn(app, @MaxstepsEditField_2ValueChanged, true);
             app.MaxstepsEditField_2.HorizontalAlignment = 'center';
             app.MaxstepsEditField_2.Position = [86 36 58 22];
-            set(app.MaxstepsEditField_2, 'Value', app.MaxNumberOfSteps);
+            set(app.MaxstepsEditField_2, 'Value', app.MaxNumberOfSteps(2));
 
             % Create IgnoreCheckBox_2
             app.IgnoreCheckBox_2 = uicheckbox(app.MovePanel_2);
             app.IgnoreCheckBox_2.ValueChangedFcn = createCallbackFcn(app, @IgnoreCheckBox_2ValueChanged, true);
             app.IgnoreCheckBox_2.Text = 'Ignore';
             app.IgnoreCheckBox_2.Position = [151 36 56 22];
+            if app.Controller.ControllerDevice{app.ControllerDeviceNumber}.IgnoreMaxNumberOfSteps(2)
+                set(app.IgnoreCheckBox_2, 'Value', 1)
+            else
+                set(app.IgnoreCheckBox_2, 'Value', 0)
+            end
+            
+            % Create deactivateButton_2
+            app.deactivateButton_2 = uibutton(app.MovePanel_2, 'push');
+            app.deactivateButton_2.ButtonPushedFcn = createCallbackFcn(app, @deactivateButton_2Pushed, true);
+            app.deactivateButton_2.Position = [10 8 74 23];
+            app.deactivateButton_2.Text = 'Activate';
+            
+            % Create ResetButton_2
+            app.ResetButton_2 = uibutton(app.MovePanel_2, 'push');
+            app.ResetButton_2.ButtonPushedFcn = createCallbackFcn(app, @ResetButton_2Pushed, true);
+            app.ResetButton_2.Position = [201 8 74 23];
+            app.ResetButton_2.Text = 'Reset #';
 
             % Create MotionStatusLamp_2Label
             app.MotionStatusLamp_2Label = uilabel(app.Axis2Panel);
@@ -1009,6 +1387,12 @@ classdef NF8082StageControllerGui < matlab.apps.AppBase
             app.MovePanel_3 = uipanel(app.Axis3Panel);
             app.MovePanel_3.Title = 'Move';
             app.MovePanel_3.Position = [18 43 285 158];
+            
+            % Create deactivateButton_3
+            app.deactivateButton_3 = uibutton(app.MovePanel_3, 'push');
+            app.deactivateButton_3.ButtonPushedFcn = createCallbackFcn(app, @deactivateButton_3Pushed, true);
+            app.deactivateButton_3.Position = [10 8 74 23];
+            app.deactivateButton_3.Text = 'Activate';
             
             % Create ResetButton_3
             app.ResetButton_3 = uibutton(app.MovePanel_3, 'push');
@@ -1087,15 +1471,21 @@ classdef NF8082StageControllerGui < matlab.apps.AppBase
 
             % Create MaxstepsEditField_3
             app.MaxstepsEditField_3 = uieditfield(app.MovePanel_3, 'numeric');
+            app.MaxstepsEditField_3.ValueChangedFcn = createCallbackFcn(app, @MaxstepsEditField_3ValueChanged, true);
             app.MaxstepsEditField_3.HorizontalAlignment = 'center';
             app.MaxstepsEditField_3.Position = [86 36 58 22];
-            set(app.MaxstepsEditField_3, 'Value', app.MaxNumberOfSteps);
+            set(app.MaxstepsEditField_3, 'Value', app.MaxNumberOfSteps(3));
 
             % Create IgnoreCheckBox_3
             app.IgnoreCheckBox_3 = uicheckbox(app.MovePanel_3);
             app.IgnoreCheckBox_3.ValueChangedFcn = createCallbackFcn(app, @IgnoreCheckBox_3ValueChanged, true);
             app.IgnoreCheckBox_3.Text = 'Ignore';
             app.IgnoreCheckBox_3.Position = [151 36 56 22];
+            if app.Controller.ControllerDevice{app.ControllerDeviceNumber}.IgnoreMaxNumberOfSteps(3)
+                set(app.IgnoreCheckBox_3, 'Value', 1)
+            else
+                set(app.IgnoreCheckBox_3, 'Value', 0)
+            end
 
             % Create MotionStatusLamp_3Label
             app.MotionStatusLamp_3Label = uilabel(app.Axis3Panel);
@@ -1170,12 +1560,6 @@ classdef NF8082StageControllerGui < matlab.apps.AppBase
             app.MovePanel_4.Title = 'Move';
             app.MovePanel_4.Position = [18 43 285 158];
             
-            % Create ResetButton_4
-            app.ResetButton_4 = uibutton(app.MovePanel_4, 'push');
-            app.ResetButton_4.ButtonPushedFcn = createCallbackFcn(app, @ResetButton_4Pushed, true);
-            app.ResetButton_4.Position = [201 8 74 23];
-            app.ResetButton_4.Text = 'Reset #';
-            
             % Create NofstepsEditField_4Label
             app.NofstepsEditField_4Label = uilabel(app.MovePanel_4);
             app.NofstepsEditField_4Label.HorizontalAlignment = 'right';
@@ -1247,15 +1631,33 @@ classdef NF8082StageControllerGui < matlab.apps.AppBase
 
             % Create MaxstepsEditField_4
             app.MaxstepsEditField_4 = uieditfield(app.MovePanel_4, 'numeric');
+            app.MaxstepsEditField_4.ValueChangedFcn = createCallbackFcn(app, @MaxstepsEditField_4ValueChanged, true);
             app.MaxstepsEditField_4.HorizontalAlignment = 'center';
             app.MaxstepsEditField_4.Position = [86 36 58 22];
-            set(app.MaxstepsEditField_4, 'Value', app.MaxNumberOfSteps);
+            set(app.MaxstepsEditField_4, 'Value', app.MaxNumberOfSteps(4));
 
             % Create IgnoreCheckBox_4
             app.IgnoreCheckBox_4 = uicheckbox(app.MovePanel_4);
             app.IgnoreCheckBox_4.ValueChangedFcn = createCallbackFcn(app, @IgnoreCheckBox_4ValueChanged, true);
             app.IgnoreCheckBox_4.Text = 'Ignore';
             app.IgnoreCheckBox_4.Position = [151 36 56 22];
+            if app.Controller.ControllerDevice{app.ControllerDeviceNumber}.IgnoreMaxNumberOfSteps(4)
+                set(app.IgnoreCheckBox_4, 'Value', 1)
+            else
+                set(app.IgnoreCheckBox_4, 'Value', 0)
+            end
+            
+            % Create deactivateButton_4
+            app.deactivateButton_4 = uibutton(app.MovePanel_4, 'push');
+            app.deactivateButton_4.ButtonPushedFcn = createCallbackFcn(app, @deactivateButton_4Pushed, true);
+            app.deactivateButton_4.Position = [10 8 74 23];
+            app.deactivateButton_4.Text = 'Activate';
+            
+            % Create ResetButton_4
+            app.ResetButton_4 = uibutton(app.MovePanel_4, 'push');
+            app.ResetButton_4.ButtonPushedFcn = createCallbackFcn(app, @ResetButton_4Pushed, true);
+            app.ResetButton_4.Position = [201 8 74 23];
+            app.ResetButton_4.Text = 'Reset #';
 
             % Create MotionStatusLamp_4Label
             app.MotionStatusLamp_4Label = uilabel(app.Axis4Panel);
@@ -1295,12 +1697,20 @@ classdef NF8082StageControllerGui < matlab.apps.AppBase
             for j = reshape(activeAxes, [1,length(activeAxes)])
                 if picomotorscrews(j).MotorProperties.ChannelNumber == 1
                     app.createAxis1(picomotorscrews(j).Alias)
+                    app.deactivateControl(1);
+                    set(app.deactivateButton_1, 'Enable', 1)
                 elseif picomotorscrews(j).MotorProperties.ChannelNumber == 2
                     app.createAxis2(picomotorscrews(j).Alias)
+                    app.deactivateControl(2);
+                    set(app.deactivateButton_2, 'Enable', 1)
                 elseif picomotorscrews(j).MotorProperties.ChannelNumber == 3
                     app.createAxis3(picomotorscrews(j).Alias)
+                    app.deactivateControl(3);
+                    set(app.deactivateButton_3, 'Enable', 1)
                 elseif picomotorscrews(j).MotorProperties.ChannelNumber == 4
                     app.createAxis4(picomotorscrews(j).Alias)
+                    app.deactivateControl(4);
+                    set(app.deactivateButton_4, 'Enable', 1)
                 end
             end        
 
@@ -1312,67 +1722,57 @@ classdef NF8082StageControllerGui < matlab.apps.AppBase
                     for k = reshape(c, [1,length(c)])
                         if k == 1
                             app.createAxis1('Axis 1')
-                            children_axis = get(app.Axis1Panel,'Children');
-                            children_move = get(app.MovePanel_1,'Children');
-                            children_buttongroup =  get(app.MotionTypeButtonGroup_1,'Children');
-                            set(children_axis(isprop(children_axis,'Enable')),'Enable',0)
-                            set(children_move(isprop(children_move,'Enable')),'Enable',0)
-                            set(children_buttongroup, 'Enable', 0)
+                            app.deactivateControl(1);
+                            
                         elseif k == 2
                             app.createAxis2('Axis 2')
-                            children_axis = get(app.Axis2Panel,'Children');
-                            children_move = get(app.MovePanel_2,'Children');
-                            children_buttongroup =  get(app.MotionTypeButtonGroup_2,'Children');
-                            set(children_axis(isprop(children_axis,'Enable')),'Enable',0)
-                            set(children_move(isprop(children_move,'Enable')),'Enable',0)
-                            set(children_buttongroup, 'Enable', 0)
+                            app.deactivateControl(2);
+                            
                         elseif k == 3
                             app.createAxis3('Axis 3')
-                            children_axis = get(app.Axis3Panel,'Children');
-                            children_move = get(app.MovePanel_3,'Children');
-                            children_buttongroup =  get(app.MotionTypeButtonGroup_3,'Children');
-                            set(children_axis(isprop(children_axis,'Enable')),'Enable',0)
-                            set(children_move(isprop(children_move,'Enable')),'Enable',0)
-                            set(children_buttongroup, 'Enable', 0)
+                            app.deactivateControl(3);
+                            
                         else
                             app.createAxis4('Axis 4')
-                            children_axis = get(app.Axis4Panel,'Children');
-                            children_move = get(app.MovePanel_4,'Children');
-                            children_buttongroup =  get(app.MotionTypeButtonGroup_4,'Children');
-                            set(children_axis(isprop(children_axis,'Enable')),'Enable',0)
-                            set(children_move(isprop(children_move,'Enable')),'Enable',0)
-                            set(children_buttongroup, 'Enable', 0)
+                            app.deactivateControl(4);
+                            
                         end
                     end
                 end
             end
             
+            % Create SavePlotButton
+            app.saveButton = uibutton(app.ControllerDeviceTab, 'push');
+            app.saveButton.ButtonPushedFcn = createCallbackFcn(app, @saveButtonPushed, true);
+            app.saveButton.Position = [184 693 147 22];
+            app.saveButton.Text = 'Save History';
+            
             % Create RefreshGUIButton
             app.RefreshGUIButton = uibutton(app.ControllerDeviceTab, 'push');
             app.RefreshGUIButton.ButtonPushedFcn = createCallbackFcn(app, @RefreshGUIButtonPushed, true);
-            app.RefreshGUIButton.Position = [254 693 147 22];
+            app.RefreshGUIButton.Position = [344 693 147 22];
             app.RefreshGUIButton.Text = 'Refresh GUI';
 
             % Create DisconnectButton
             app.DisconnectButton = uibutton(app.ControllerDeviceTab, 'push');
             app.DisconnectButton.ButtonPushedFcn = createCallbackFcn(app, @DisconnectButtonValueChanged, true);
-            app.DisconnectButton.Position = [414 693 147 22];
+            app.DisconnectButton.Position = [504 693 147 22];
             app.DisconnectButton.Text = 'Disconnect';
 
              % Create ReadyStatusLampLabel
             app.ReadyStatusLampLabel = uilabel(app.ControllerDeviceTab);
             app.ReadyStatusLampLabel.HorizontalAlignment = 'right';
-            app.ReadyStatusLampLabel.Position = [582 693 78 22];
+            app.ReadyStatusLampLabel.Position = [672 693 78 22];
             app.ReadyStatusLampLabel.Text = 'Ready Status';
 
             % Create ReadyStatusLamp
             app.ReadyStatusLamp = uilamp(app.ControllerDeviceTab);
-            app.ReadyStatusLamp.Position = [675 693 20 20];
+            app.ReadyStatusLamp.Position = [765 693 20 20];
 
             % Create AbortallmotionButton
             app.AbortallmotionButton = uibutton(app.ControllerDeviceTab, 'push');
             app.AbortallmotionButton.ButtonPushedFcn = createCallbackFcn(app, @AbortallmotionButtonPushed, true);
-            app.AbortallmotionButton.Position = [723 692 100 22];
+            app.AbortallmotionButton.Position = [813 692 100 22];
             app.AbortallmotionButton.Text = 'Abort all motion';
 
             % Create UIAxes
@@ -1385,19 +1785,22 @@ classdef NF8082StageControllerGui < matlab.apps.AppBase
             % Create StartPlotButton
             app.StartPlotButton = uibutton(app.ControllerDeviceTab, 'push');
             app.StartPlotButton.ButtonPushedFcn = createCallbackFcn(app, @StartPlotButtonPushed, true);
-            app.StartPlotButton.Position = [556 17 111 22];
+            %app.StartPlotButton.Position = [616 17 111 22];
+            app.StartPlotButton.Position = [550 17 111 22];
             app.StartPlotButton.Text = 'Start';
             
             % Create StopPlotButton
             app.StopPlotButton = uibutton(app.ControllerDeviceTab, 'push');
             app.StopPlotButton.ButtonPushedFcn = createCallbackFcn(app, @StopPlotButtonPushed, true);
-            app.StopPlotButton.Position = [690 17 111 22];
+            %app.StopPlotButton.Position = [750 17 111 22];
+            app.StopPlotButton.Position = [685 17 111 22];
             app.StopPlotButton.Text = 'Stop';
 
             % Create ResetPlotButton
             app.ResetPlotButton = uibutton(app.ControllerDeviceTab, 'push');
             app.ResetPlotButton.ButtonPushedFcn = createCallbackFcn(app, @ResetPlotButtonPushed, true);
-            app.ResetPlotButton.Position = [824 17 111 22];
+            %app.ResetPlotButton.Position = [884 17 111 22];
+            app.ResetPlotButton.Position = [819 17 111 22];
             app.ResetPlotButton.Text = 'Reset';
 
             % Show the figure after all components are created
