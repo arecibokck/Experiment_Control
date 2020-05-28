@@ -17,6 +17,10 @@ if true
     %% - Destroy Object
     clear Controller
     clear all
+    %% - Test: ControllerDevice-Method: Close Connection
+    Controller.disconnectPicomotorController(1);
+    %% - Test: ControllerDevice-Method: reconnect PicomotorControllerDevice
+    Controller.reconnectPicomotorController(1); 
 end
 
 %% - Testing the ControllerDevice-Class
@@ -28,11 +32,12 @@ end
 if true
     %% - Test: ControllerDevice-Method: Open Connection
     Controller.ControllerDevice{1}.ConnectToDevice()
-    %% - Test: ControllerDevice-Method: Close Connection
-    Controller.disconnectPicomotorController(1);
     % Controller.ControllerDevice{1}.DisconnectFromDevice
-    %% - Test: ControllerDevice-Method: reconnect PicomotorControllerDevice
-    Controller.reconnectPicomotorController(1); 
+    %% - GetCommandList
+    ret = Controller.ControllerDevice{1}.CommandList
+    %% - Query IDN
+    ret = Controller.ControllerDevice{1}.query('*IDN?')
+    
     %% - Test: ControllerDevice-Method: IsControllerReady
     isReady = Controller.ControllerDevice{1}.IsControllerReady;
     %% - Test: ControllerDevice-Method: Get and Set MotorType
@@ -78,6 +83,8 @@ if true
     assert(Forwards_Old-Forwards==0)
     assert(Backwards_Old-Backwards==0)
 end
+
+
 
 %% - Testing the PicomotorScrews-Class
 %%%%%%%%%
