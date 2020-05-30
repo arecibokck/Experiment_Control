@@ -37,9 +37,9 @@ classdef  NP_PicomotorController < Devices.Device
             ... Axis 02
                 struct('Alias',         'OptPol_x_back',             ...
                        'ControllerProductID',       '4000',             ...
-                       'ControllerDeviceKey', '',             ...
+                       'ControllerDeviceKey', '8742-65992',             ...
                        'MotorProperties',...
-                        struct('ChannelNumber',  2,            ...
+                        struct('ChannelNumber',NaN,            ...
                                'MotorType',      2,             ...
                                'HomePosition',   0,             ...
                                'Velocity',     400,             ...
@@ -249,11 +249,12 @@ classdef  NP_PicomotorController < Devices.Device
             end
         end
         %% Create GUI
-        function GUI(~, NumberOfDevice)
+        function GUI(~)
         % GUI(this) invokes the Graphical User Interface (GUI) by calling
         % the script 'NF8082StageControllerGui' which currently is for
         % individual controller devices  
-            NF8082StageControllerGui(NumberOfDevice)
+            NF8082StageControllerGuiV2
+            %NF8082StageControllerGuiV1(NumberOfDevice)
         end
         %% Disconnect from specified controller
         function disconnectPicomotorController(this,NumberOfDevice)
@@ -276,8 +277,7 @@ classdef  NP_PicomotorController < Devices.Device
                 'InputError:  NumberOfDevice must be an integer corresponding to each plugged device.')
             % - reconnect if necessary
             if ~(this.ControllerDevice{NumberOfDevice}.IsControllerReady)
-                Ct = this.ControllerDevice{NumberOfDevice}.ConnectionType;
-                this.ControllerDevice{NumberOfDevice}.ConnectToDevice(Ct);
+                this.ControllerDevice{NumberOfDevice}.ConnectToDevice(this.ControllerDevice{NumberOfDevice}.ConnectionType);
 %                 switch this.ConnectionType
 %                     case 'USB'
 %                         this.ControllerDevice{NumberOfDevice}.ConnectToDevice('USB');
@@ -286,7 +286,7 @@ classdef  NP_PicomotorController < Devices.Device
 %                 end
 %                 disp('Reconnected!');
             else 
-                disp(['ControllerDevice(' num2str(NumberOfDevice) ') still connected'])
+                disp(['ControllerDevice(' num2str(NumberOfDevice) ') still connected']);
             end
         end
     end

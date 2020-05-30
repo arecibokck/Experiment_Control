@@ -77,7 +77,7 @@ classdef NP_PicomotorControllerDevice < Devices.Device
         TotalNumberOfStepsForwards  = [0;0;0;0];
         TotalNumberOfStepsBackwards = [0;0;0;0];
         IgnoreMaxNumberOfSteps = [0;0;0;0];
-        MaxNumberOfSteps = struct('UserDefined'  ,[3000;2000;500;4000], ...
+        MaxNumberOfSteps = struct('UserDefined'  ,[2000;2000;2000;2000], ...
                                   'HardwareLimit',2^31);   % Upper limit of steps per Move-Command
         
     end
@@ -631,8 +631,6 @@ classdef NP_PicomotorControllerDevice < Devices.Device
             end
             Error = this.GetError;
         end
-        
-        
         %% Get absolute target position
         function [target, Error] = GetAbsoluteTargetPosition(this, ChannelNumber)
             isaninteger = @(x)isfinite(x) && x==floor(x);
@@ -656,8 +654,6 @@ classdef NP_PicomotorControllerDevice < Devices.Device
             pos = this.queryDouble([num2str(ChannelNumber) this.CommandList.CurrentPositionQuery]);
             Error = this.GetError;
         end
-        
-        
         %% Get TotalNumberOfSteps
         function [Forwards,Backwards] = GetTotalNumberOfSteps(this,ChannelNumber)
             % [Forwards,Backwards]=GetTotalNumberOfSteps(ChannelNumber)
@@ -713,6 +709,10 @@ classdef NP_PicomotorControllerDevice < Devices.Device
             %- set TotalNumberOfSteps to zero
             this.TotalNumberOfStepsForwards(ChannelNumber) = 0;
             this.TotalNumberOfStepsBackwards(ChannelNumber) = 0;
+        end
+        %% Get MaxNumberOfSteps
+        function ret = GetMaxNumberOfSteps(this, ChannelNumber)
+           ret = this.MaxNumberOfSteps.UserDefined(ChannelNumber);  
         end
         %% Set MaxNumberOfSteps
         function SetMaxNumberOfSteps(this, ChannelNumber, maxnumberofsteps)

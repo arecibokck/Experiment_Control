@@ -1,4 +1,4 @@
-classdef NF8082StageControllerGui < matlab.apps.AppBase
+classdef NF8082StageControllerGuiV1 < matlab.apps.AppBase
     
     properties (Access = private)
         Controller
@@ -1721,19 +1721,19 @@ classdef NF8082StageControllerGui < matlab.apps.AppBase
                 if ~isempty(c)
                     for k = reshape(c, [1,length(c)])
                         if k == 1
-                            app.createAxis1('Axis 1')
+                            app.createAxis1('Channel 1')
                             app.deactivateControl(1);
                             
                         elseif k == 2
-                            app.createAxis2('Axis 2')
+                            app.createAxis2('Channel 2')
                             app.deactivateControl(2);
                             
                         elseif k == 3
-                            app.createAxis3('Axis 3')
+                            app.createAxis3('Channel 3')
                             app.deactivateControl(3);
                             
                         else
-                            app.createAxis4('Axis 4')
+                            app.createAxis4('Channel 4')
                             app.deactivateControl(4);
                             
                         end
@@ -1812,7 +1812,7 @@ classdef NF8082StageControllerGui < matlab.apps.AppBase
     methods (Access = public)
 
         % Construct app
-        function app = NF8082StageControllerGui(ControllerDeviceNumber)
+        function app = NF8082StageControllerGuiV1(ControllerDeviceNumber)
             % Create UIFigure and hide until all components are created
             app.UIFigure = uifigure('Visible', 'on');
             app.UIFigure.Position = [100 100 1092 758];

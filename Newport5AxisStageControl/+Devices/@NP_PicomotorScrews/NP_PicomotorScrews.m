@@ -12,9 +12,11 @@ classdef  NP_PicomotorScrews < Devices.Device
         DefaultMotorProperties = struct;
     end
     
-    properties (Access=private) % Can only be set by members of same class
+    properties (Access=public) % Can only be set by members of same class
          %-ControllerDeviceStatus
-         IsConnected=0;                                    
+         IsConnected=0;
+         abortMotionFlag = 0;
+         IgnoreMaxNumberOfSteps = 0;   
     end
     
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -198,6 +200,18 @@ classdef  NP_PicomotorScrews < Devices.Device
             %-Send Command
             [Forwards,Backwards] = TempHandle.ControllerDevice{this.ControllerDeviceNumber}.ResetTotalNumberOfSteps(this.ControllerDeviceChannelNumber);
         end
+        %% Get MaxNumberOfSteps
+        function ret = GetMaxNumberOfSteps(this)
+            %-GetHandle, to get Access to NP-Class
+            TempHandle=Devices.NP_PicomotorController.getInstance();
+            ret = TempHandle.ControllerDevice{this.ControllerDeviceNumber}.GetMaxNumberOfSteps(this.ControllerDeviceChannelNumber);  
+        end
+        %% Set MaxNumberOfSteps
+        function SetMaxNumberOfSteps(this, maxnumberofsteps)
+            %-GetHandle, to get Access to NP-Class
+            TempHandle=Devices.NP_PicomotorController.getInstance();
+            TempHandle.ControllerDevice{this.ControllerDeviceNumber}.SetMaxNumberOfSteps(this.ControllerDeviceChannelNumber, maxnumberofsteps);  
+        end
     end % - Set/Get 
     methods
         %% Get number of steps still to be performed
@@ -224,6 +238,11 @@ classdef  NP_PicomotorScrews < Devices.Device
             assert(this.IsControllerReady==1,'Error: Device is not ready for next command!')
             %-GetHandle, to get Access to NP-Class
             TempHandle=Devices.NP_PicomotorController.getInstance();
+            if this.IgnoreMaxNumberOfSteps
+                TempHandle.ControllerDevice{this.ControllerDeviceNumber}.IgnoreMaxNumberOfSteps(this.ControllerDeviceChannelNumber) = 1;
+            else
+                TempHandle.ControllerDevice{this.ControllerDeviceNumber}.IgnoreMaxNumberOfSteps(this.ControllerDeviceChannelNumber) = 0;
+            end
             %-Send Command
             Error = TempHandle.ControllerDevice{this.ControllerDeviceNumber}.MoveIndefinitely(this.ControllerDeviceChannelNumber,Direction);
         end
@@ -242,6 +261,11 @@ classdef  NP_PicomotorScrews < Devices.Device
             assert(this.IsControllerReady==1,'Error: Device is not ready for next command!')
             %-GetHandle, to get Access to NP-Class
             TempHandle=Devices.NP_PicomotorController.getInstance();
+            if this.IgnoreMaxNumberOfSteps
+                TempHandle.ControllerDevice{this.ControllerDeviceNumber}.IgnoreMaxNumberOfSteps(this.ControllerDeviceChannelNumber) = 1;
+            else
+                TempHandle.ControllerDevice{this.ControllerDeviceNumber}.IgnoreMaxNumberOfSteps(this.ControllerDeviceChannelNumber) = 0;
+            end
             %-Send Command
             Error = TempHandle.ControllerDevice{this.ControllerDeviceNumber}.MoveAbsolute(this.ControllerDeviceChannelNumber,target);
             this.GetConnectionStatus(Error);
@@ -252,6 +276,11 @@ classdef  NP_PicomotorScrews < Devices.Device
             assert(this.IsControllerReady==1,'Error: Device is not ready for next command!')
             %-GetHandle, to get Access to NP-Class
             TempHandle=Devices.NP_PicomotorController.getInstance();
+            if this.IgnoreMaxNumberOfSteps
+                TempHandle.ControllerDevice{this.ControllerDeviceNumber}.IgnoreMaxNumberOfSteps(this.ControllerDeviceChannelNumber) = 1;
+            else
+                TempHandle.ControllerDevice{this.ControllerDeviceNumber}.IgnoreMaxNumberOfSteps(this.ControllerDeviceChannelNumber) = 0;
+            end
             %-Send Command
             Error = TempHandle.ControllerDevice{this.ControllerDeviceNumber}.MoveRelative(this.ControllerDeviceChannelNumber,NumberofSteps);
             this.GetConnectionStatus(Error);
@@ -271,6 +300,11 @@ classdef  NP_PicomotorScrews < Devices.Device
             assert(this.IsControllerReady==1,'Error: Device is not ready for next command!')
             %-GetHandle, to get Access to NP-Class
             TempHandle=Devices.NP_PicomotorController.getInstance();
+            if this.abortMotionFlag
+                TempHandle.ControllerDevice{this.ControllerDeviceNumber}.abortMotionFlag = 1;
+            else
+                TempHandle.ControllerDevice{this.ControllerDeviceNumber}.abortMotionFlag = 0;
+            end
             %-Send Command
             Error = TempHandle.ControllerDevice{this.ControllerDeviceNumber}.AbortMotion();
         end
