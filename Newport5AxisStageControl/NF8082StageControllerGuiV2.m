@@ -165,7 +165,7 @@ classdef NF8082StageControllerGuiV2 < matlab.apps.AppBase
                 set(app.ForwardsEditField_1, 'Value', Forwards);
                 set(app.BackwardsEditField_1, 'Value', Backwards);
                 set(app.TotalEditField_1, 'Value', Forwards - Backwards);
-                set(app.CurrentPositionEditField_1, 'Value', app.Axis1.GetCurrentPosition);
+                set(app.CurrentPositionEditField_1, 'Value', app.Axis1.GetCurrentPosition - app.Axis1.GetHome);
                 set(app.MaxstepsEditField_1, 'Value', app.Axis1.GetMaxNumberOfSteps);
             end
             
@@ -174,7 +174,7 @@ classdef NF8082StageControllerGuiV2 < matlab.apps.AppBase
                 set(app.ForwardsEditField_2, 'Value', Forwards);
                 set(app.BackwardsEditField_2, 'Value', Backwards);
                 set(app.TotalEditField_2, 'Value', Forwards - Backwards);
-                set(app.CurrentPositionEditField_2, 'Value', app.Axis2.GetCurrentPosition);
+                set(app.CurrentPositionEditField_2, 'Value', app.Axis2.GetCurrentPosition - app.Axis2.GetHome);
                 set(app.MaxstepsEditField_2, 'Value', app.Axis2.GetMaxNumberOfSteps);
             end
             
@@ -183,7 +183,7 @@ classdef NF8082StageControllerGuiV2 < matlab.apps.AppBase
                 set(app.ForwardsEditField_3, 'Value', Forwards);
                 set(app.BackwardsEditField_3, 'Value', Backwards);
                 set(app.TotalEditField_3, 'Value', Forwards - Backwards);
-                set(app.CurrentPositionEditField_3, 'Value', app.Axis3.GetCurrentPosition);
+                set(app.CurrentPositionEditField_3, 'Value', app.Axis3.GetCurrentPosition - app.Axis3.GetHome);
                 set(app.MaxstepsEditField_3, 'Value', app.Axis3.GetMaxNumberOfSteps);
             end
             
@@ -192,7 +192,7 @@ classdef NF8082StageControllerGuiV2 < matlab.apps.AppBase
                 set(app.ForwardsEditField_4, 'Value', Forwards);
                 set(app.BackwardsEditField_4, 'Value', Backwards);
                 set(app.TotalEditField_4, 'Value', Forwards - Backwards);
-                set(app.CurrentPositionEditField_4, 'Value', app.Axis4.GetCurrentPosition);
+                set(app.CurrentPositionEditField_4, 'Value', app.Axis4.GetCurrentPosition - app.Axis4.GetHome);
                 set(app.MaxstepsEditField_4, 'Value', app.Axis4.GetMaxNumberOfSteps);
             end
             
@@ -201,7 +201,7 @@ classdef NF8082StageControllerGuiV2 < matlab.apps.AppBase
                 set(app.ForwardsEditField_5, 'Value', Forwards);
                 set(app.BackwardsEditField_5, 'Value', Backwards);
                 set(app.TotalEditField_5, 'Value', Forwards - Backwards);
-                set(app.CurrentPositionEditField_5, 'Value', app.Axis5.GetCurrentPosition);
+                set(app.CurrentPositionEditField_5, 'Value', app.Axis5.GetCurrentPosition - app.Axis5.GetHome);
                 set(app.MaxstepsEditField_5, 'Value', app.Axis5.GetMaxNumberOfSteps);
             end
         end
@@ -520,7 +520,7 @@ classdef NF8082StageControllerGuiV2 < matlab.apps.AppBase
            set(app.ForwardsEditField_1, 'Value', Forwards_New);
            set(app.BackwardsEditField_1, 'Value', Backwards_New);
            set(app.TotalEditField_1, 'Value', Forwards_New - Backwards_New);
-           set(app.CurrentPositionEditField_1, 'Value', app.Axis1.GetCurrentPosition);
+           set(app.CurrentPositionEditField_1, 'Value', app.Axis1.GetCurrentPosition - app.Axis1.GetHome);
         end
         
         % Value changed function: MaxstepsEditField
@@ -734,7 +734,7 @@ classdef NF8082StageControllerGuiV2 < matlab.apps.AppBase
            set(app.ForwardsEditField_2, 'Value', Forwards_New);
            set(app.BackwardsEditField_2, 'Value', Backwards_New);
            set(app.TotalEditField_2, 'Value', Forwards_New - Backwards_New);
-           set(app.CurrentPositionEditField_2, 'Value', app.Axis2.GetCurrentPosition);
+           set(app.CurrentPositionEditField_2, 'Value', app.Axis2.GetCurrentPosition - app.Axis2.GetHome);
         end
         
         % Value changed function: MaxstepsEditField
@@ -948,7 +948,7 @@ classdef NF8082StageControllerGuiV2 < matlab.apps.AppBase
            set(app.ForwardsEditField_3, 'Value', Forwards_New);
            set(app.BackwardsEditField_3, 'Value', Backwards_New);
            set(app.TotalEditField_3, 'Value', Forwards_New - Backwards_New);
-           set(app.CurrentPositionEditField_3, 'Value', app.Axis3.GetCurrentPosition);
+           set(app.CurrentPositionEditField_3, 'Value', app.Axis3.GetCurrentPosition - app.Axis3.GetHome);
         end
         
         % Value changed function: MaxstepsEditField
@@ -1162,7 +1162,7 @@ classdef NF8082StageControllerGuiV2 < matlab.apps.AppBase
            set(app.ForwardsEditField_4, 'Value', Forwards_New);
            set(app.BackwardsEditField_4, 'Value', Backwards_New);
            set(app.TotalEditField_4, 'Value', Forwards_New - Backwards_New);
-           set(app.CurrentPositionEditField_4, 'Value', app.Axis4.GetCurrentPosition);
+           set(app.CurrentPositionEditField_4, 'Value', app.Axis4.GetCurrentPosition - app.Axis4.GetHome);
         end
         
         % Value changed function: MaxstepsEditField
@@ -1376,7 +1376,7 @@ classdef NF8082StageControllerGuiV2 < matlab.apps.AppBase
            set(app.ForwardsEditField_5, 'Value', Forwards_New);
            set(app.BackwardsEditField_5, 'Value', Backwards_New);
            set(app.TotalEditField_5, 'Value', Forwards_New - Backwards_New);
-           set(app.CurrentPositionEditField_5, 'Value', app.Axis5.GetCurrentPosition);
+           set(app.CurrentPositionEditField_5, 'Value', app.Axis5.GetCurrentPosition - app.Axis5.GetHome);
         end
         
         % Value changed function: MaxstepsEditField
@@ -1459,7 +1459,7 @@ classdef NF8082StageControllerGuiV2 < matlab.apps.AppBase
             app.CurrentPositionEditField_1.HorizontalAlignment = 'center';
             app.CurrentPositionEditField_1.Position = [121 210 69 22];
             if ~isempty(app.Axis1)
-                set(app.CurrentPositionEditField_1, 'Value', app.Axis1.GetCurrentPosition); 
+                set(app.CurrentPositionEditField_1, 'Value', app.Axis1.GetCurrentPosition - app.Axis1.GetHome); 
             else
                 set(app.CurrentPositionEditField_1, 'Value', 0);
             end
@@ -1650,7 +1650,7 @@ classdef NF8082StageControllerGuiV2 < matlab.apps.AppBase
             app.CurrentPositionEditField_2.HorizontalAlignment = 'center';
             app.CurrentPositionEditField_2.Position = [121 210 69 22];
             if ~isempty(app.Axis2)
-                set(app.CurrentPositionEditField_2, 'Value', app.Axis2.GetCurrentPosition); 
+                set(app.CurrentPositionEditField_2, 'Value', app.Axis2.GetCurrentPosition - app.Axis2.GetHome); 
             else
                 set(app.CurrentPositionEditField_2, 'Value', 0);
             end
@@ -1841,7 +1841,7 @@ classdef NF8082StageControllerGuiV2 < matlab.apps.AppBase
             app.CurrentPositionEditField_3.HorizontalAlignment = 'center';
             app.CurrentPositionEditField_3.Position = [121 210 69 22];
             if ~isempty(app.Axis3)
-                set(app.CurrentPositionEditField_3, 'Value', app.Axis3.GetCurrentPosition); 
+                set(app.CurrentPositionEditField_3, 'Value', app.Axis3.GetCurrentPosition - app.Axis3.GetHome); 
             else
                 set(app.CurrentPositionEditField_3, 'Value', 0); 
             end
@@ -2032,7 +2032,7 @@ classdef NF8082StageControllerGuiV2 < matlab.apps.AppBase
             app.CurrentPositionEditField_4.HorizontalAlignment = 'center';
             app.CurrentPositionEditField_4.Position = [121 210 69 22];
             if ~isempty(app.Axis4)
-                set(app.CurrentPositionEditField_4, 'Value', app.Axis4.GetCurrentPosition); 
+                set(app.CurrentPositionEditField_4, 'Value', app.Axis4.GetCurrentPosition - app.Axis4.GetHome); 
             else
                 set(app.CurrentPositionEditField_4, 'Value', 0); 
             end
@@ -2223,7 +2223,7 @@ classdef NF8082StageControllerGuiV2 < matlab.apps.AppBase
             app.CurrentPositionEditField_5.HorizontalAlignment = 'center';
             app.CurrentPositionEditField_5.Position = [121 210 69 22];
             if ~isempty(app.Axis5)
-                set(app.CurrentPositionEditField_5, 'Value', app.Axis5.GetCurrentPosition); 
+                set(app.CurrentPositionEditField_5, 'Value', app.Axis5.GetCurrentPosition - app.Axis5.GetHome); 
             else
                 set(app.CurrentPositionEditField_5, 'Value', 0); 
             end
