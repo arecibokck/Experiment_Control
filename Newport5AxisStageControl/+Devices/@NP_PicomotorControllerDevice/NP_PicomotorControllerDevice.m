@@ -405,6 +405,7 @@ classdef NP_PicomotorControllerDevice < Devices.Device
                 && target <= +this.MaxNumberOfSteps.HardwareLimit ... 2^31 ... +2147483647 ...
                 ,'Invalid target position. Check if it is an integer between -2147483648 and +2147483647.')
             this.TargetPosition = target;
+            home = this.GetHome(ChannelNumber);
             currentPos = this.GetCurrentPosition(ChannelNumber);
             NumberOfSteps = abs(target - currentPos);
             if target ~= currentPos
@@ -412,20 +413,20 @@ classdef NP_PicomotorControllerDevice < Devices.Device
                     warning('No error will be detected even if the motor is not connected for less than 3 steps! Manual check required!')
                 end
                 if ~this.IgnoreMaxNumberOfSteps(ChannelNumber) 
-                    if target == 0
+                    if target == home 
                         disp(['Moving Channel ' num2str(ChannelNumber) ' to home...']);
-                    elseif target > 0 && NumberOfSteps <= this.MaxNumberOfSteps.UserDefined(ChannelNumber)
+                    elseif target >= 0 && NumberOfSteps <= this.MaxNumberOfSteps.UserDefined(ChannelNumber)
                         disp(['Moving Channel ' num2str(ChannelNumber) ' to +' num2str(abs(target)) '...']);
-                    elseif target < 0 && NumberOfSteps >= -this.MaxNumberOfSteps.UserDefined(ChannelNumber)
+                    elseif target <= 0 && NumberOfSteps <= this.MaxNumberOfSteps.UserDefined(ChannelNumber)
                         disp(['Moving Channel ' num2str(ChannelNumber) ' to -' num2str(abs(target)) '...']);
                     else
                         warning('Number of steps exceeds user-defined limit. Axis will not be moved in either direction.');
                         target = currentPos;
                     end
                 else
-                    if target == 0
+                    if target == home
                         disp(['Moving Channel ' num2str(ChannelNumber) ' to home...']);
-                    elseif target > 0 
+                    elseif target >= 0 && NumberOfSteps > 0
                         disp(['Moving Channel ' num2str(ChannelNumber) ' to +' num2str(abs(target)) '...']);
                     else 
                         disp(['Moving Channel ' num2str(ChannelNumber) ' to -' num2str(abs(target)) '...']);
@@ -459,7 +460,7 @@ classdef NP_PicomotorControllerDevice < Devices.Device
                 if ~this.IgnoreMaxNumberOfSteps(ChannelNumber) 
                     if NumberOfSteps > 0 && NumberOfSteps <= this.MaxNumberOfSteps.UserDefined(ChannelNumber)
                         disp(['Moving Channel ' num2str(ChannelNumber) ' by ' num2str(abs(NumberOfSteps)) ' steps in the positive direction...']);
-                    elseif NumberOfSteps < 0 && NumberOfSteps >= -this.MaxNumberOfSteps.UserDefined(ChannelNumber)
+                    elseif NumberOfSteps < 0 && NumberOfSteps <= this.MaxNumberOfSteps.UserDefined(ChannelNumber)
                         disp(['Moving Channel ' num2str(ChannelNumber) ' by ' num2str(abs(NumberOfSteps)) ' steps in the negative direction...']);
                     else
                         NumberOfSteps = 0;
@@ -524,7 +525,6 @@ classdef NP_PicomotorControllerDevice < Devices.Device
                 namestr = st.name;
                 %namestr = extractAfter(st.name,'.');
                 warning(['cannot use ' namestr ', if ChannelNumber is NaN'])
-                Error = 0;
                 return
             end
             isaninteger = @(x)isfinite(x) && x==floor(x);
@@ -555,7 +555,6 @@ classdef NP_PicomotorControllerDevice < Devices.Device
                 namestr = st.name;
                 %namestr = extractAfter(st.name,'.');
                 warning(['cannot use ' namestr ', if ChannelNumber is NaN'])
-                Error = 0;
                 return
             end
             isaninteger = @(x)isfinite(x) && x==floor(x);
@@ -585,7 +584,6 @@ classdef NP_PicomotorControllerDevice < Devices.Device
                 namestr = st.name;
                 %namestr = extractAfter(st.name,'.');
                 warning(['cannot use ' namestr ', if ChannelNumber is NaN'])
-                Error = 0;
                 return
             end
             isaninteger = @(x)isfinite(x) && x==floor(x);
@@ -615,7 +613,6 @@ classdef NP_PicomotorControllerDevice < Devices.Device
                 namestr = st.name;
                 %namestr = extractAfter(st.name,'.');
                 warning(['cannot use ' namestr ', if ChannelNumber is NaN'])
-                Error = 0;
                 return
             end
             isaninteger = @(x)isfinite(x) && x==floor(x);
@@ -681,7 +678,6 @@ classdef NP_PicomotorControllerDevice < Devices.Device
                 namestr = st.name;
                 %namestr = extractAfter(st.name,'.');
                 warning(['cannot use ' namestr ', if ChannelNumber is NaN'])
-                Error = 0;
                 return
             end
             

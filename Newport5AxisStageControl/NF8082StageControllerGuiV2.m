@@ -373,7 +373,7 @@ classdef NF8082StageControllerGuiV2 < matlab.apps.AppBase
         % Button pushed function: ZeroButton_1
         function ZeroButton_1Pushed(app, event)
             app.Axis1.SetHome(app.Axis1.GetCurrentPosition);
-            set(app.CurrentPositionEditField_1, 'Value', app.Axis1.GetCurrentPosition); 
+            set(app.CurrentPositionEditField_1, 'Value', app.Axis1.GetCurrentPosition - app.Axis1.GetHome); 
         end
         
         function NofstepsEditField_1ValueChanged(app, event)
@@ -433,10 +433,14 @@ classdef NF8082StageControllerGuiV2 < matlab.apps.AppBase
             end
             set(app.MotionStatusLamp_1, 'Color', [0.96,0.96,0.96]);
             app.updateNumbers_1;
-            app.MoveHistory(end+1)= struct('Timestamps', char(datetime('now')), 'Moves', ['1R+' num2str(app.NofstepsEditField_1.Value)]);
-            Temp_MH = table2cell(struct2table(app.MoveHistory));
-            app.MoveHistoryDisplayText{end+1} = sprintf('%s, %s', Temp_MH{end,1}, Temp_MH{end,2});
-            set(app.MoveHistoryTextArea, 'Value', app.MoveHistoryDisplayText);
+            [warnMsg, ~] = lastwarn;
+            if ~strcmp(warnMsg, 'Number of steps exceeds user-defined limit. Axis will not be moved in either direction.')
+                app.MoveHistory(end+1)= struct('Timestamps', char(datetime('now')), 'Moves', ['1R+' num2str(app.NofstepsEditField_1.Value)]);
+                Temp_MH = table2cell(struct2table(app.MoveHistory));
+                app.MoveHistoryDisplayText{end+1} = sprintf('%s, %s', Temp_MH{end,1}, Temp_MH{end,2});
+                set(app.MoveHistoryTextArea, 'Value', app.MoveHistoryDisplayText);
+            end
+            lastwarn(''); 
         end
         
         % Button pushed function: GoButton_1
@@ -491,10 +495,14 @@ classdef NF8082StageControllerGuiV2 < matlab.apps.AppBase
             end
             set(app.MotionStatusLamp_1, 'Color', [0.96,0.96,0.96]);
             app.updateNumbers_1;
-            app.MoveHistory(end+1)= struct('Timestamps', char(datetime('now')), 'Moves', ['1R-' num2str(app.NofstepsEditField_1.Value)]);
-            Temp_MH = table2cell(struct2table(app.MoveHistory));
-            app.MoveHistoryDisplayText{end+1} = sprintf('%s, %s', Temp_MH{end,1}, Temp_MH{end,2});
-            set(app.MoveHistoryTextArea, 'Value', app.MoveHistoryDisplayText);
+            [warnMsg, ~] = lastwarn;
+            if ~strcmp(warnMsg, 'Number of steps exceeds user-defined limit. Axis will not be moved in either direction.')
+                app.MoveHistory(end+1)= struct('Timestamps', char(datetime('now')), 'Moves', ['1R-' num2str(app.NofstepsEditField_1.Value)]);
+                Temp_MH = table2cell(struct2table(app.MoveHistory));
+                app.MoveHistoryDisplayText{end+1} = sprintf('%s, %s', Temp_MH{end,1}, Temp_MH{end,2});
+                set(app.MoveHistoryTextArea, 'Value', app.MoveHistoryDisplayText);
+            end
+            lastwarn('');
         end
         
         function updateNumbers_1(app)
@@ -502,7 +510,7 @@ classdef NF8082StageControllerGuiV2 < matlab.apps.AppBase
             set(app.ForwardsEditField_1, 'Value', Forwards);
             set(app.BackwardsEditField_1, 'Value', Backwards);
             set(app.TotalEditField_1, 'Value', Forwards - Backwards);
-            set(app.CurrentPositionEditField_1, 'Value', app.Axis1.GetCurrentPosition); 
+            set(app.CurrentPositionEditField_1, 'Value', app.Axis1.GetCurrentPosition - app.Axis1.GetHome); 
         end
         
         % Button pushed function: ResetButton_1
@@ -579,7 +587,7 @@ classdef NF8082StageControllerGuiV2 < matlab.apps.AppBase
         % Button pushed function: ZeroButton_2
         function ZeroButton_2Pushed(app, event)
             app.Axis2.SetHome(app.Axis2.GetCurrentPosition);
-            set(app.CurrentPositionEditField_2, 'Value', app.Axis2.GetCurrentPosition); 
+            set(app.CurrentPositionEditField_2, 'Value', app.Axis2.GetCurrentPosition - app.Axis2.GetHome); 
         end
         
         function NofstepsEditField_2ValueChanged(app, event)
@@ -639,10 +647,14 @@ classdef NF8082StageControllerGuiV2 < matlab.apps.AppBase
             end
             set(app.MotionStatusLamp_2, 'Color', [0.96,0.96,0.96]);
             app.updateNumbers_2;
-            app.MoveHistory(end+1)= struct('Timestamps', char(datetime('now')), 'Moves', ['2R+' num2str(app.NofstepsEditField_2.Value)]);
-            Temp_MH = table2cell(struct2table(app.MoveHistory));
-            app.MoveHistoryDisplayText{end+1} = sprintf('%s, %s', Temp_MH{end,1}, Temp_MH{end,2});
-            set(app.MoveHistoryTextArea, 'Value', app.MoveHistoryDisplayText);
+            [warnMsg, ~] = lastwarn;
+            if ~strcmp(warnMsg, 'Number of steps exceeds user-defined limit. Axis will not be moved in either direction.')
+                app.MoveHistory(end+1)= struct('Timestamps', char(datetime('now')), 'Moves', ['2R+' num2str(app.NofstepsEditField_2.Value)]);
+                Temp_MH = table2cell(struct2table(app.MoveHistory));
+                app.MoveHistoryDisplayText{end+1} = sprintf('%s, %s', Temp_MH{end,1}, Temp_MH{end,2});
+                set(app.MoveHistoryTextArea, 'Value', app.MoveHistoryDisplayText);
+            end
+            lastwarn('');
         end
         
         % Button pushed function: GoButton_2
@@ -697,10 +709,14 @@ classdef NF8082StageControllerGuiV2 < matlab.apps.AppBase
             end
             set(app.MotionStatusLamp_2, 'Color', [0.96,0.96,0.96]);
             app.updateNumbers_2;
-            app.MoveHistory(end+1)= struct('Timestamps', char(datetime('now')), 'Moves', ['2R-' num2str(app.NofstepsEditField_2.Value)]);
-            Temp_MH = table2cell(struct2table(app.MoveHistory));
-            app.MoveHistoryDisplayText{end+1} = sprintf('%s, %s', Temp_MH{end,1}, Temp_MH{end,2});
-            set(app.MoveHistoryTextArea, 'Value', app.MoveHistoryDisplayText);
+            [warnMsg, ~] = lastwarn;
+            if ~strcmp(warnMsg, 'Number of steps exceeds user-defined limit. Axis will not be moved in either direction.')
+                app.MoveHistory(end+1)= struct('Timestamps', char(datetime('now')), 'Moves', ['2R-' num2str(app.NofstepsEditField_2.Value)]);
+                Temp_MH = table2cell(struct2table(app.MoveHistory));
+                app.MoveHistoryDisplayText{end+1} = sprintf('%s, %s', Temp_MH{end,1}, Temp_MH{end,2});
+                set(app.MoveHistoryTextArea, 'Value', app.MoveHistoryDisplayText);
+            end
+            lastwarn('');
         end
         
         function updateNumbers_2(app)
@@ -708,7 +724,7 @@ classdef NF8082StageControllerGuiV2 < matlab.apps.AppBase
             set(app.ForwardsEditField_2, 'Value', Forwards);
             set(app.BackwardsEditField_2, 'Value', Backwards);
             set(app.TotalEditField_2, 'Value', Forwards - Backwards);
-            set(app.CurrentPositionEditField_2, 'Value', app.Axis2.GetCurrentPosition); 
+            set(app.CurrentPositionEditField_2, 'Value', app.Axis2.GetCurrentPosition - app.Axis2.GetHome); 
         end
         
         % Button pushed function: ResetButton_2
@@ -785,7 +801,7 @@ classdef NF8082StageControllerGuiV2 < matlab.apps.AppBase
         % Button pushed function: ZeroButton_3
         function ZeroButton_3Pushed(app, event)
             app.Axis3.SetHome(app.Axis3.GetCurrentPosition);
-            set(app.CurrentPositionEditField_3, 'Value', app.Axis3.GetCurrentPosition); 
+            set(app.CurrentPositionEditField_3, 'Value', app.Axis3.GetCurrentPosition - app.Axis3.GetHome); 
         end
         
         function NofstepsEditField_3ValueChanged(app, event)
@@ -845,10 +861,14 @@ classdef NF8082StageControllerGuiV2 < matlab.apps.AppBase
             end
             set(app.MotionStatusLamp_3, 'Color', [0.96,0.96,0.96]);
             app.updateNumbers_3;
-            app.MoveHistory(end+1)= struct('Timestamps', char(datetime('now')), 'Moves', ['3R+' num2str(app.NofstepsEditField_3.Value)]);
-            Temp_MH = table2cell(struct2table(app.MoveHistory));
-            app.MoveHistoryDisplayText{end+1} = sprintf('%s, %s', Temp_MH{end,1}, Temp_MH{end,2});
-            set(app.MoveHistoryTextArea, 'Value', app.MoveHistoryDisplayText);
+            [warnMsg, ~] = lastwarn;
+            if ~strcmp(warnMsg, 'Number of steps exceeds user-defined limit. Axis will not be moved in either direction.')
+                app.MoveHistory(end+1)= struct('Timestamps', char(datetime('now')), 'Moves', ['3R+' num2str(app.NofstepsEditField_3.Value)]);
+                Temp_MH = table2cell(struct2table(app.MoveHistory));
+                app.MoveHistoryDisplayText{end+1} = sprintf('%s, %s', Temp_MH{end,1}, Temp_MH{end,2});
+                set(app.MoveHistoryTextArea, 'Value', app.MoveHistoryDisplayText);
+            end
+            lastwarn('');
         end
         
         % Button pushed function: GoButton_3
@@ -903,10 +923,14 @@ classdef NF8082StageControllerGuiV2 < matlab.apps.AppBase
             end
             set(app.MotionStatusLamp_3, 'Color', [0.96,0.96,0.96]);
             app.updateNumbers_3;
-            app.MoveHistory(end+1)= struct('Timestamps', char(datetime('now')), 'Moves', ['3R-' num2str(app.NofstepsEditField_3.Value)]);
-            Temp_MH = table2cell(struct2table(app.MoveHistory));
-            app.MoveHistoryDisplayText{end+1} = sprintf('%s, %s', Temp_MH{end,1}, Temp_MH{end,2});
-            set(app.MoveHistoryTextArea, 'Value', app.MoveHistoryDisplayText);
+            [warnMsg, ~] = lastwarn;
+            if ~strcmp(warnMsg, 'Number of steps exceeds user-defined limit. Axis will not be moved in either direction.')
+                app.MoveHistory(end+1)= struct('Timestamps', char(datetime('now')), 'Moves', ['3R-' num2str(app.NofstepsEditField_3.Value)]);
+                Temp_MH = table2cell(struct2table(app.MoveHistory));
+                app.MoveHistoryDisplayText{end+1} = sprintf('%s, %s', Temp_MH{end,1}, Temp_MH{end,2});
+                set(app.MoveHistoryTextArea, 'Value', app.MoveHistoryDisplayText);
+            end
+            lastwarn('');
         end
         
         function updateNumbers_3(app)
@@ -914,7 +938,7 @@ classdef NF8082StageControllerGuiV2 < matlab.apps.AppBase
             set(app.ForwardsEditField_3, 'Value', Forwards);
             set(app.BackwardsEditField_3, 'Value', Backwards);
             set(app.TotalEditField_3, 'Value', Forwards - Backwards);
-            set(app.CurrentPositionEditField_3, 'Value', app.Axis3.GetCurrentPosition); 
+            set(app.CurrentPositionEditField_3, 'Value', app.Axis3.GetCurrentPosition - app.Axis3.GetHome); 
         end
         
         % Button pushed function: ResetButton_3
@@ -991,7 +1015,7 @@ classdef NF8082StageControllerGuiV2 < matlab.apps.AppBase
         % Button pushed function: ZeroButton_4
         function ZeroButton_4Pushed(app, event)
             app.Axis4.SetHome(app.Axis4.GetCurrentPosition);
-            set(app.CurrentPositionEditField_4, 'Value', app.Axis4.GetCurrentPosition); 
+            set(app.CurrentPositionEditField_4, 'Value', app.Axis4.GetCurrentPosition - app.Axis4.GetHome); 
         end
         
         function NofstepsEditField_4ValueChanged(app, event)
@@ -1051,10 +1075,14 @@ classdef NF8082StageControllerGuiV2 < matlab.apps.AppBase
             end
             set(app.MotionStatusLamp_4, 'Color', [0.96,0.96,0.96]);
             app.updateNumbers_4;
-            app.MoveHistory(end+1)= struct('Timestamps', char(datetime('now')), 'Moves', ['4R+' num2str(app.NofstepsEditField_4.Value)]);
-            Temp_MH = table2cell(struct2table(app.MoveHistory));
-            app.MoveHistoryDisplayText{end+1} = sprintf('%s, %s', Temp_MH{end,1}, Temp_MH{end,2});
-            set(app.MoveHistoryTextArea, 'Value', app.MoveHistoryDisplayText);
+            [warnMsg, ~] = lastwarn;
+            if ~strcmp(warnMsg, 'Number of steps exceeds user-defined limit. Axis will not be moved in either direction.')
+                app.MoveHistory(end+1)= struct('Timestamps', char(datetime('now')), 'Moves', ['4R+' num2str(app.NofstepsEditField_4.Value)]);
+                Temp_MH = table2cell(struct2table(app.MoveHistory));
+                app.MoveHistoryDisplayText{end+1} = sprintf('%s, %s', Temp_MH{end,1}, Temp_MH{end,2});
+                set(app.MoveHistoryTextArea, 'Value', app.MoveHistoryDisplayText);
+            end
+            lastwarn('');
         end
         
         % Button pushed function: GoButton_4
@@ -1109,10 +1137,14 @@ classdef NF8082StageControllerGuiV2 < matlab.apps.AppBase
             end
             set(app.MotionStatusLamp_4, 'Color', [0.96,0.96,0.96]);
             app.updateNumbers_4;
-            app.MoveHistory(end+1)= struct('Timestamps', char(datetime('now')), 'Moves', ['4R-' num2str(app.NofstepsEditField_4.Value)]);
-            Temp_MH = table2cell(struct2table(app.MoveHistory));
-            app.MoveHistoryDisplayText{end+1} = sprintf('%s, %s', Temp_MH{end,1}, Temp_MH{end,2});
-            set(app.MoveHistoryTextArea, 'Value', app.MoveHistoryDisplayText);
+            [warnMsg, ~] = lastwarn;
+            if ~strcmp(warnMsg, 'Number of steps exceeds user-defined limit. Axis will not be moved in either direction.')
+                app.MoveHistory(end+1)= struct('Timestamps', char(datetime('now')), 'Moves', ['4R-' num2str(app.NofstepsEditField_4.Value)]);
+                Temp_MH = table2cell(struct2table(app.MoveHistory));
+                app.MoveHistoryDisplayText{end+1} = sprintf('%s, %s', Temp_MH{end,1}, Temp_MH{end,2});
+                set(app.MoveHistoryTextArea, 'Value', app.MoveHistoryDisplayText);
+            end
+            lastwarn('');
         end
         
         function updateNumbers_4(app)
@@ -1120,7 +1152,7 @@ classdef NF8082StageControllerGuiV2 < matlab.apps.AppBase
             set(app.ForwardsEditField_4, 'Value', Forwards);
             set(app.BackwardsEditField_4, 'Value', Backwards);
             set(app.TotalEditField_4, 'Value', Forwards - Backwards);
-            set(app.CurrentPositionEditField_4, 'Value', app.Axis4.GetCurrentPosition); 
+            set(app.CurrentPositionEditField_4, 'Value', app.Axis4.GetCurrentPosition - app.Axis4.GetHome); 
         end
         
         % Button pushed function: ResetButton_4
@@ -1197,7 +1229,7 @@ classdef NF8082StageControllerGuiV2 < matlab.apps.AppBase
         % Button pushed function: ZeroButton_5
         function ZeroButton_5Pushed(app, event)
             app.Axis5.SetHome(app.Axis5.GetCurrentPosition);
-            set(app.CurrentPositionEditField_5, 'Value', app.Axis5.GetCurrentPosition); 
+            set(app.CurrentPositionEditField_5, 'Value', app.Axis5.GetCurrentPosition - app.Axis5.GetHome); 
         end
         
         function NofstepsEditField_5ValueChanged(app, event)
@@ -1257,10 +1289,14 @@ classdef NF8082StageControllerGuiV2 < matlab.apps.AppBase
             end
             set(app.MotionStatusLamp_5, 'Color', [0.96,0.96,0.96]);
             app.updateNumbers_5;
-            app.MoveHistory(end+1)= struct('Timestamps', char(datetime('now')), 'Moves', ['5R+' num2str(app.NofstepsEditField_5.Value)]);
-            Temp_MH = table2cell(struct2table(app.MoveHistory));
-            app.MoveHistoryDisplayText{end+1} = sprintf('%s, %s', Temp_MH{end,1}, Temp_MH{end,2});
-            set(app.MoveHistoryTextArea, 'Value', app.MoveHistoryDisplayText);
+            [warnMsg, ~] = lastwarn;
+            if ~strcmp(warnMsg, 'Number of steps exceeds user-defined limit. Axis will not be moved in either direction.')
+                app.MoveHistory(end+1)= struct('Timestamps', char(datetime('now')), 'Moves', ['5R+' num2str(app.NofstepsEditField_5.Value)]);
+                Temp_MH = table2cell(struct2table(app.MoveHistory));
+                app.MoveHistoryDisplayText{end+1} = sprintf('%s, %s', Temp_MH{end,1}, Temp_MH{end,2});
+                set(app.MoveHistoryTextArea, 'Value', app.MoveHistoryDisplayText);
+            end
+            lastwarn('');
         end
         
         % Button pushed function: GoButton_5
@@ -1315,10 +1351,14 @@ classdef NF8082StageControllerGuiV2 < matlab.apps.AppBase
             end
             set(app.MotionStatusLamp_5, 'Color', [0.96,0.96,0.96]);
             app.updateNumbers_5;
-            app.MoveHistory(end+1)= struct('Timestamps', char(datetime('now')), 'Moves', ['5R-' num2str(app.NofstepsEditField_5.Value)]);
-            Temp_MH = table2cell(struct2table(app.MoveHistory));
-            app.MoveHistoryDisplayText{end+1} = sprintf('%s, %s', Temp_MH{end,1}, Temp_MH{end,2});
-            set(app.MoveHistoryTextArea, 'Value', app.MoveHistoryDisplayText);
+            [warnMsg, ~] = lastwarn;
+            if ~strcmp(warnMsg, 'Number of steps exceeds user-defined limit. Axis will not be moved in either direction.')
+                app.MoveHistory(end+1)= struct('Timestamps', char(datetime('now')), 'Moves', ['5R-' num2str(app.NofstepsEditField_5.Value)]);
+                Temp_MH = table2cell(struct2table(app.MoveHistory));
+                app.MoveHistoryDisplayText{end+1} = sprintf('%s, %s', Temp_MH{end,1}, Temp_MH{end,2});
+                set(app.MoveHistoryTextArea, 'Value', app.MoveHistoryDisplayText);
+            end
+            lastwarn('');
         end
         
         function updateNumbers_5(app)
@@ -1326,7 +1366,7 @@ classdef NF8082StageControllerGuiV2 < matlab.apps.AppBase
             set(app.ForwardsEditField_5, 'Value', Forwards);
             set(app.BackwardsEditField_5, 'Value', Backwards);
             set(app.TotalEditField_5, 'Value', Forwards - Backwards);
-            set(app.CurrentPositionEditField_5, 'Value', app.Axis5.GetCurrentPosition); 
+            set(app.CurrentPositionEditField_5, 'Value', app.Axis5.GetCurrentPosition - app.Axis5.GetHome); 
         end
         
         % Button pushed function: ResetButton_5
@@ -2484,6 +2524,8 @@ classdef NF8082StageControllerGuiV2 < matlab.apps.AppBase
             if ~isempty(app.Axis5)
                 app.ControllerDeviceNumbers = [app.ControllerDeviceNumbers app.Axis5.ControllerDeviceNumber];
             end
+            
+            app.ControllerDeviceNumbers = unique(app.ControllerDeviceNumbers);
             
             % Register the app with App Designer
             registerApp(app, app.UIFigure)

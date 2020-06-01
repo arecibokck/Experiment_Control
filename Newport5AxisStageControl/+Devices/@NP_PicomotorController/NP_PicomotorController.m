@@ -253,8 +253,7 @@ classdef  NP_PicomotorController < Devices.Device
         % GUI(this) invokes the Graphical User Interface (GUI) by calling
         % the script 'NF8082StageControllerGui' which currently is for
         % individual controller devices  
-            NF8082StageControllerGuiV2
-            %NF8082StageControllerGuiV1(NumberOfDevice)
+            NF8082StageControllerGui
         end
         %% Disconnect from specified controller
         function disconnectPicomotorController(this,NumberOfDevice)
