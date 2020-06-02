@@ -1613,7 +1613,7 @@ classdef NF8082StageControllerGuiV2 < matlab.apps.AppBase
             else
                 app.Axis2Panel.Title = ['Axis 2: Not Connected'];
             end
-            app.Axis2Panel.Position = [385 365 323 293];
+            app.Axis2Panel.Position = [387 365 323 293];
 
             % Create DropDown_2
             app.DropDown_2 = uidropdown(app.Axis2Panel);
@@ -2186,7 +2186,7 @@ classdef NF8082StageControllerGuiV2 < matlab.apps.AppBase
             else
                 app.Axis5Panel.Title = 'Axis 5: Not connected';
             end
-            app.Axis5Panel.Position = [385 38 323 293];
+            app.Axis5Panel.Position = [387 38 323 293];
 
             % Create DropDown_5
             app.DropDown_5 = uidropdown(app.Axis5Panel);
