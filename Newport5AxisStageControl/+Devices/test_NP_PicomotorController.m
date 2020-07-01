@@ -12,6 +12,8 @@
 if true
     %% - Create Object with Default ID
     Controller = Devices.NP_PicomotorController.getInstance();
+    %% - get GUI
+    Controller.GUI()
     %% - delete Object
     Controller.delete()
     %% - Destroy Object
