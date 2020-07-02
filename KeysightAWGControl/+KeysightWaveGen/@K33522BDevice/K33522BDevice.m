@@ -4,7 +4,7 @@
 classdef K33522BDevice < Devices.Device
     
     properties (SetAccess=immutable)
-    	% specifies, wheter devices is in debug-mode
+        % specifies, wheter devices is in debug-mode
         debug;
         DEFAULTID = 'TCPIP::131.220.157.72::INSTR';
     end
@@ -17,31 +17,9 @@ classdef K33522BDevice < Devices.Device
         channels=Devices.KeysightWaveGen.K33522BChannel.empty;
     end
     
-    properties (Dependent)
-        % slope of trigger (Pos)|Neg
-        TriggerSlope
-        % source of Trigger ={'IMM','BUS','EXT','INT'};
-        TriggerSource
-        % NumberOfTriggers accepted (will do measurement this many times)
-        TriggerCount
-    end % - Trigger
-    
-    properties (Dependent)
-        VoltageDCRange
-        VoltageDCRangeAuto
-        VoltageImpedanceAuto
-        VoltageResolution
-        VoltageZeroAuto
-    end % - DC-Voltage
-    
-    properties (Dependent)
-       Burst
-       BurstCyc
-    end
-        
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %- Methods
-    methods 
+    methods
         function this = K33522BDevice(DeviceID)
             %
             disp('Constructing Keysight33522B object...')
@@ -99,8 +77,8 @@ classdef K33522BDevice < Devices.Device
             this.disconnect();
             disp('33522B object deleted')
         end% - Destructor
-    end % - Lifecycle functions     
-    methods 
+    end % - Lifecycle functions
+    methods
         function write(this, cmd)
             send(this, cmd);
         end % - write for compatability
@@ -126,11 +104,11 @@ classdef K33522BDevice < Devices.Device
             ret=this.readDouble();
         end % - Send a query to the VISA object and convert the result to a double precision floating point number
     end % - read/write/query
-    methods 
+    methods
         function clearStatus(this)
             this.write('*CLS');
         end % - ClearStatus
-        function resetDevice(this) 
+        function resetDevice(this)
             this.write('*RST');
         end % - *RST -commmand
         function ret=queryIdentification(this)
@@ -144,15 +122,15 @@ classdef K33522BDevice < Devices.Device
             ret=ret(1:end-1);
         end
         function ret=getError(this)
-            % ret=getError(this) queries for Errors 
-        % returns Error-Message  (e.g.: '+0,"No error"')
+            % ret=getError(this) queries for Errors
+            % returns Error-Message  (e.g.: '+0,"No error"')
             ret=this.query('SYST:ERR?');
             ret=ret(1:end-1);
-        end % - ret=getError(this) queries for Errors 
+        end % - ret=getError(this) queries for Errors
         function Abort(this)
             this.send('ABORt');
         end
-    end % - Basic 
+    end % - Basic
     methods (Static)
         [Network_Devices_List,Network_Devices_List_Structured] = enumerateETHERNET;
         [USB_Devices_List,USB_Devices_List_Structured] = enumerateUSB(~, szFilter);
@@ -180,7 +158,7 @@ classdef K33522BDevice < Devices.Device
                         Temp_productID = AWGDeviceInfo(Index).productID;
                         if any(contains(vertcat(Temp_ListOfConnectedDevices{:}), ['PID_' Temp_productID]))
                             IsConnected2PCViaUSB=1;
-                        disp([AWGDeviceInfo.Alias ' with PID: ', Temp_productID, ' connected to PC via USB.'])
+                            disp([AWGDeviceInfo.Alias ' with PID: ', Temp_productID, ' connected to PC via USB.'])
                         else
                             disp(['Warning: ' this.AWGDeviceInfo.Alias ' not connected to PC via USB.'])
                         end
@@ -211,7 +189,7 @@ classdef K33522BDevice < Devices.Device
                         if any(contains(Temp_ListOfConnectedDevices, Temp_MACAddress))
                             Temp_IPAddress = this.Network_Devices_List_Structured(contains(Temp_ListOfConnectedDevices, Temp_MACAddress)).IPADDR ;
                             if ~strcmp(Temp_IPAddress, this.AWGDeviceInfo(Index).IPAddress)
-                               this.AWGDeviceInfo(Index).IPAddress = Temp_IPAddress;
+                                this.AWGDeviceInfo(Index).IPAddress = Temp_IPAddress;
                             end
                             this.AWGDeviceInfo(Index).IsConnected2PCViaETHERNET=1;
                             disp([this.AWGDeviceInfo(Index).Alias ' with IP Address ' Temp_IPAddress ' connected to PC via ETHERNET.'])

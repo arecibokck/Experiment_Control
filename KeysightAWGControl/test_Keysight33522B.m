@@ -1,5 +1,3 @@
-%%
-
 %% - create and test device
 if true
     %% -create object
@@ -9,7 +7,7 @@ if true
     Channel_1 = WaveGen.channels(1);
     %%
     Channel_1.ChannelNumber
-    %%. 
+    %% 
     WaveGen.NumberOfChannels
     %% - query *Idn?
     ret = WaveGen.queryIdentification
@@ -26,10 +24,26 @@ end
 
 %% - test Channel
 if true
+    
+%%
+    Channel_1.setFrequency(1+e04);
+%%
+    Channel_1.getFrequency
+%%    
     Channel_1.setAmplitude(1);
+%%
     Channel_1.setAmplitude('amplitude', 2, 'offset', 1);
+%%
+    Channel_1.setAmplitude('high', 2, 'low', 1);
+%%
+    Channel_1.getAmplitude('amplitude')
+%%
+    Channel_1.getAmplitude('offset')
+%%
+    Channel_1.getAmplitude('autorange')
 %% 
     Channel_1.applyDCVoltage;
+%%
     Channel_1.applyDCVoltage('offset', 1);
 %%
     Channel_1.applyNoise;
@@ -37,21 +51,27 @@ if true
     Channel_1.applyPRBS;
 %%
     Channel_1.applyPulse;
+%%
     Channel_1.applyPulse('frequency', 1+e03,'amplitude', 2, 'offset', 0.5);
 %%
     Channel_1.applyRamp;
+%%
     Channel_1.applyRamp('frequency', 1+e03,'amplitude', 2, 'offset', 0.5);
 %%
     Channel_1.applySineWave;
+%%
     Channel_1.applySineWave('frequency', 1+e03,'amplitude', 2, 'offset', 0.5);
 %%
     Channel_1.applySquareWave
+%%
     Channel_1.applySquareWave('frequency', 1+e03,'amplitude', 2, 'offset', 0.5);
 %%
     Channel_1.applyTriangleWave
+%%
     Channel_1.applyTriangleWave('frequency', 1+e03,'amplitude', 2, 'offset', 0.5);
 %%
     Channel_1.setOutput('ON')
+%%
     Channel_1.setOutput('OFF')
 end
 
