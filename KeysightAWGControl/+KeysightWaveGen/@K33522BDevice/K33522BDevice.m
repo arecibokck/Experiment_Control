@@ -107,14 +107,31 @@ classdef K33522BDevice < Devices.Device
     methods
         function clearStatus(this)
             this.write('*CLS');
-        end % - ClearStatus
+        end % - Clear device status
         function resetDevice(this)
             this.write('*RST');
-        end % - *RST -commmand
+        end % - reset device
+        function checkOPC(this)
+            this.query('*OPC?');
+        end    % - determine when the sweep or burst is complete. The *OPC? query returns 1 to the output buffer when the sweep or burst is complete
+        function busTrigger(this)
+            this.write('*TRG');
+        end  % - send bus trigger
+        function wait(this)
+            this.write('*WAI');
+        end
+        function setContinuousTrigState(this, state)
+            assert(any(strcmpi(state, {'ON','OFF'})), ...
+                'Trigger state must be specified as either "ON","OFF"');
+            this.send(sprintf('INITiate:CONTinuous:ALL %s', state));
+        end % Changes continuous trigger state for all channels
+        function inititateImmediateTrigger(this)
+            this.send('INITiate:IMMediate:ALL');
+        end % Initiates immediate state for all channels
         function ret=queryIdentification(this)
             ret=this.query('*IDN?');
             ret=ret(1:end-1);
-        end
+        end % - get device ID
         function ret=selfTest(this)
             % ret=SelfTest(this) sends '*TST?'-command and returns 1 iff
             this.write('*TST?');
@@ -124,17 +141,35 @@ classdef K33522BDevice < Devices.Device
         function ret=getError(this)
             % ret=getError(this) queries for Errors
             % returns Error-Message  (e.g.: '+0,"No error"')
-            ret=this.query('SYST:ERR?');
+            ret=this.query('SYSTem:ERRor?');
             ret=ret(1:end-1);
-        end % - ret=getError(this) queries for Errors
+        end % - queries for Errors
         function Abort(this)
             this.send('ABORt');
         end
     end % - Basic
+    methods
+        function queryUpload(this, filename)
+            assert(ischar(filename), 'Input Error: Provide filename as a character string!');
+            this.send(sprintf('MMEMory:UPLoad? %s', filename));
+        end
+        function downloadDataFile(this, filename)
+            assert(ischar(filename), 'Input Error: Provide filename as a character string!');
+            this.send(sprintf('MMEMory:DOWNload:FNAMe %s', filename));
+        end % - specifies file name for downloading data from the computer to instrument's Mass Memory
+        function downloadBinBlockData(this, dat)
+            assert(ischar(dat), 'Input Error: Provide bin block data as a character string!');
+            this.send(sprintf('MMEMory:DOWNload:DATA %s', dat));
+        end % -downloads data from the host computer to instrument's Mass Memory
+        function deleteData(this, filename)
+            assert(ischar(dat), 'Input Error: Provide filename as a character string!');
+            this.send(sprintf('MMEMory:DELete %s', filename));
+        end % - removes files from Mass Memory device
+    end % - Download data to mass memory
     methods (Static)
         [Network_Devices_List,Network_Devices_List_Structured] = enumerateETHERNET;
         [USB_Devices_List,USB_Devices_List_Structured] = enumerateUSB(~, szFilter);
-        function [isConnected, Address] = findDevice(MacAdress,ConnectionType)
+        function findAndConnectToDevice(MacAdress,ConnectionType)
             
             % - input handling
             if nargin ==1
@@ -147,7 +182,7 @@ classdef K33522BDevice < Devices.Device
             switch ConnectionType
                 case 'USB'
                     %-Get list of Connected USB-Devices
-                    [USB_Devices_List,USB_Devices_List_Structured] = enumerateUSB('USBTestAndMeasurementDevice');
+                    [~,USB_Devices_List_Structured] = enumerateUSB('USBTestAndMeasurementDevice');
                     %-Check which ControllerDevice are Connected
                     disp('Checking which AWG Devices are connected via USB...')
                     Temp_ListOfConnectedDevices = struct2cell(USB_Devices_List_Structured);
