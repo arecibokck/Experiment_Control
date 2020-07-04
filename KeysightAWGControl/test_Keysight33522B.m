@@ -5,6 +5,7 @@ if true
     WaveGen = Devices.KeysightWaveGen.K33522BDevice(DeviceID);
     %%
     Channel_1 = WaveGen.channels(1);
+    Channel_2 = WaveGen.channels(2);
     %%
     Channel_1.ChannelNumber
     %% 
@@ -73,6 +74,22 @@ if true
     Channel_1.setOutput('ON')
 %%
     Channel_1.setOutput('OFF')
+end
+
+%%
+if true
+    %%
+    Channel_1.FunctionType = 'ARB';
+    Channel_1.setAmplitude('amplitude', 3, 'offset', 1);
+    Channel_1.ArbitraryFunctionSamplingRate = 1e+05;
+    Channel_1.ArbitraryFunction = 'INT:\BUILTIN\EXP_RISE.ARB';
+    Channel_1.OutputState = 'ON';
+    %%
+    Channel_2.FunctionType = 'ARB';
+    Channel_2.setAmplitude('amplitude', 3, 'offset', 1);
+    Channel_2.ArbitraryFunctionSamplingRate = 1e+05;
+    Channel_2.ArbitraryFunction = 'INT:\BUILTIN\EXP_RISE.ARB';
+    Channel_2.OutputState = 'ON';
 end
 
 %%

@@ -855,7 +855,7 @@ classdef K33522BChannel < handle
             ret = this.Parent.query(sprintf('SOURce%d:FUNCtion?', this.ChannelNumber));
         end
         function set.ArbitraryFunction(this, newval)
-            this.Parent.send(sprintf('SOURce%d:FUNCtion:ARBitrary %s', this.ChannelNumber, newval));
+            this.Parent.send(sprintf('SOURce%d:FUNCtion:ARBitrary "%s"', this.ChannelNumber, newval));
         end
         function ret = get.ArbitraryFunction(this)
             ret = this.Parent.query(sprintf('SOURce%d:FUNCtion:ARBitrary?', this.ChannelNumber));
@@ -917,7 +917,7 @@ classdef K33522BChannel < handle
         end
         function set.ArbitraryFunctionSamplingRate(this, newval)
             if ~ischar(newval)
-                if newval > 30
+                if newval > 30e+06
                     error('Sample rate larger 30 MHz not supported!')
                 end
                 newval = num2str(newval);
