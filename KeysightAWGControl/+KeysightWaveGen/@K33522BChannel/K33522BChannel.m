@@ -20,7 +20,7 @@ classdef K33522BChannel < handle
         % - Sets timer used when TRIGger[1|2]:SOURce is TIMer.
         TriggerTimer
         % - Sets the output trigger level and input trigger threshold in volts. The trigger threshold is one-half of the trigger level
-        TriggerLevel
+        % TriggerLevel - Only available in the 33600 series AWG 
         % - Sets trigger delay, (time from assertion of trigger to occurrence of triggered event)
         TriggerDelay
     end % - Trigger options
@@ -49,11 +49,26 @@ classdef K33522BChannel < handle
     end % - General options
     
     properties (Dependent)
+        % Sets output amplitude
         Amplitude
+        % Sets DC offset voltage
         Offset
+        %Set the waveform's high and low voltage levels
         HighLevel
         LowLevel
+        % Sets the high and low limits for output voltage
+        UpperLimit
+        LowerLimit
+        % Enables or disables output amplitude voltage limits
+        LimitState
+        % Disables or enables voltage autoranging for all functions. Selecting ONCE performs an immediate autorange
+        % and then turns autoranging OFF
         AutoRange
+        %Enables or disables the maintaining of the same amplitude, offset, range, load, and units on both channels of a two-channel instrument. 
+        %The command applies to both channels; the SOURce keyword is ignored.
+        VoltageCouplingState
+        %Selects the units for output amplitude
+        VoltageUnits
     end % - Voltage options
     
     properties (Dependent)
@@ -71,6 +86,14 @@ classdef K33522BChannel < handle
         FrequencyDwellTime
         % Specify up to 128 frequencies as a list (frequencies may also be read from or saved to a file using MMEMory:LOAD:LIST[1|2] and MMEMory:STORe:LIST.
         FrequencyList
+        %Enables/disables frequency coupling between channels in a two-channel instrument.
+        FrequencyCouplingState
+        %Sets the type of frequency coupling between frequency coupled channels.
+        FrequencyCouplingMode
+        %OFFSet specifies a constant frequency offset between channels.
+        FrequencyCouplingOffset
+        %RATio specifies a constant ratio between the channels' frequencies.
+        FrequencyCouplingRatio
         % Sets number of seconds the sweep holds (pauses) at the stop frequency before returning to the start frequency.
         SweepHoldTime
         % Sets number of seconds the sweep takes to return from stop frequency to start frequency.
@@ -173,6 +196,20 @@ classdef K33522BChannel < handle
         % such block, a waveform of 129 to 256 points consumes two blocks, and so on.
         FreeVolatileMemory
     end % - Data options
+    
+    properties (Dependent)
+       %Enables or disables sample rate coupling between channels, or allows one-time copying of one channel's
+       %sample rate into the other channel.
+       RateCouplingState
+       %Sets type of sample rate coupling to either a constant sample rate offset (OFFSet) or a constant ratio
+       %(RATio) between the channels' sample rates
+       RateCouplingMode
+       %Sets sample rate offset when a two-channel instrument is in sample rate coupled mode OFFSet.
+       RateCouplingOffset
+       %Sets offset ratio between channel sample rates when a two-channel instrument is in sample rate coupled
+       %mode RATio.
+       RateCouplingRatio
+    end % - Rate coupling options
     
     methods
         function this =  K33522BChannel(Parent, Channel) %Constructor and initialization
@@ -445,7 +482,7 @@ classdef K33522BChannel < handle
             ret = this.Parent.queryDouble(sprintf('SOURce%d:VOLTage:OFFSet?',this.ChannelNumber));
         end
         function set.HighLevel(this, newval)
-            assert(isnumeric(newval)&& newval>=0 || any(strcmpi(newval,{'MIN','MAX'})),...
+            assert(isnumeric(newval) || any(strcmpi(newval,{'MIN','MAX'})),...
                 'High level must be positive numeric value or specified as either "MIN" or "MAX"');
             if ~any(strcmpi(newval,{'MIN','MAX'}))
                 this.Parent.send(sprintf('SOURce%d:VOLTage:HIGH %s',this.ChannelNumber, num2str(newval)));
@@ -457,7 +494,7 @@ classdef K33522BChannel < handle
             ret = this.Parent.queryDouble(sprintf('SOURce%d:VOLTage:HIGH?',this.ChannelNumber));
         end
         function set.LowLevel(this, newval)
-            assert(isnumeric(newval)&& newval>=0 || any(strcmpi(newval,{'MIN','MAX'})),...
+            assert(isnumeric(newval) || any(strcmpi(newval,{'MIN','MAX'})),...
                 'Low level must be positive numeric value or specified as either "MIN" or "MAX"');
             if ~any(strcmpi(newval,{'MIN','MAX'}))
                 this.Parent.send(sprintf('SOURce%d:VOLTage:LOW %s',this.ChannelNumber, num2str(newval)));
@@ -468,6 +505,44 @@ classdef K33522BChannel < handle
         end
         function ret = get.LowLevel(this)
             ret = this.Parent.queryDouble(sprintf('SOURce%d:VOLTage:LOW?',this.ChannelNumber));
+        end
+        function set.UpperLimit(this, newval)
+            assert(isnumeric(newval) || any(strcmpi(newval,{'MIN','MAX'})),...
+                'Upper limit must be positive numeric value or specified as either "MIN" or "MAX"');
+            if ~any(strcmpi(newval,{'MIN','MAX'}))
+                this.Parent.send(sprintf('SOURce%d:VOLTage:LIMit:HIGH %s',this.ChannelNumber, num2str(newval)));
+            else
+                this.Parent.send(sprintf('SOURce%d:VOLTage:LIMit:HIGH %s',this.ChannelNumber, newval));
+            end
+        end
+        function ret = get.UpperLimit(this)
+            ret = this.Parent.queryDouble(sprintf('SOURce%d:VOLTage:LIMit:HIGH?',this.ChannelNumber));
+        end
+        function set.LowerLimit(this, newval)
+            assert(isnumeric(newval) || any(strcmpi(newval,{'MIN','MAX'})),...
+                'Lower limit must be positive numeric value or specified as either "MIN" or "MAX"');
+            if ~any(strcmpi(newval,{'MIN','MAX'}))
+                this.Parent.send(sprintf('SOURce%d:VOLTage:LIMit:LOW %s',this.ChannelNumber, num2str(newval)));
+            else
+                this.Parent.send(sprintf('SOURce%d:VOLTage:LIMit:LOW %s',this.ChannelNumber, newval));
+            end
+            
+        end
+        function ret = get.LowerLimit(this)
+            ret = this.Parent.queryDouble(sprintf('SOURce%d:VOLTage:LIMit:LOW?',this.ChannelNumber));
+        end
+        function set.LimitState(this,newval)
+            assert( (isnumeric(newval) && (newval == 0 || newval == 1) ) || any(strcmpi(newval, {'ON','OFF'})), ...
+                'Limit state must be specified as either 0, 1, "ON" or "OFF"');
+            if newval ==1
+                newval = 'ON';
+            elseif newval ==0
+                newval = 'OFF';
+            end
+            this.Parent.send(sprintf('SOURce%d:VOLTage:LIMit:STATe %s', this.ChannelNumber, newval));
+        end
+        function ret=get.LimitState(this)
+            ret=this.Parent.queryDouble(sprintf('SOURce%d:VOLTage:LIMit:STATe?',this.ChannelNumber));
         end
         function set.AutoRange(this, newval)
             assert( (isnumeric(newval) && (newval == 0 || newval == 1) ) || any(strcmpi(newval, {'ON','OFF'})), ...
@@ -481,6 +556,27 @@ classdef K33522BChannel < handle
         end
         function ret = get.AutoRange(this)
             ret = this.Parent.queryDouble(sprintf('SOURce%d:VOLTage:RANGe:AUTO?',this.ChannelNumber));
+        end
+        function set.VoltageCouplingState(this, newval)
+            assert( (isnumeric(newval) && (newval == 0 || newval == 1) ) || any(strcmpi(newval, {'ON','OFF'})), ...
+                'Voltage coupling state must be specified as either 0, 1, "ON" or "OFF"');
+            if newval == 1
+                newval = 'ON';
+            elseif newval == 0
+                newval = 'OFF';
+            end
+            this.Parent.send(sprintf('SOURce%d:VOLTage:COUPle:STATe %s', this.ChannelNumber, newval));
+        end
+        function ret=get.VoltageCouplingState(this)
+            ret=this.Parent.queryDouble(sprintf('SOURce%d:VOLTage:COUPle:STATe?',this.ChannelNumber));
+        end
+        function set.VoltageUnits(this, newval)
+            assert(any(strcmpi(newval,{'VPP','VRMS','DBM'})),...
+                'Voltage units must be specified as "VPP", "VRMS" or "DBM"');
+            this.Parent.send(sprintf('SOURce%d:VOLTage:UNIT %s', this.ChannelNumber, newval));
+        end
+        function ret = get.VoltageUnits(this)
+            ret = this.Parent.query(sprintf('SOURce%d:VOLTage:UNIT?', this.ChannelNumber));
         end
         %% - Triggering options
         function set.TriggerCount(this,newval)
@@ -506,18 +602,6 @@ classdef K33522BChannel < handle
         end
         function ret=get.TriggerDelay(this)
             ret=this.Parent.queryDouble(sprintf('TRIGger%d:DELay?', this.ChannelNumber));
-        end
-        function set.TriggerLevel(this,newval)
-            assert(isnumeric(newval) && isscalar(newval) && newval>0 || any(strcmpi(newval,{'MIN','MAX'})), ...
-                'Trigger Level must be positive scalar value or specified as either "MIN" or "MAX"');
-            if ~any(strcmpi(newval,{'MIN','MAX'}))
-                this.Parent.send(sprintf('TRIGger%d:LEVel %s', this.ChannelNumber, num2str(newval)));
-            else
-                this.Parent.send(sprintf('TRIGger%d:LEVel %s', this.ChannelNumber, newval));
-            end
-        end
-        function ret=get.TriggerLevel(this)
-            ret=this.Parent.queryDouble(sprintf('TRIGger%d:LEVel?', this.ChannelNumber));
         end
         function set.TriggerSlope(this,newval)
             assert(any(strcmpi(newval,{'NEG','POS'})),...
@@ -704,9 +788,50 @@ classdef K33522BChannel < handle
             d=sprintf(' %gE+06',newlist(1));
             d= [d sprintf(', %gE+06',newlist(2:end))];
             this.Parent.send(sprintf(['SOURce%d:LIST:FREQ' d],this.ChannelNumber));
-        end      % - set the Frequency List
-        function ret = getFrequencyList(this)
+        end  % - set the Frequency List
+        function ret = get.FrequencyList(this)
             ret = this.Parent.query(sprintf('SOURce%d:LIST:FREQuency:POINts?', this.ChannelNumber));
+        end
+        function set.FrequencyCouplingMode(this, newval)
+            assert(any(strcmpi(newval,{'OFF','RAT'})),...
+                'Frequency coupling mode must be specified as "OFFset" or "RATio"');
+            this.Parent.send(sprintf('SOURce%d:FREQuency:COUPle:MODE %s', this.ChannelNumber, newval));
+        end
+        function ret = get.FrequencyCouplingMode(this)
+            ret = this.Parent.query(sprintf('SOURce%d:FREQuency:COUPle:MODE?', this.ChannelNumber));
+        end
+        function set.FrequencyCouplingOffset(this, newval)
+            assert(isnumeric(newval) && isscalar(newval) && newval>0 || any(strcmpi(newval,{'MIN','MAX'})), ...
+                'Frequency coupling offset must be positive scalar value or specified as either "MIN" or "MAX"');
+            if ~any(strcmpi(newval,{'MIN','MAX'}))
+                this.Parent.send(sprintf('SOURce%d:FREQuency:COUPle:OFFSet %s', this.ChannelNumber, num2str(newval)));
+            else
+                this.Parent.send(sprintf('SOURce%d:FREQuency:COUPle:OFFSet %s', this.ChannelNumber, newval));
+            end
+        end
+        function ret = get.FrequencyCouplingOffset(this)
+            ret = this.Parent.queryDouble(sprintf('SOURce%d:FREQuency:COUPle:OFFSet?', this.ChannelNumber));
+        end
+        function set.FrequencyCouplingRatio(this, newval)
+            assert(isnumeric(newval) && isscalar(newval) && newval>0),...
+                'Frequency coupling ratio must be a positive numeric value');
+            this.Parent.send(sprintf('SOURce%d:FREQuency:COUPle:RATio %s', this.ChannelNumber, newval));
+        end
+        function ret = get.FrequencyCouplingRatio(this)
+            ret = this.Parent.query(sprintf('SOURce%d:FREQuency:COUPle:RATio?', this.ChannelNumber));
+        end
+        function set.FrequencyCouplingState(this, newval)
+            assert( (isnumeric(newval) && (newval == 0 || newval == 1) ) || any(strcmpi(newval, {'ON','OFF'})), ...
+                'Frequency coupling state must be specified as either 0, 1, "ON" or "OFF"');
+            if newval == 1
+                newval = 'ON';
+            elseif newval == 0
+                newval = 'OFF';
+            end
+            this.Parent.send(sprintf('SOURce%d:FREQuency:COUPle:STATe %s', this.ChannelNumber, newval));
+        end
+        function ret=get.FrequencyCouplingState(this)
+            ret=this.Parent.queryDouble(sprintf('SOURce%d:FREQuency:COUPle:STATe?',this.ChannelNumber));
         end
         function set.SweepHoldTime(this, newval)
             assert(isnumeric(newval) && isscalar(newval) && newval>0 || any(strcmpi(newval,{'MIN','MAX'})), ...
@@ -885,7 +1010,7 @@ classdef K33522BChannel < handle
         end % - get the output trigger source
         %% - Function options
         function set.FunctionType(this, newval)
-            assert(any(strcmpi(newval,{'SINusoid', 'SQUare', 'TRIangle', 'RAMP', 'PULSe', 'PRBS', 'NOISe', 'ARB', 'DC'})), ...
+            assert(any(strcmpi(newval,{'SIN', 'SQU', 'TRI', 'RAMP', 'PULS', 'PRBS', 'NOIS', 'ARB', 'DC'})), ...
                 'Function type must be specified as either "SINusoid", "SQUare", "TRIangle", "RAMP", "PULSe", "PRBS", "NOISe", "ARB", "DC"');
             this.Parent.send(sprintf('SOURce%d:FUNCtion %s', this.ChannelNumber, newval));
         end
@@ -1130,5 +1255,62 @@ classdef K33522BChannel < handle
         function ret = get.FreeVolatileMemory(this)
             ret = this.Parent.query(sprintf('SOURce%d:DATA:VOLatile:FREE?', this.ChannelNumber));
         end
+        %% - Rate coupling options
+        function set.RateCouplingMode(this, newval)
+            assert(any(strcmpi(newval,{'OFF','RAT'})),...
+                'Rate coupling mode must be specified as "OFFset" or "RATio"');
+            this.Parent.send(sprintf('SOURce%d:RATE:COUPle:MODE %s', this.ChannelNumber, newval));
+        end
+        function ret = get.RateCouplingMode(this)
+            ret = this.Parent.query(sprintf('SOURce%d:RATE:COUPle:MODE?', this.ChannelNumber));
+        end
+        function set.RateCouplingOffset(this, newval)
+            assert(isnumeric(newval) && isscalar(newval) && newval>0 || any(strcmpi(newval,{'MIN','MAX'})), ...
+                'Rate coupling offset must be positive scalar value or specified as either "MIN" or "MAX"');
+            if ~any(strcmpi(newval,{'MIN','MAX'}))
+                this.Parent.send(sprintf('SOURce%d:RATE:COUPle:OFFSet %s', this.ChannelNumber, num2str(newval)));
+            else
+                this.Parent.send(sprintf('SOURce%d:RATE:COUPle:OFFSet %s', this.ChannelNumber, newval));
+            end
+        end
+        function ret = get.RateCouplingOffset(this)
+            ret = this.Parent.queryDouble(sprintf('SOURce%d:RATE:COUPle:OFFSet?', this.ChannelNumber));
+        end
+        function set.RateCouplingRatio(this, newval)
+            assert(isnumeric(newval) && isscalar(newval) && newval>0),...
+                'Rate coupling ratio must be a positive numeric value');
+            this.Parent.send(sprintf('SOURce%d:RATE:COUPle:RATio %s', this.ChannelNumber, newval));
+        end
+        function ret = get.RateCouplingRatio(this)
+            ret = this.Parent.query(sprintf('SOURce%d:RATE:COUPle:RATio?', this.ChannelNumber));
+        end
+        function set.RateCouplingState(this, newval)
+            assert( (isnumeric(newval) && (newval == 0 || newval == 1) ) || any(strcmpi(newval, {'ON','OFF'})), ...
+                'Rate coupling state must be specified as either 0, 1, "ON" or "OFF"');
+            if newval == 1
+                newval = 'ON';
+            elseif newval == 0
+                newval = 'OFF';
+            end
+            this.Parent.send(sprintf('SOURce%d:RATE:COUPle:STATe %s', this.ChannelNumber, newval));
+        end
+        function ret=get.RateCouplingState(this)
+            ret=this.Parent.queryDouble(sprintf('SOURce%d:RATE:COUPle:STATe?',this.ChannelNumber));
+        end
     end  % - setters & getters
+    
+    %% Deprecated
+% Trigger Level setting only available in 33600 series AWG    
+%     function set.TriggerLevel(this,newval)
+%         assert(isnumeric(newval) && isscalar(newval) && newval>0 || any(strcmpi(newval,{'MIN','MAX'})), ...
+%             'Trigger Level must be positive scalar value or specified as either "MIN" or "MAX"');
+%         if ~any(strcmpi(newval,{'MIN','MAX'}))
+%             this.Parent.send(sprintf('TRIGger%d:LEVel %s', this.ChannelNumber, num2str(newval)));
+%         else
+%             this.Parent.send(sprintf('TRIGger%d:LEVel %s', this.ChannelNumber, newval));
+%         end
+%     end
+%     function ret=get.TriggerLevel(this)
+%         ret=this.Parent.queryDouble(sprintf('TRIGger%d:LEVel?', this.ChannelNumber));
+%     end
 end

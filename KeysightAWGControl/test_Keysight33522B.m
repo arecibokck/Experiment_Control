@@ -41,8 +41,6 @@ if true
 %%
     WaveGen.channels(ChannelNumber).TriggerDelay
 %%
-    WaveGen.channels(ChannelNumber).TriggerLevel
-%%
     WaveGen.channels(ChannelNumber).TriggerSlope
 %%
     WaveGen.channels(ChannelNumber).TriggerSource
@@ -194,15 +192,18 @@ end
 
 %% - test external trigger
 if true
-    %% - Arbitrary waveform example 
-    ChannelNumber = 2;
-    WaveGen.channels(ChannelNumber).FunctionType = 'ARB';
-    WaveGen.channels(ChannelNumber).Amplitude = 3;
-    WaveGen.channels(ChannelNumber).Offset    = 1;
-    WaveGen.channels(ChannelNumber).ArbitraryFunctionSamplingRate = 1e+05;
+    %% - Waveform example 
+    ChannelNumber = 1;
+    WaveGen.channels(ChannelNumber).FunctionType = 'SIN';
+    WaveGen.channels(ChannelNumber).Frequency = 1.2e+04;
+    %WaveGen.channels(ChannelNumber).Amplitude = 5;
+    %WaveGen.channels(ChannelNumber).Offset    = 0;
+    WaveGen.channels(ChannelNumber).HighLevel = 0;
+    WaveGen.channels(ChannelNumber).LowLevel = -4;
+    WaveGen.channels(ChannelNumber).BurstPhase = 90;
+    %WaveGen.channels(ChannelNumber).ArbitraryFunctionSamplingRate = 1e+05;
     %WaveGen.channels(ChannelNumber).ArbitraryFunction = 'INT:\BUILTIN\EXP_RISE.ARB';
-    %WaveGen.channels(ChannelNumber).OutputState = 'ON';
-    
+    WaveGen.channels(ChannelNumber).OutputLoad = 'INF';
     % - set trigger source
     WaveGen.channels(ChannelNumber).TriggerSource = 'EXT';
     % - set trigger level
@@ -210,21 +211,56 @@ if true
     %error, option not available on device? option could not be accessed it locally
     % - set trigger edge 
     WaveGen.channels(ChannelNumber).TriggerSlope = 'POS';
+    % - set trigger delay
+    WaveGen.channels(ChannelNumber).TriggerDelay = 10e-06;
     % - set burst mode
     WaveGen.channels(ChannelNumber).BurstMode = 'TRIG';
     % - set number of bursts
-    WaveGen.channels(ChannelNumber).BurstCycles = 2;
+    WaveGen.channels(ChannelNumber).BurstCycles = 1;
+    % - toggle burst mode
+    WaveGen.channels(ChannelNumber).BurstState = 1;
     % - start execution
+    WaveGen.channels(ChannelNumber).OutputState = 'ON';
+    %%
+    ChannelNumber = 2;
+    WaveGen.channels(ChannelNumber).FunctionType = 'SIN';
+    WaveGen.channels(ChannelNumber).Frequency = 1.2e+04;
+    %WaveGen.channels(ChannelNumber).Amplitude = 5;
+    %WaveGen.channels(ChannelNumber).Offset    = 5;
+    WaveGen.channels(ChannelNumber).HighLevel = 4;
+    WaveGen.channels(ChannelNumber).LowLevel = 0;
+    WaveGen.channels(ChannelNumber).BurstPhase = 270;
+    %WaveGen.channels(ChannelNumber).ArbitraryFunctionSamplingRate = 1e+05;
+    %WaveGen.channels(ChannelNumber).ArbitraryFunction = 'INT:\BUILTIN\EXP_RISE.ARB';
+    WaveGen.channels(ChannelNumber).OutputLoad = 'INF';
+    % - set trigger source
+    WaveGen.channels(ChannelNumber).TriggerSource = 'EXT';
+    % - set trigger level
+    %WaveGen.channels(1).TriggerLevel; Unable to set trig level? Throws
+    %error, option not available on device? option could not be accessed it locally
+    % - set trigger edge 
+    WaveGen.channels(ChannelNumber).TriggerSlope = 'POS';
+    % - set trigger delay
+    WaveGen.channels(ChannelNumber).TriggerDelay = 10e-06;
+    % - set burst mode
+    WaveGen.channels(ChannelNumber).BurstMode = 'TRIG';
+    % - set number of bursts
+    WaveGen.channels(ChannelNumber).BurstCycles = 1;
+    % - toggle burst mode
+    WaveGen.channels(ChannelNumber).BurstState = 1;
     
+    % - start execution
+    WaveGen.channels(ChannelNumber).OutputState = 'ON';
 end
 
 
 %%  - Examples From Manual
 if true
     %% - Arbitrary waveform example 
-    ChannelNumber = 2;
+    ChannelNumber = 1;
     WaveGen.channels(ChannelNumber).FunctionType = 'ARB';
-    WaveGen.channels(ChannelNumber).setAmplitude('amplitude', 3, 'offset', 1);
+    WaveGen.channels(ChannelNumber).Amplitude = 3;
+    WaveGen.channels(ChannelNumber).Offset = 1;
     WaveGen.channels(ChannelNumber).ArbitraryFunctionSamplingRate = 1e+05;
     WaveGen.channels(ChannelNumber).ArbitraryFunction = 'INT:\BUILTIN\EXP_RISE.ARB';
     WaveGen.channels(ChannelNumber).OutputState = 'ON';
