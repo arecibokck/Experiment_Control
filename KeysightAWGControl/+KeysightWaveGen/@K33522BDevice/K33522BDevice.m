@@ -151,11 +151,11 @@ classdef K33522BDevice < Devices.Device
     methods
         function queryUpload(this, filename)
             assert(ischar(filename), 'Input Error: Provide filename as a character string!');
-            this.send(sprintf('MMEMory:UPLoad? %s', filename));
+            this.send(sprintf('MMEMory:UPLoad? "%s"', filename));
         end
         function downloadDataFile(this, filename)
             assert(ischar(filename), 'Input Error: Provide filename as a character string!');
-            this.send(sprintf('MMEMory:DOWNload:FNAMe %s', filename));
+            this.send(sprintf('MMEMory:DOWNload:FNAMe "%s"', filename));
         end % - specifies file name for downloading data from the computer to instrument's Mass Memory
         function downloadBinBlockData(this, dat)
             assert(ischar(dat), 'Input Error: Provide bin block data as a character string!');
@@ -163,7 +163,7 @@ classdef K33522BDevice < Devices.Device
         end % -downloads data from the host computer to instrument's Mass Memory
         function deleteData(this, filename)
             assert(ischar(dat), 'Input Error: Provide filename as a character string!');
-            this.send(sprintf('MMEMory:DELete %s', filename));
+            this.send(sprintf('MMEMory:DELete "%s"', filename));
         end % - removes files from Mass Memory device
     end % - Download data to mass memory
     methods (Static)

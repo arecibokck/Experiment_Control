@@ -49,6 +49,15 @@ classdef K33522BChannel < handle
     end % - General options
     
     properties (Dependent)
+        Amplitude
+        Offset
+        HighLevel
+        LowLevel
+        AutoRange
+    end % - Voltage options
+    
+    properties (Dependent)
+        Frequency
         % Sets the center frequency. Used with frequency span for a frequency sweep.
         FrequencyCenter
         % Allows user to specify a frequency mode to use, including a sweep, frequency list, or fixed frequency.
@@ -233,79 +242,7 @@ classdef K33522BChannel < handle
             xlabel('Time [us]');
             ylabel('Voltage [V]');
         end % - preview the arbitrary waveform
-    end  % - Arbitrary waveforms
-    methods
-        function setFrequency(this, varargin)
-            p = inputParser;
-            addRequired(p, 'Child', @isobject);
-            addOptional(p, 'frequency', 'DEF', @isnumeric);
-            parse(p, this, varargin{:});
-            frequency = p.Results.frequency;
-            assert(isnumeric(frequency)&& frequency>=0 || any(strcmpi(frequency,{'MIN','MAX'})),...
-                'Frequency must be positiv numeric value or specified as either "MIN" or "MAX"');
-            if ~any(strcmpi(frequency,{'MIN','MAX'}))
-                this.Parent.send(sprintf('SOURce%d:FREQuency %s',this.ChannelNumber, num2str(frequency)));
-            else
-                this.Parent.send(sprintf('SOURce%d:FREQuency %s',this.ChannelNumber, frequency));
-            end
-        end      % - set the Frequency
-        function setAmplitude(this, varargin)
-            p = inputParser;
-            addRequired(p, 'Child', @isobject);
-            addOptional(p, 'amplitude', 'DEF', @isnumeric);
-            addOptional(p, 'high', 'DEF', @isnumeric);
-            addOptional(p, 'low', 'DEF', @isnumeric);
-            addOptional(p, 'offset', 'DEF', @isnumeric);
-            addOptional(p, 'autorange', 'ON', @ischar);
-            parse(p, this, varargin{:});
-            amplitude = num2str(p.Results.amplitude);
-            high = num2str(p.Results.high);
-            low = num2str(p.Results.low);
-            offset = num2str(p.Results.offset);
-            autorange = p.Results.autorange;
-            
-            if ~strcmp(amplitude, 'DEF')
-                this.Parent.send(sprintf('SOURce%d:VOLTage %s',this.ChannelNumber, amplitude));
-            end
-            
-            if ~strcmp(offset, 'DEF')
-                this.Parent.send(sprintf('SOURce%d:VOLTage:OFFSet %s',this.ChannelNumber, offset));
-            end
-            
-            if ~strcmp(high, 'DEF') && strcmp(low, 'DEF')
-                warning('Low set to default');
-                this.Parent.send(sprintf('SOURce%d:VOLTage:HIGH %s',this.ChannelNumber, high));
-                this.Parent.send(sprintf('SOURce%d:VOLTage:LOW %s',this.ChannelNumber, low));
-            elseif ~strcmp(low, 'DEF') && strcmp(high, 'DEF')
-                warning('High set to default');
-                this.Parent.send(sprintf('SOURce%d:VOLTage:HIGH %s',this.ChannelNumber, high));
-                this.Parent.send(sprintf('SOURce%d:VOLTage:LOW %s',this.ChannelNumber, low));
-            elseif ~strcmp(high, 'DEF') && ~strcmp(low, 'DEF')
-                this.Parent.send(sprintf('SOURce%d:VOLTage:HIGH %s',this.ChannelNumber, high));
-                this.Parent.send(sprintf('SOURce%d:VOLTage:LOW %s',this.ChannelNumber, low));
-            end
-            
-            this.Parent.send(sprintf('SOURce%d:VOLTage:RANGe:AUTO %s',this.ChannelNumber, autorange));
-        end      % - set the Amplitude
-    end  % - Set parameters for built-in waveforms
-    methods
-        function ret = getFrequency(this)
-            ret = this.Parent.query(sprintf('SOURce%d:FREQuency?',this.ChannelNumber));
-        end      % - get the Frequency
-        function ret = getAmplitude(this, querystring)
-            if strcmp(querystring, 'amplitude')
-                ret = this.Parent.query(sprintf('SOURce%d:VOLTage?',this.ChannelNumber));
-            elseif strcmp(querystring, 'high')
-                ret = this.Parent.query(sprintf('SOURce%d:VOLTage:HIGH?',this.ChannelNumber));
-            elseif strcmp(querystring, 'low')
-                ret = this.Parent.query(sprintf('SOURce%d:VOLTage:LOW?',this.ChannelNumber));
-            elseif strcmp(querystring, 'offset')
-                ret = this.Parent.query(sprintf('SOURce%d:VOLTage:OFFSet?',this.ChannelNumber));
-            elseif strcmp(querystring, 'autorange')
-                ret = this.Parent.query(sprintf('SOURce%d:VOLTage:RANGe:AUTO?',this.ChannelNumber));
-            end
-        end      % - get the Amplitude params
-    end  % - Get parameters for built-in waveforms
+    end  % - Apply Arbitrary waveforms
     methods
         function applyDCVoltage(this, varargin)
             p = inputParser;
@@ -403,19 +340,19 @@ classdef K33522BChannel < handle
     methods
         function loadList(this, filename)
             assert(ischar(filename), 'Input Error: Provide filename of list as a character string!');
-            this.Parent.send(sprintf('MMEMory:LOAD:LIST%d %s', this.ChannelNumber, filename));
+            this.Parent.send(sprintf('MMEMory:LOAD:LIST%d "%s"', this.ChannelNumber, filename));
         end
         function storeList(this, filename)
             assert(ischar(filename), 'Input Error: Provide filename of list as a character string!');
-            this.Parent.send(sprintf('MMEMory:STORe:LIST%d %s', this.ChannelNumber, filename));
+            this.Parent.send(sprintf('MMEMory:STORe:LIST%d "%s"', this.ChannelNumber, filename));
         end
         function loadData(this, filename)
             assert(ischar(filename), 'Input Error: Provide filename of data as a character string!');
-            this.Parent.send(sprintf('MMEMory:LOAD:DATA%d %s', this.ChannelNumber, filename));
+            this.Parent.send(sprintf('MMEMory:LOAD:DATA%d "%s"', this.ChannelNumber, filename));
         end
         function storeData(this, filename)
             assert(ischar(filename), 'Input Error: Provide filename of data as a character string!');
-            this.Parent.send(sprintf('MMEMory:LOAD:STORe%d %s', this.ChannelNumber, filename));
+            this.Parent.send(sprintf('MMEMory:LOAD:STORe%d "%s"', this.ChannelNumber, filename));
         end
     end  % - Load/Store channel-specific data/list from on-board memory
     methods
@@ -461,12 +398,17 @@ classdef K33522BChannel < handle
             this.RescaledList = ((newval-min(newval))./(max(newval)-min(newval)) - 0.5) * 2;
         end
         function set.ContinuousTriggerState(this, newval)
-            assert(any(strcmpi(newval, {'ON','OFF'})), ...
-                'Output state must be specified as either "ON","OFF"');
-            this.Parent.send(sprintf('INITiate%d:CONTinuous %s',this.ChannelNumber, newval));
+            assert( (isnumeric(newval) && (newval == 0 || newval == 1) ) || any(strcmpi(newval, {'ON','OFF'})), ...
+                'Continuous trigger state must be specified as either 0, 1, "ON" or "OFF"');
+            if newval == 1
+                newval = 'ON';
+            elseif newval == 0
+                newval = 'OFF';
+            end
+            endthis.Parent.send(sprintf('INITiate%d:CONTinuous %s',this.ChannelNumber, newval));
         end
         function ret = get.ContinuousTriggerState(this)
-            ret = this.Parent.query(sprintf('INITiate%d:CONTinuous?',this.ChannelNumber));
+            ret = this.Parent.queryDouble(sprintf('INITiate%d:CONTinuous?',this.ChannelNumber));
         end
         function set.FormatBorder(this, newval)
             assert(any(strcmpi(newval,{'NORMal','SWAPped'})),...
@@ -475,6 +417,70 @@ classdef K33522BChannel < handle
         end
         function ret = get.FormatBorder(this)
             ret = this.Parent.query('FORMat:BORDer?');
+        end
+        %% - Voltage options
+        function set.Amplitude(this, newval)
+            assert(isnumeric(newval)&& newval>=0 || any(strcmpi(newval,{'MIN','MAX'})),...
+                'Amplitude must be positive numeric value or specified as either "MIN" or "MAX"');
+            if ~any(strcmpi(newval,{'MIN','MAX'}))
+                this.Parent.send(sprintf('SOURce%d:VOLTage %s',this.ChannelNumber, num2str(newval)));
+            else
+                this.Parent.send(sprintf('SOURce%d:VOLTage %s',this.ChannelNumber, newval));
+            end
+        end
+        function ret = get.Amplitude(this)
+            ret = this.Parent.queryDouble(sprintf('SOURce%d:VOLTage?',this.ChannelNumber));
+        end
+        function set.Offset(this, newval)
+            assert(isnumeric(newval)&& newval>=0 || any(strcmpi(newval,{'MIN','MAX'})),...
+                'Offset must be positive numeric value or specified as either "MIN" or "MAX"');
+            if ~any(strcmpi(newval,{'MIN','MAX'}))
+                this.Parent.send(sprintf('SOURce%d:VOLTage:OFFSet %s',this.ChannelNumber, num2str(newval)));
+            else
+                this.Parent.send(sprintf('SOURce%d:VOLTage:OFFSet %s',this.ChannelNumber, newval));
+            end
+            
+        end
+        function ret = get.Offset(this)
+            ret = this.Parent.queryDouble(sprintf('SOURce%d:VOLTage:OFFSet?',this.ChannelNumber));
+        end
+        function set.HighLevel(this, newval)
+            assert(isnumeric(newval)&& newval>=0 || any(strcmpi(newval,{'MIN','MAX'})),...
+                'High level must be positive numeric value or specified as either "MIN" or "MAX"');
+            if ~any(strcmpi(newval,{'MIN','MAX'}))
+                this.Parent.send(sprintf('SOURce%d:VOLTage:HIGH %s',this.ChannelNumber, num2str(newval)));
+            else
+                this.Parent.send(sprintf('SOURce%d:VOLTage:HIGH %s',this.ChannelNumber, newval));
+            end
+        end
+        function ret = get.HighLevel(this)
+            ret = this.Parent.queryDouble(sprintf('SOURce%d:VOLTage:HIGH?',this.ChannelNumber));
+        end
+        function set.LowLevel(this, newval)
+            assert(isnumeric(newval)&& newval>=0 || any(strcmpi(newval,{'MIN','MAX'})),...
+                'Low level must be positive numeric value or specified as either "MIN" or "MAX"');
+            if ~any(strcmpi(newval,{'MIN','MAX'}))
+                this.Parent.send(sprintf('SOURce%d:VOLTage:LOW %s',this.ChannelNumber, num2str(newval)));
+            else
+                this.Parent.send(sprintf('SOURce%d:VOLTage:LOW %s',this.ChannelNumber, newval));
+            end
+            
+        end
+        function ret = get.LowLevel(this)
+            ret = this.Parent.queryDouble(sprintf('SOURce%d:VOLTage:LOW?',this.ChannelNumber));
+        end
+        function set.AutoRange(this, newval)
+            assert( (isnumeric(newval) && (newval == 0 || newval == 1) ) || any(strcmpi(newval, {'ON','OFF'})), ...
+                'Voltage Autoranging must be specified as either 0, 1, "ON" or "OFF"');
+            if newval ==1
+                newval = 'ON';
+            elseif newval ==0
+                newval = 'OFF';
+            end
+            this.Parent.send(sprintf('SOURce%d:VOLTage:RANGe:AUTO %s',this.ChannelNumber, newval));
+        end
+        function ret = get.AutoRange(this)
+            ret = this.Parent.queryDouble(sprintf('SOURce%d:VOLTage:RANGe:AUTO?',this.ChannelNumber));
         end
         %% - Triggering options
         function set.TriggerCount(this,newval)
@@ -487,7 +493,7 @@ classdef K33522BChannel < handle
             end
         end
         function ret=get.TriggerCount(this)
-            ret=this.Parent.query(sprintf('TRIGger%d:COUNt?', this.ChannelNumber));
+            ret=this.Parent.queryDouble(sprintf('TRIGger%d:COUNt?', this.ChannelNumber));
         end
         function set.TriggerDelay(this,newval)
             assert(isnumeric(newval) && isscalar(newval) && newval>=0 || any(strcmpi(newval,{'MIN','MAX'})), ...
@@ -499,7 +505,7 @@ classdef K33522BChannel < handle
             end
         end
         function ret=get.TriggerDelay(this)
-            ret=this.Parent.query(sprintf('TRIGger%d:DELay?', this.ChannelNumber));
+            ret=this.Parent.queryDouble(sprintf('TRIGger%d:DELay?', this.ChannelNumber));
         end
         function set.TriggerLevel(this,newval)
             assert(isnumeric(newval) && isscalar(newval) && newval>0 || any(strcmpi(newval,{'MIN','MAX'})), ...
@@ -511,7 +517,7 @@ classdef K33522BChannel < handle
             end
         end
         function ret=get.TriggerLevel(this)
-            ret=this.Parent.query(sprintf('TRIGger%d:LEVel?', this.ChannelNumber));
+            ret=this.Parent.queryDouble(sprintf('TRIGger%d:LEVel?', this.ChannelNumber));
         end
         function set.TriggerSlope(this,newval)
             assert(any(strcmpi(newval,{'NEG','POS'})),...
@@ -542,7 +548,7 @@ classdef K33522BChannel < handle
             end
         end
         function ret=get.TriggerTimer(this)
-            ret=this.Parent.query(sprintf('TRIGger%d:TIMer?', this.ChannelNumber));
+            ret=this.Parent.queryDouble(sprintf('TRIGger%d:TIMer?', this.ChannelNumber));
             ret=ret(1:end-1);
         end
         %% - Burst options
@@ -564,7 +570,7 @@ classdef K33522BChannel < handle
             end
         end
         function ret=get.BurstInternalPeriod(this)
-            ret=this.Parent.query(sprintf('SOURce%d:BURSt:INTernal:PERiod?', this.ChannelNumber));
+            ret=this.Parent.queryDouble(sprintf('SOURce%d:BURSt:INTernal:PERiod?', this.ChannelNumber));
         end
         function set.BurstMode(this,newval)
             assert(any(strcmpi(newval, {'TRIG','GAT'})), ...
@@ -584,7 +590,7 @@ classdef K33522BChannel < handle
             end
         end
         function ret=get.BurstCycles(this)
-            ret=this.Parent.query(sprintf('SOURce%d:BURSt:NCYCles?', this.ChannelNumber));
+            ret=this.Parent.queryDouble(sprintf('SOURce%d:BURSt:NCYCles?', this.ChannelNumber));
             ret=ret(1:end-1);
         end
         function set.BurstPhase(this,newval)
@@ -597,19 +603,35 @@ classdef K33522BChannel < handle
             end
         end
         function ret=get.BurstPhase(this)
-            ret=this.Parent.query(sprintf('SOURce%d:BURSt:PHASe?',this.ChannelNumber));
+            ret=this.Parent.queryDouble(sprintf('SOURce%d:BURSt:PHASe?',this.ChannelNumber));
             ret=ret(1:end-1);
         end
         function set.BurstState(this,newval)
-            assert(any(strcmpi(newval, {'ON','OFF'})), ...
-                'Burst mode must be specified as either "ON","OFF"');
+            assert( (isnumeric(newval) && (newval == 0 || newval == 1) ) || any(strcmpi(newval, {'ON','OFF'})), ...
+                'Burst mode must be specified as either 0, 1, "ON" or "OFF"');
+            if newval ==1
+                newval = 'ON';
+            elseif newval ==0
+                newval = 'OFF';
+            end
             this.Parent.send(sprintf('SOURce%d:BURSt:STATe %s', this.ChannelNumber, newval));
         end
         function ret=get.BurstState(this)
-            ret=this.Parent.query(sprintf('SOURce%d:BURSt:STATe?',this.ChannelNumber));
-            ret=ret(1:end-1);
+            ret=this.Parent.queryDouble(sprintf('SOURce%d:BURSt:STATe?',this.ChannelNumber));
         end
         %% - Frequency options
+        function set.Frequency(this, newval)
+            assert(isnumeric(newval)&& newval>=0 || any(strcmpi(newval,{'MIN','MAX'})),...
+                'Frequency must be positive numeric value or specified as either "MIN" or "MAX"');
+            if ~any(strcmpi(newval,{'MIN','MAX'}))
+                this.Parent.send(sprintf('SOURce%d:FREQuency %s',this.ChannelNumber, num2str(newval)));
+            else
+                this.Parent.send(sprintf('SOURce%d:FREQuency %s',this.ChannelNumber, newval));
+            end
+        end
+        function ret = get.Frequency(this)
+            ret = this.Parent.queryDouble(sprintf('SOURce%d:FREQuency?',this.ChannelNumber));
+        end
         function set.FrequencyCenter(this, newval)
             assert(isnumeric(newval) && isscalar(newval) && newval>0 || any(strcmpi(newval,{'MIN','MAX'})), ...
                 'Frequency center must be positive scalar value or specified as either "MIN" or "MAX"');
@@ -620,7 +642,7 @@ classdef K33522BChannel < handle
             end
         end
         function ret=get.FrequencyCenter(this)
-            ret=this.Parent.query(sprintf('SOURce%d:FREQuency:CENTer?', this.ChannelNumber));
+            ret=this.Parent.queryDouble(sprintf('SOURce%d:FREQuency:CENTer?', this.ChannelNumber));
         end
         function set.FrequencyMode(this, newval)
             assert(any(strcmpi(newval,{'CW','LIST', 'SWE', 'FIX'})), ...
@@ -640,7 +662,7 @@ classdef K33522BChannel < handle
             end
         end
         function ret=get.FrequencySpan(this)
-            ret=this.Parent.query(sprintf('SOURce%d:FREQuency:SPAN?', this.ChannelNumber));
+            ret=this.Parent.queryDouble(sprintf('SOURce%d:FREQuency:SPAN?', this.ChannelNumber));
         end
         function set.FrequencyStart(this, newval)
             assert(isnumeric(newval) && isscalar(newval) && newval>0 || any(strcmpi(newval,{'MIN','MAX'})), ...
@@ -652,7 +674,7 @@ classdef K33522BChannel < handle
             end
         end
         function ret=get.FrequencyStart(this)
-            ret=this.Parent.query(sprintf('SOURce%d:FREQuency:STARt?', this.ChannelNumber));
+            ret=this.Parent.queryDouble(sprintf('SOURce%d:FREQuency:STARt?', this.ChannelNumber));
         end
         function set.FrequencyStop(this, newval)
             assert(isnumeric(newval) && isscalar(newval) && newval>0 || any(strcmpi(newval,{'MIN','MAX'})), ...
@@ -664,7 +686,7 @@ classdef K33522BChannel < handle
             end
         end
         function ret=get.FrequencyStop(this)
-            ret=this.Parent.query(sprintf('SOURce%d:FREQuency:STOP?', this.ChannelNumber));
+            ret=this.Parent.queryDouble(sprintf('SOURce%d:FREQuency:STOP?', this.ChannelNumber));
         end
         function set.FrequencyDwellTime(this, newval)
             assert(isnumeric(newval) && isscalar(newval) && newval>0 || any(strcmpi(newval,{'MIN','MAX'})), ...
@@ -676,7 +698,7 @@ classdef K33522BChannel < handle
             end
         end
         function ret=get.FrequencyDwellTime(this)
-            ret=this.Parent.query(sprintf('SOURce%d:LIST:DWELl?', this.ChannelNumber));
+            ret=this.Parent.queryDouble(sprintf('SOURce%d:LIST:DWELl?', this.ChannelNumber));
         end
         function set.FrequencyList(this, newlist)
             d=sprintf(' %gE+06',newlist(1));
@@ -696,7 +718,7 @@ classdef K33522BChannel < handle
             end
         end
         function ret = get.SweepHoldTime(this)
-            ret = this.Parent.query(sprintf('SOURce%d:SWEep:HTIMe?', this.ChannelNumber));
+            ret = this.Parent.queryDouble(sprintf('SOURce%d:SWEep:HTIMe?', this.ChannelNumber));
         end
         function set.SweepReturnTime(this, newval)
             assert(isnumeric(newval) && isscalar(newval) && newval>0 || any(strcmpi(newval,{'MIN','MAX'})), ...
@@ -708,7 +730,7 @@ classdef K33522BChannel < handle
             end
         end
         function ret = get.SweepReturnTime(this)
-            ret = this.Parent.query(sprintf('SOURce%d:SWEep:RTIMe?', this.ChannelNumber));
+            ret = this.Parent.queryDouble(sprintf('SOURce%d:SWEep:RTIMe?', this.ChannelNumber));
         end
         function set.SweepSpacing(this, newval)
             assert(any(strcmpi(newval,{'LIN','LOG'})), ...
@@ -720,19 +742,20 @@ classdef K33522BChannel < handle
             end
         end
         function ret = get.SweepSpacing(this)
-            ret = this.Parent.query(sprintf('SOURce%d:SWEep:SPACing?', this.ChannelNumber));
+            ret = this.Parent.queryDouble(sprintf('SOURce%d:SWEep:SPACing?', this.ChannelNumber));
         end
         function set.SweepState(this, newval)
-            assert(any(strcmpi(newval,{'ON','OFF'})), ...
-                'Frequency sweep state must be specified as either "ON" or "OFF"');
-            if ~any(strcmpi(newval,{'MIN','MAX'}))
-                this.Parent.send(sprintf('SOURce%d:SWEep:STATe %s', this.ChannelNumber, num2str(newval)));
-            else
-                this.Parent.send(sprintf('SOURce%d:SWEep:STATe %s', this.ChannelNumber, newval));
+            assert( (isnumeric(newval) && (newval == 0 || newval == 1) ) || any(strcmpi(newval, {'ON','OFF'})), ...
+                'Frequency sweep state must be specified as either 0, 1, "ON" or "OFF"');
+            if newval == 1
+                newval = 'ON';
+            elseif newval == 0
+                newval = 'OFF';
             end
+            this.Parent.send(sprintf('SOURce%d:SWEep:STATe %s', this.ChannelNumber, newval));
         end
         function ret = get.SweepState(this)
-            ret = this.Parent.query(sprintf('SOURce%d:SWEep:STATe?', this.ChannelNumber));
+            ret = this.Parent.queryDouble(sprintf('SOURce%d:SWEep:STATe?', this.ChannelNumber));
         end
         function set.SweepTime(this, newval)
             assert(isnumeric(newval) && isscalar(newval) && newval>0 || any(strcmpi(newval,{'MIN','MAX'})), ...
@@ -744,16 +767,21 @@ classdef K33522BChannel < handle
             end
         end
         function ret = get.SweepTime(this)
-            ret = this.Parent.query(sprintf('SOURce%d:SWEep:TIME?', this.ChannelNumber));
+            ret = this.Parent.queryDouble(sprintf('SOURce%d:SWEep:TIME?', this.ChannelNumber));
         end
         %% - Output options
         function set.OutputState(this, newval)
-            assert(any(strcmpi(newval, {'ON','OFF'})), ...
-                'Output state must be specified as either "ON","OFF"');
-            this.Parent.send(sprintf('OUTPut%d %s',this.ChannelNumber, newval));
+            assert( (isnumeric(newval) && (newval == 0 || newval == 1) ) || any(strcmpi(newval, {'ON','OFF'})), ...
+                'Output state must be specified as either 0, 1, "ON" or "OFF"');
+            if newval == 1
+                newval = 'ON';
+            elseif newval == 0
+                newval = 'OFF';
+            end
+            this.Parent.send(sprintf('OUTPut%d %s', this.ChannelNumber, newval));
         end % - set the output state
         function ret = get.OutputState(this)
-            ret = this.Parent.query(sprintf('OUTPut%d?',this.ChannelNumber));
+            ret = this.Parent.queryDouble(sprintf('OUTPut%d?',this.ChannelNumber));
         end % - get the output state
         function set.OutputLoad(this, newval)
             assert(isnumeric(newval) && isscalar(newval) && newval>0|| any(strcmpi(newval,{'INF','MIN','MAX'})),...
@@ -771,7 +799,7 @@ classdef K33522BChannel < handle
             
         end % - set the output load
         function ret = get.OutputLoad(this)
-            ret = this.Parent.query(sprintf('OUTPut%d:LOAD?',this.ChannelNumber));
+            ret = this.Parent.queryDouble(sprintf('OUTPut%d:LOAD?',this.ChannelNumber));
         end % - get the output load
         function set.OutputMode(this, newval)
             assert(any(strcmpi(newval,{'NORM','GAT'})),...
@@ -790,12 +818,17 @@ classdef K33522BChannel < handle
             ret = this.Parent.query(sprintf('OUTPut%d:POLarity?',this.ChannelNumber));
         end % - get the output polarity
         function set.OutputSync(this, newval)
-            assert(any(strcmpi(newval, {'ON','OFF'})), ...
-                'Output sync must be specified as either "ON", "OFF"');
+            assert( (isnumeric(newval) && (newval == 0 || newval == 1) ) || any(strcmpi(newval, {'ON','OFF'})), ...
+                'Output sync state must be specified as either 0, 1, "ON" or "OFF"');
+            if newval == 1
+                newval = 'ON';
+            elseif newval == 0
+                newval = 'OFF';
+            end
             this.Parent.send(sprintf('OUTPut%d:SYNC %s',this.ChannelNumber, newval));
         end % - set the output sync
         function ret = get.OutputSync(this)
-            ret = this.Parent.query(sprintf('OUTPut%d:SYNC?',this.ChannelNumber));
+            ret = this.Parent.queryDouble(sprintf('OUTPut%d:SYNC?',this.ChannelNumber));
         end % - get the output sync
         function set.OutputSyncMode(this, newval)
             assert(any(strcmpi(newval,{'NORM','CARR','MARK'})),...
@@ -822,12 +855,17 @@ classdef K33522BChannel < handle
             ret = this.Parent.query(sprintf('OUTPut%d:SYNC:SOURce?',this.ChannelNumber));
         end % - get the output sync source
         function set.OutputTriggerState(this, newval)
-            assert(any(strcmpi(newval,{'ON','OFF'})),...
-                'Output trigger state must be specified as "ON" or "OFF"');
+            assert( (isnumeric(newval) && (newval == 0 || newval == 1) ) || any(strcmpi(newval, {'ON','OFF'})), ...
+                'Output trigger state must be specified as either 0, 1, "ON" or "OFF"');
+            if newval == 1
+                newval = 'ON';
+            elseif newval == 0
+                newval = 'OFF';
+            end
             this.Parent.send(sprintf('OUTPut%d:TRIGger %s',this.ChannelNumber, newval));
         end % - set the output trigger source
         function ret = get.OutputTriggerState(this)
-            ret = this.Parent.query(sprintf('OUTPut%d:TRIGger?',this.ChannelNumber));
+            ret = this.Parent.queryDouble(sprintf('OUTPut%d:TRIGger?',this.ChannelNumber));
         end % - get the output trigger source
         function set.OutputTriggerSlope(this, newval)
             assert(any(strcmpi(newval,{'POS','NEG'})),...
@@ -886,7 +924,7 @@ classdef K33522BChannel < handle
             end
         end
         function ret = get.ArbitraryFunctionFrequency(this)
-            ret = this.Parent.query(sprintf('SOURce%d:FUNCtion:ARBitrary:FREQuency?', this.ChannelNumber));
+            ret = this.Parent.queryDouble(sprintf('SOURce%d:FUNCtion:ARBitrary:FREQuency?', this.ChannelNumber));
         end
         function set.ArbitraryFunctionPeriod(this, newval)
             assert(isnumeric(newval) && isscalar(newval) && newval>0 || any(strcmpi(newval,{'MIN','MAX'})), ...
@@ -898,10 +936,10 @@ classdef K33522BChannel < handle
             end
         end
         function ret = get.ArbitraryFunctionPeriod(this)
-            ret = this.Parent.query(sprintf('SOURce%d:FUNCtion:ARBitrary:PERiod?', this.ChannelNumber));
+            ret = this.Parent.queryDouble(sprintf('SOURce%d:FUNCtion:ARBitrary:PERiod?', this.ChannelNumber));
         end
         function ret = get.ArbitraryFunctionNumberOfPoints(this)
-            ret = this.Parent.query(sprintf('SOURce%d:FUNCtion:ARBitrary:POINts?', this.ChannelNumber));
+            ret = this.Parent.queryDouble(sprintf('SOURce%d:FUNCtion:ARBitrary:POINts?', this.ChannelNumber));
         end
         function set.ArbitraryFunctionPeakToPeak(this, newval)
             assert(isnumeric(newval) && isscalar(newval) && newval>0 || any(strcmpi(newval,{'MIN','MAX'})), ...
@@ -913,7 +951,7 @@ classdef K33522BChannel < handle
             end
         end
         function ret = get.ArbitraryFunctionPeakToPeak(this)
-            ret = this.Parent.query(sprintf('SOURce%d:FUNCtion:ARBitrary:PTPeak?', this.ChannelNumber));
+            ret = this.Parent.queryDouble(sprintf('SOURce%d:FUNCtion:ARBitrary:PTPeak?', this.ChannelNumber));
         end
         function set.ArbitraryFunctionSamplingRate(this, newval)
             if ~ischar(newval)
@@ -925,7 +963,7 @@ classdef K33522BChannel < handle
             this.Parent.send(sprintf('SOURce%d:FUNCtion:ARBitrary:SRATe %s',this.ChannelNumber, newval));
         end   % - set the sample rate
         function ret = get.ArbitraryFunctionSamplingRate(this)
-            ret = this.Parent.query(sprintf('SOURce%d:FUNCtion:ARBitrary:SRATe?',this.ChannelNumber));
+            ret = this.Parent.queryDouble(sprintf('SOURce%d:FUNCtion:ARBitrary:SRATe?',this.ChannelNumber));
         end   % - get the sample rate
         function set.NoiseFunctionBandwidth(this, newval)
             assert(isnumeric(newval) && isscalar(newval) && newval>0 || any(strcmpi(newval,{'MIN','MAX'})), ...
@@ -937,7 +975,7 @@ classdef K33522BChannel < handle
             end
         end
         function ret = get.NoiseFunctionBandwidth(this)
-            ret = this.Parent.query(sprintf('SOURce%d:FUNCtion:NOISe:BANDwidth?', this.ChannelNumber));
+            ret = this.Parent.queryDouble(sprintf('SOURce%d:FUNCtion:NOISe:BANDwidth?', this.ChannelNumber));
         end
         function set.PBRSFunctionBitRate(this, newval)
             assert(isnumeric(newval) && isscalar(newval) && newval>0 || any(strcmpi(newval,{'MIN','MAX'})), ...
@@ -949,7 +987,7 @@ classdef K33522BChannel < handle
             end
         end
         function ret = get.PBRSFunctionBitRate(this)
-            ret = this.Parent.query(sprintf('SOURce%d:FUNCtion:PRBS:BRATe?', this.ChannelNumber));
+            ret = this.Parent.queryDouble(sprintf('SOURce%d:FUNCtion:PRBS:BRATe?', this.ChannelNumber));
         end
         function set.PBRSFunctionSequenceType(this, newval)
             this.Parent.send(sprintf('SOURce%d:FUNCtion:PRBS:DATA %s', this.ChannelNumber, newval));
@@ -967,7 +1005,7 @@ classdef K33522BChannel < handle
             end
         end
         function ret = get.PBRSFunctionTransition(this)
-            ret = this.Parent.query(sprintf('SOURce%d:FUNCtion:PRBS:TRANsition:BOTH?', this.ChannelNumber));
+            ret = this.Parent.queryDouble(sprintf('SOURce%d:FUNCtion:PRBS:TRANsition:BOTH?', this.ChannelNumber));
         end
         function set.PulseFunctionDutyCycle(this, newval)
             assert(isnumeric(newval) && isscalar(newval) && newval>0 || any(strcmpi(newval,{'MIN','MAX'})), ...
@@ -979,7 +1017,7 @@ classdef K33522BChannel < handle
             end
         end
         function ret = get.PulseFunctionDutyCycle(this)
-            ret = this.Parent.query(sprintf('SOURce%d:FUNCtion:PULSe:DCYCle?', this.ChannelNumber));
+            ret = this.Parent.queryDouble(sprintf('SOURce%d:FUNCtion:PULSe:DCYCle?', this.ChannelNumber));
         end
         function set.PulseFunctionHoldTime(this, newval)
             assert(any(strcmpi(newval,{'WIDTh', 'DCYCle'})), ...
@@ -987,7 +1025,7 @@ classdef K33522BChannel < handle
             this.Parent.send(sprintf('SOURce%d:FUNCtion:PULSe:HOLD %s', this.ChannelNumber, newval));
         end
         function ret = get.PulseFunctionHoldTime(this)
-            ret = this.Parent.query(sprintf('SOURce%d:FUNCtion:PULSe:HOLD?', this.ChannelNumber));
+            ret = this.Parent.queryDouble(sprintf('SOURce%d:FUNCtion:PULSe:HOLD?', this.ChannelNumber));
         end
         function set.PulseFunctionPeriod(this, newval)
             assert(isnumeric(newval) && isscalar(newval) && newval>0 || any(strcmpi(newval,{'MIN','MAX'})), ...
@@ -999,7 +1037,7 @@ classdef K33522BChannel < handle
             end
         end
         function ret = get.PulseFunctionPeriod(this)
-            ret = this.Parent.query(sprintf('SOURce%d:FUNCtion:PULSe:PERiod?', this.ChannelNumber));
+            ret = this.Parent.queryDouble(sprintf('SOURce%d:FUNCtion:PULSe:PERiod?', this.ChannelNumber));
         end
         function set.PulseFunctionLeadingEdge(this, newval)
             assert(isnumeric(newval) && isscalar(newval) && newval>0 || any(strcmpi(newval,{'MIN','MAX'})), ...
@@ -1011,7 +1049,7 @@ classdef K33522BChannel < handle
             end
         end
         function ret = get.PulseFunctionLeadingEdge(this)
-            ret = this.Parent.query(sprintf('SOURce%d:FUNCtion:PULSe:TRANsition:LEADing?', this.ChannelNumber));
+            ret = this.Parent.queryDouble(sprintf('SOURce%d:FUNCtion:PULSe:TRANsition:LEADing?', this.ChannelNumber));
         end
         function set.PulseFunctionTrailingEdge(this, newval)
             assert(isnumeric(newval) && isscalar(newval) && newval>0 || any(strcmpi(newval,{'MIN','MAX'})), ...
@@ -1023,7 +1061,7 @@ classdef K33522BChannel < handle
             end
         end
         function ret = get.PulseFunctionTrailingEdge(this)
-            ret = this.Parent.query(sprintf('SOURce%d:FUNCtion:PULSe:TRANsition:TRAiling?', this.ChannelNumber));
+            ret = this.Parent.queryDouble(sprintf('SOURce%d:FUNCtion:PULSe:TRANsition:TRAiling?', this.ChannelNumber));
         end
         function set.PulseFunctionBothEdges(this, newval)
             assert(isnumeric(newval) && isscalar(newval) && newval>0 || any(strcmpi(newval,{'MIN','MAX'})), ...
@@ -1035,7 +1073,7 @@ classdef K33522BChannel < handle
             end
         end
         function ret = get.PulseFunctionBothEdges(this)
-            ret = this.Parent.query(sprintf('SOURce%d:FUNCtion:PULSe:TRANsition:BOTH?', this.ChannelNumber));
+            ret = this.Parent.queryDouble(sprintf('SOURce%d:FUNCtion:PULSe:TRANsition:BOTH?', this.ChannelNumber));
         end
         function set.PulseFunctionWidth(this, newval)
             assert(isnumeric(newval) && isscalar(newval) && newval>0 || any(strcmpi(newval,{'MIN','MAX'})), ...
@@ -1047,7 +1085,7 @@ classdef K33522BChannel < handle
             end
         end
         function ret = get.PulseFunctionWidth(this)
-            ret = this.Parent.query(sprintf('SOURce%d:FUNCtion:PULSe:WIDTh?', this.ChannelNumber));
+            ret = this.Parent.queryDouble(sprintf('SOURce%d:FUNCtion:PULSe:WIDTh?', this.ChannelNumber));
         end
         function set.RampFunctionSymmetry(this, newval)
             assert(isnumeric(newval) && isscalar(newval) && newval>0 || any(strcmpi(newval,{'MIN','MAX'})), ...
@@ -1059,7 +1097,7 @@ classdef K33522BChannel < handle
             end
         end
         function ret = get.RampFunctionSymmetry(this)
-            ret = this.Parent.query(sprintf('SOURce%d:FUNCtion:RAMP:SYMMetry?', this.ChannelNumber));
+            ret = this.Parent.queryDouble(sprintf('SOURce%d:FUNCtion:RAMP:SYMMetry?', this.ChannelNumber));
         end
         function set.SquareFunctionDutyCycle(this, newval)
             assert(isnumeric(newval) && isscalar(newval) && newval>0 || any(strcmpi(newval,{'MIN','MAX'})), ...
@@ -1071,20 +1109,20 @@ classdef K33522BChannel < handle
             end
         end
         function ret = get.SquareFunctionDutyCycle(this)
-            ret = this.Parent.query(sprintf('SOURce%d:FUNCtion:SQUare:DCYCle?', this.ChannelNumber));
+            ret = this.Parent.queryDouble(sprintf('SOURce%d:FUNCtion:SQUare:DCYCle?', this.ChannelNumber));
         end
         %% - Data options
         function ret = get.DataCrestFactor(this)
-            ret = this.Parent.query(sprintf('SOURce%d:DATA:ATTRibute:CFACtor?', this.ChannelNumber));
+            ret = this.Parent.queryDouble(sprintf('SOURce%d:DATA:ATTRibute:CFACtor?', this.ChannelNumber));
         end
         function ret = get.DataPoints(this)
-            ret = this.Parent.query(sprintf('SOURce%d:DATA:ATTRibute:POINts?', this.ChannelNumber));
+            ret = this.Parent.queryDouble(sprintf('SOURce%d:DATA:ATTRibute:POINts?', this.ChannelNumber));
         end
         function ret = get.DataPeakToPeak(this)
-            ret = this.Parent.query(sprintf('SOURce%d:DATA:ATTRibute:PTPeak?', this.ChannelNumber));
+            ret = this.Parent.queryDouble(sprintf('SOURce%d:DATA:ATTRibute:PTPeak?', this.ChannelNumber));
         end
         function ret = get.DataAverage(this)
-            ret = this.Parent.query(sprintf('SOURce%d:DATA:ATTRibute:AVERage?', this.ChannelNumber));
+            ret = this.Parent.queryDouble(sprintf('SOURce%d:DATA:ATTRibute:AVERage?', this.ChannelNumber));
         end
         function ret = get.VolatileMemoryCatalog(this)
             ret = this.Parent.query(sprintf('SOURce%d:DATA:VOLatile:CATalog?', this.ChannelNumber));

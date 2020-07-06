@@ -25,83 +25,215 @@ end
 
 %% - test Channel
 if true
-    
+   ChannelNumber = 1; 
 %%
-    Channel_1.setFrequency(1+e04);
+    WaveGen.channels(ChannelNumber).Amplitude
 %%
-    Channel_1.getFrequency
-%%    
-    Channel_1.setAmplitude(1);
+    WaveGen.channels(ChannelNumber).Offset
 %%
-    Channel_1.setAmplitude('amplitude', 2, 'offset', 1);
+    WaveGen.channels(ChannelNumber).HighLevel
 %%
-    Channel_1.setAmplitude('high', 2, 'low', 1);
+    WaveGen.channels(ChannelNumber).LowLevel
 %%
-    Channel_1.getAmplitude('amplitude')
+    WaveGen.channels(ChannelNumber).AutoRange
 %%
-    Channel_1.getAmplitude('offset')
+    WaveGen.channels(ChannelNumber).TriggerCount
 %%
-    Channel_1.getAmplitude('autorange')
+    WaveGen.channels(ChannelNumber).TriggerDelay
+%%
+    WaveGen.channels(ChannelNumber).TriggerLevel
+%%
+    WaveGen.channels(ChannelNumber).TriggerSlope
+%%
+    WaveGen.channels(ChannelNumber).TriggerSource
+%%
+    WaveGen.channels(ChannelNumber).TriggerTimer
+%%
+    WaveGen.channels(ChannelNumber).BurstCycles
+%%
+    WaveGen.channels(ChannelNumber).BurstGatePolarity
+%%
+    WaveGen.channels(ChannelNumber).BurstInternalPeriod
+%%
+    WaveGen.channels(ChannelNumber).BurstMode
+%%
+    WaveGen.channels(ChannelNumber).BurstPhase
+%%
+    WaveGen.channels(ChannelNumber).BurstState
+%%
+    WaveGen.channels(ChannelNumber).Frequency
+%%
+    WaveGen.channels(ChannelNumber).FrequencyCenter
+%%
+    WaveGen.channels(ChannelNumber).FrequencyDwellTime
+%%
+    WaveGen.channels(ChannelNumber).FrequencyMode
+%%
+    WaveGen.channels(ChannelNumber).FrequencySpan
+%%
+    WaveGen.channels(ChannelNumber).FrequencyStart
+%%
+    WaveGen.channels(ChannelNumber).SweepHoldTime
+%%
+    WaveGen.channels(ChannelNumber).SweepReturnTime
+%%
+    WaveGen.channels(ChannelNumber).SweepSpacing
+%%
+    WaveGen.channels(ChannelNumber).SweepState
+%%
+    WaveGen.channels(ChannelNumber).SweepTime
+%%
+    WaveGen.channels(ChannelNumber).OutputLoad
+%%
+    WaveGen.channels(ChannelNumber).OutputMode
+%%
+    WaveGen.channels(ChannelNumber).OutputPolarity
+%%
+    WaveGen.channels(ChannelNumber).OutputState
+%%
+    WaveGen.channels(ChannelNumber).OutputSync
+%%
+    WaveGen.channels(ChannelNumber).OutputSyncMode
+%%
+    WaveGen.channels(ChannelNumber).OutputSyncPolarity
+%%
+    WaveGen.channels(ChannelNumber).OutputSyncSource
+%%
+    WaveGen.channels(ChannelNumber).OutputTriggerSlope
+%%
+    WaveGen.channels(ChannelNumber).OutputTriggerSource
+%%
+    WaveGen.channels(ChannelNumber).OutputTriggerState
+%%
+    WaveGen.channels(ChannelNumber).FunctionType
+%%
+    WaveGen.channels(ChannelNumber).ArbitraryFunction
+%%
+    WaveGen.channels(ChannelNumber).ArbitraryFunctionAdvanceMethod
+%%
+    WaveGen.channels(ChannelNumber).ArbitraryFunctionFilter
+%%
+    WaveGen.channels(ChannelNumber).ArbitraryFunctionFilter
+%%
+    WaveGen.channels(ChannelNumber).ArbitraryFunctionFrequency
+%%
+    WaveGen.channels(ChannelNumber).ArbitraryFunctionNumberOfPoints
+%%
+    WaveGen.channels(ChannelNumber).ArbitraryFunctionPeakToPeak
+%%
+    WaveGen.channels(ChannelNumber).ArbitraryFunctionPeriod
+%%
+    WaveGen.channels(ChannelNumber).ArbitraryFunctionSamplingRate
+%%
+    WaveGen.channels(ChannelNumber).NoiseFunctionBandwidth
+%%
+    WaveGen.channels(ChannelNumber).PBRSFunctionBitRate
+%%
+    WaveGen.channels(ChannelNumber).PBRSFunctionSequenceType
+%%
+    WaveGen.channels(ChannelNumber).PBRSFunctionTransition
+%%
+    WaveGen.channels(ChannelNumber).PulseFunctionBothEdges
+%%
+    WaveGen.channels(ChannelNumber).PulseFunctionDutyCycle
+%%
+    WaveGen.channels(ChannelNumber).PulseFunctionHoldTime
+%%
+    WaveGen.channels(ChannelNumber).PulseFunctionLeadingEdge
+%%
+    WaveGen.channels(ChannelNumber).PulseFunctionPeriod
+%%
+    WaveGen.channels(ChannelNumber).PulseFunctionTrailingEdge
+%%
+    WaveGen.channels(ChannelNumber).PulseFunctionWidth
+%%
+    WaveGen.channels(ChannelNumber).RampFunctionSymmetry
+%%
+    WaveGen.channels(ChannelNumber).SquareFunctionDutyCycle
+%%
+    WaveGen.channels(ChannelNumber).DataAverage
+%%
+    WaveGen.channels(ChannelNumber).DataCrestFactor
+%%
+    WaveGen.channels(ChannelNumber).DataPeakToPeak
+%%
+    WaveGen.channels(ChannelNumber).DataPoints    
 %% 
-    Channel_1.applyDCVoltage;
+   WaveGen.channels(ChannelNumber).applyDCVoltage;
 %%
-    Channel_1.applyDCVoltage('offset', 1);
+   WaveGen.channels(ChannelNumber).applyDCVoltage('offset', 1);
 %%
-    Channel_1.applyNoise;
+   WaveGen.channels(ChannelNumber).applyNoise;
 %%
-    Channel_1.applyPRBS;
+   WaveGen.channels(ChannelNumber).applyPRBS;
 %%
-    Channel_1.applyPulse;
+   WaveGen.channels(ChannelNumber).applyPulse;
 %%
-    Channel_1.applyPulse('frequency', 1+e03,'amplitude', 2, 'offset', 0.5);
+   WaveGen.channels(ChannelNumber).applyPulse('frequency', 1+e03,'amplitude', 2, 'offset', 0.5);
 %%
-    Channel_1.applyRamp;
+   WaveGen.channels(ChannelNumber).applyRamp;
 %%
-    Channel_1.applyRamp('frequency', 1+e03,'amplitude', 2, 'offset', 0.5);
+   WaveGen.channels(ChannelNumber).applyRamp('frequency', 1+e03,'amplitude', 2, 'offset', 0.5);
 %%
-    Channel_1.applySineWave;
+   WaveGen.channels(ChannelNumber).applySineWave;
 %%
-    Channel_1.applySineWave('frequency', 1+e03,'amplitude', 2, 'offset', 0.5);
+   WaveGen.channels(ChannelNumber).applySineWave('frequency', 1+e03,'amplitude', 2, 'offset', 0.5);
 %%
-    Channel_1.applySquareWave
+   WaveGen.channels(ChannelNumber).applySquareWave
 %%
-    Channel_1.applySquareWave('frequency', 1+e03,'amplitude', 2, 'offset', 0.5);
+   WaveGen.channels(ChannelNumber).applySquareWave('frequency', 1+e03,'amplitude', 2, 'offset', 0.5);
 %%
-    Channel_1.applyTriangleWave
+   WaveGen.channels(ChannelNumber).applyTriangleWave
 %%
-    Channel_1.applyTriangleWave('frequency', 1+e03,'amplitude', 2, 'offset', 0.5);
-%%
-    Channel_1.setOutput('ON')
-%%
-    Channel_1.setOutput('OFF')
+   WaveGen.channels(ChannelNumber).applyTriangleWave('frequency', 1+e03,'amplitude', 2, 'offset', 0.5);
+    %% - OutputState 
+    newVal = 'on'; % 1  | 0 | 'On' | 'Off' 
+    WaveGen.channels(ChannelNumber).OutputState = newVal;
+    WaveGen.channels(ChannelNumber).OutputState
 end
 
-%%
+%% - test external trigger
 if true
-    %%
-    Channel_1.FunctionType = 'ARB';
-    Channel_1.setAmplitude('amplitude', 3, 'offset', 1);
-    Channel_1.ArbitraryFunctionSamplingRate = 1e+05;
-    Channel_1.ArbitraryFunction = 'INT:\BUILTIN\EXP_RISE.ARB';
-    Channel_1.OutputState = 'ON';
-    %%
-    Channel_2.FunctionType = 'ARB';
-    Channel_2.setAmplitude('amplitude', 3, 'offset', 1);
-    Channel_2.ArbitraryFunctionSamplingRate = 1e+05;
-    Channel_2.ArbitraryFunction = 'INT:\BUILTIN\EXP_RISE.ARB';
-    Channel_2.OutputState = 'ON';
+    %% - Arbitrary waveform example 
+    ChannelNumber = 2;
+    WaveGen.channels(ChannelNumber).FunctionType = 'ARB';
+    WaveGen.channels(ChannelNumber).Amplitude = 3;
+    WaveGen.channels(ChannelNumber).Offset    = 1;
+    WaveGen.channels(ChannelNumber).ArbitraryFunctionSamplingRate = 1e+05;
+    %WaveGen.channels(ChannelNumber).ArbitraryFunction = 'INT:\BUILTIN\EXP_RISE.ARB';
+    %WaveGen.channels(ChannelNumber).OutputState = 'ON';
+    
+    % - set trigger source
+    WaveGen.channels(ChannelNumber).TriggerSource = 'EXT';
+    % - set trigger level
+    %WaveGen.channels(1).TriggerLevel; Unable to set trig level? Throws
+    %error, option not available on device? option could not be accessed it locally
+    % - set trigger edge 
+    WaveGen.channels(ChannelNumber).TriggerSlope = 'POS';
+    % - set burst mode
+    WaveGen.channels(ChannelNumber).BurstMode = 'TRIG';
+    % - set number of bursts
+    WaveGen.channels(ChannelNumber).BurstCycles = 2;
+    % - start execution
+    
 end
 
-%%
+
+%%  - Examples From Manual
 if true
+    %% - Arbitrary waveform example 
+    ChannelNumber = 2;
+    WaveGen.channels(ChannelNumber).FunctionType = 'ARB';
+    WaveGen.channels(ChannelNumber).setAmplitude('amplitude', 3, 'offset', 1);
+    WaveGen.channels(ChannelNumber).ArbitraryFunctionSamplingRate = 1e+05;
+    WaveGen.channels(ChannelNumber).ArbitraryFunction = 'INT:\BUILTIN\EXP_RISE.ARB';
+    WaveGen.channels(ChannelNumber).OutputState = 'ON';
     %% - Sin wave
     WaveGen.send('FUNCtion SIN')
     WaveGen.send('FREQuency +1.0E+03')
     WaveGen.send('VOLTAGE:HIGH +2.0')
     WaveGen.send('VOLTAGE:LOW -2.0')
     WaveGen.send('OUTPut ON')
-
-
     %% - Square wave
     WaveGen.send('FUNCtion SQU')
     WaveGen.send('FUNC:SQU:DCYC +20.0')
@@ -109,8 +241,46 @@ if true
     WaveGen.send('VOLT:HIGH +4.0')
     WaveGen.send('VOLT:LOW +0.0')
     WaveGen.send('OUTP 1')
-
-    %%
+    %% - turn both channels off
     WaveGen.send('OUTPut OFF')
+end
 
+%%
+if true
+    WaveGen.channels(ChannelNumber).ArbitraryFunctionSamplingRate = 10e+03;
+    WaveGen.wait;
+    WaveGen.channels(ChannelNumber).ArbitraryFunctionFilter = 'OFF';
+    WaveGen.wait;
+    WaveGen.channels(ChannelNumber).ArbitraryFunctionPeakToPeak = 10;
+    WaveGen.wait;
+    WaveGen.channels(ChannelNumber).loadArbitraryData('dc_ramp, 0.1, 0.1, 0.1, 0.1, 0.1, 0.2, 0.4, 0.6, 0.8, 1.0');
+    WaveGen.wait;
+    WaveGen.channels(ChannelNumber).loadArbitraryData('dc5v, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0');
+    WaveGen.wait;
+    WaveGen.channels(ChannelNumber).loadArbitraryData('dc2_5v, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5');
+    WaveGen.wait;
+    WaveGen.channels(ChannelNumber).loadArbitraryData('dc0v, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0');
+    WaveGen.wait;
+    %WaveGen.channels(ChannelNumber).createDataSequence('#3128"seqExample","dc_ramp",0,once,highAtStart,5,"dc5v",2,repeat,maintain,5,"dc2_v",2,repeat,lowAtStart,5,"dc0v",2,repeat,maintain,5');
+    WaveGen.wait;
+    WaveGen.channels(ChannelNumber).ArbitraryFunction = 'dc_ramp';
+    WaveGen.channels(ChannelNumber).storeData('INT:\dc_ramp.arb');
+    WaveGen.wait;
+    WaveGen.channels(ChannelNumber).ArbitraryFunction = 'dc5v'; 
+    WaveGen.channels(ChannelNumber).storeData('INT:\dc5v.arb');
+    WaveGen.wait;
+    WaveGen.channels(ChannelNumber).ArbitraryFunction = 'dc2_5v'; 
+    WaveGen.channels(ChannelNumber).storeData('INT:\dc2_5.arb');
+    WaveGen.wait;
+    WaveGen.channels(ChannelNumber).ArbitraryFunction = 'dc0v'; 
+    WaveGen.channels(ChannelNumber).storeData('INT:\dc0v.arb');
+    WaveGen.wait;
+    WaveGen.channels(ChannelNumber).ArbitraryFunction = 'seqExample'; 
+    WaveGen.channels(ChannelNumber).storeData('INT:\seqExample.seq');
+    WaveGen.wait;
+    WaveGen.channels(ChannelNumber).clearVolatilememory
+    WaveGen.channels(ChannelNumber).loadData('INT:\seqExample.seq');
+     WaveGen.channels(ChannelNumber).FunctionType = 'ARB';
+    WaveGen.channels(ChannelNumber).ArbitraryFunction = 'INT:\seqExample.seq';
+    WaveGen.channels(ChannelNumber).OutputState = 'ON';
 end
