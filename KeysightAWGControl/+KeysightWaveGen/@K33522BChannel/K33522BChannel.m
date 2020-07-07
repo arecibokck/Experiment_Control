@@ -3,11 +3,6 @@ classdef K33522BChannel < handle
     properties
         Parent
         ChannelNumber
-        SamplingRate
-        Impedance
-        SetToBurst
-        WaveformList % arbitrary waveform container
-        RescaledList % data normalized to [-1,+1]
     end % - Basic containers
     
     properties (Dependent)
@@ -19,8 +14,6 @@ classdef K33522BChannel < handle
         TriggerCount
         % - Sets timer used when TRIGger[1|2]:SOURce is TIMer.
         TriggerTimer
-        % - Sets the output trigger level and input trigger threshold in volts. The trigger threshold is one-half of the trigger level
-        % TriggerLevel - Only available in the 33600 series AWG 
         % - Sets trigger delay, (time from assertion of trigger to occurrence of triggered event)
         TriggerDelay
     end % - Trigger options
@@ -232,49 +225,58 @@ classdef K33522BChannel < handle
         function sync(this)
             this.Parent.send(sprintf('SOURce%d:FUNCtion:ARBitrary:SYNChronize',this.ChannelNumber));
         end % - Causes two independent arbitrary waveforms to synchronize to first point of each waveform (two-channel instruments only).
-        function upload(this)
-            if length(this.WaveformList)<2
-                error('Need at least two data points!')
+        function upload(this, newval, varargin)
+            p = inputParser;
+            addRequired(p, 'Child', @isobject);
+            addRequired(p, 'newval', @ismatrix);
+            addParameter(p, 'SamplingRate', this.ArbitraryFunctionSamplingRate, (@(x) isnumeric(x) || ischar(x)));
+            addParameter(p, 'Impedance', this.OutputLoad, (@(x) isnumeric(x) || ischar(x)));
+            addParameter(p, 'TriggerSource', 'EXT', @ischar);
+            addParameter(p, 'BurstMode', 'TRIG', @ischar);
+            addParameter(p, 'BurstPhase', 'MIN', (@(x) isnumeric(x) || ischar(x)));
+            addParameter(p, 'BurstCycles', this.BurstCycles, (@(x) isnumeric(x) || ischar(x)));
+            addParameter(p, 'BurstState', 'ON', @ischar);
+            parse(p, this, newval, varargin{:});
+            WaveformList = p.Results.newval;
+            if length(WaveformList)<8
+                error('Need at least eight data points!')
             end
-            
+            if length(WaveformList) > 1e6
+                error('At most one million data points can be specified!')
+            end
+            if (min(WaveformList) < -10 ) || (max(WaveformList) > 10)
+                error('Permitted interval [-10,10] V exceeded!')
+            end
             % transmit the data using SCPI commands
             this.clearVolatilememory;
             % set to LSB first
             this.FormatBorder = 'SWAP';
+            RescaledWaveformList = ((WaveformList-min(WaveformList))./(max(WaveformList)-min(WaveformList)) - 0.5) * 2; % data normalized to [-1,+1]
             % upload a binary block in Agilent format, binblockwrite is an in-built function in matlab
-            binblockwrite(this.vi, this.Rescaled, 'float32', sprintf('SOUR%d:DATA:ARB <filename>, ', this.ChannelNumber));
+            binblockwrite(this.Parent.vi, RescaledWaveformList, 'float32', sprintf('SOUR%d:DATA:ARB ARB_seq, ', this.ChannelNumber));
             % wait for upload to be processed
             this.Parent.wait;
-            
-            this.ArbitraryFunction = '<filename>';   %select <filename> as current arbitrary waveform
+            this.ArbitraryFunction = 'ARB_seq';   %select ARB_seq as current arbitrary waveform
             this.FunctionType = 'ARB'; % set generator to arbitrary waveform
-            this.ArbitraryFunctionSamplingRate = this.SamplingRate*1e6;
             this.ArbitraryFunctionAdvanceMethod = 'SRAT';
-            
+            this.ArbitraryFunctionSamplingRate =  p.Results.SamplingRate*1e6;
+            this.OutputLoad =  p.Results.Impedance;
             % set signal parameters
-            this.OutputLoad = this.Impedance;
-            this.setAmplitude('amplitude', max(this.WaveformList)-min(this.WaveformList), 'offset', 0.5*(max(this.WaveformList)+min(this.WaveformList)));
-            
+            this.Amplitude = max(WaveformList)-min(WaveformList);
+            this.Offset = 0.5*(max(WaveformList)+min(WaveformList));
             % set triggering
-            if this.SetToBurst
-                this.BurstMode = 'TRIG';
-                this.BurstCycles = 'MAX';
-                this.BurstState = 'ON';
-                this.TriggerSource = 'EXT';
-            else
-                this.BurstState = 'OFF';
-                this.TriggerSource = 'IMM';
-            end
+            this.BurstMode = p.Results.BurstMode; 
+            this.BurstCycles = p.Results.BurstCycles;
+            this.BurstPhase = p.Results.BurstPhase;
+            this.TriggerSource = p.Results.TriggerSource;
+            this.BurstState = p.Results.BurstState;
             this.OutputState = 'ON';
-            this.getError();
+            this.Parent.getError();
         end  % - upload the arbitrary waveform
-        function preview(this)
-            if length(this.WaveformList)<2
-                error('Need at least two data')
-            end
+        function preview(this, newval)
             clf;
-            t = (1:length(this.WaveformList))/this.SamplingRate;
-            stem(t, this.WaveformList);
+            t = (1:length(newval))/this.ArbitraryFunctionSamplingRate;
+            stairs(t, newval);
             title(sprintf('Preview of data for channel #%d', this.ChannelNumber));
             xlabel('Time [us]');
             ylabel('Voltage [V]');
@@ -284,7 +286,7 @@ classdef K33522BChannel < handle
         function applyDCVoltage(this, varargin)
             p = inputParser;
             addRequired(p, 'Child', @isobject);
-            addOptional(p, 'offset', 'DEF', @isnumeric);
+            addParameter(p, 'offset', 'DEF', @isnumeric);
             parse(p, this, varargin{:});
             offset = num2str(p.Results.offset);
             this.Parent.send(sprintf('SOURce%d:APPLy:DC DEF,DEF,%s', this.ChannelNumber, offset));
@@ -292,9 +294,9 @@ classdef K33522BChannel < handle
         function applyNoise(this, varargin)
             p = inputParser;
             addRequired(p, 'Child', @isobject);
-            addOptional(p, 'frequency', 'DEF', @isnumeric);
-            addOptional(p, 'amplitude', 'DEF', @isnumeric);
-            addOptional(p, 'offset', 'DEF', @isnumeric);
+            addParameter(p, 'frequency', 'DEF', @isnumeric);
+            addParameter(p, 'amplitude', 'DEF', @isnumeric);
+            addParameter(p, 'offset', 'DEF', @isnumeric);
             parse(p, this, varargin{:});
             frequency = num2str(p.Results.frequency);
             amplitude = num2str(p.Results.amplitude);
@@ -304,9 +306,9 @@ classdef K33522BChannel < handle
         function applyPRBS(this, varargin)
             p = inputParser;
             addRequired(p, 'Child', @isobject);
-            addOptional(p, 'frequency', 'DEF', @isnumeric);
-            addOptional(p, 'amplitude', 'DEF', @isnumeric);
-            addOptional(p, 'offset', 'DEF', @isnumeric);
+            addParameter(p, 'frequency', 'DEF', @isnumeric);
+            addParameter(p, 'amplitude', 'DEF', @isnumeric);
+            addParameter(p, 'offset', 'DEF', @isnumeric);
             parse(p, this, varargin{:});
             frequency = num2str(p.Results.frequency);
             amplitude = num2str(p.Results.amplitude);
@@ -316,9 +318,9 @@ classdef K33522BChannel < handle
         function applyPulse(this, varargin)
             p = inputParser;
             addRequired(p, 'Child', @isobject);
-            addOptional(p, 'frequency', 'DEF', @isnumeric);
-            addOptional(p, 'amplitude', 'DEF', @isnumeric);
-            addOptional(p, 'offset', 'DEF', @isnumeric);
+            addParameter(p, 'frequency', 'DEF', @isnumeric);
+            addParameter(p, 'amplitude', 'DEF', @isnumeric);
+            addParameter(p, 'offset', 'DEF', @isnumeric);
             parse(p, this, varargin{:});
             frequency = num2str(p.Results.frequency);
             amplitude = num2str(p.Results.amplitude);
@@ -328,9 +330,9 @@ classdef K33522BChannel < handle
         function applyRamp(this, varargin)
             p = inputParser;
             addRequired(p, 'Child', @isobject);
-            addOptional(p, 'frequency', 'DEF', @isnumeric);
-            addOptional(p, 'amplitude', 'DEF', @isnumeric);
-            addOptional(p, 'offset', 'DEF', @isnumeric);
+            addParameter(p, 'frequency', 'DEF', @isnumeric);
+            addParameter(p, 'amplitude', 'DEF', @isnumeric);
+            addParameter(p, 'offset', 'DEF', @isnumeric);
             parse(p, this, varargin{:});
             frequency = num2str(p.Results.frequency);
             amplitude = num2str(p.Results.amplitude);
@@ -340,9 +342,9 @@ classdef K33522BChannel < handle
         function applySineWave(this, varargin)
             p = inputParser;
             addRequired(p, 'Child', @isobject);
-            addOptional(p, 'frequency', 'DEF', @isnumeric);
-            addOptional(p, 'amplitude', 'DEF', @isnumeric);
-            addOptional(p, 'offset', 'DEF', @isnumeric);
+            addParameter(p, 'frequency', 'DEF', @isnumeric);
+            addParameter(p, 'amplitude', 'DEF', @isnumeric);
+            addParameter(p, 'offset', 'DEF', @isnumeric);
             parse(p, this, varargin{:});
             frequency = num2str(p.Results.frequency);
             amplitude = num2str(p.Results.amplitude);
@@ -352,9 +354,9 @@ classdef K33522BChannel < handle
         function applySquareWave(this, varargin)
             p = inputParser;
             addRequired(p, 'Child', @isobject);
-            addOptional(p, 'frequency', 'DEF', @isnumeric);
-            addOptional(p, 'amplitude', 'DEF', @isnumeric);
-            addOptional(p, 'offset', 'DEF', @isnumeric);
+            addParameter(p, 'frequency', 'DEF', @isnumeric);
+            addParameter(p, 'amplitude', 'DEF', @isnumeric);
+            addParameter(p, 'offset', 'DEF', @isnumeric);
             parse(p, this, varargin{:});
             frequency = num2str(p.Results.frequency);
             amplitude = num2str(p.Results.amplitude);
@@ -364,9 +366,9 @@ classdef K33522BChannel < handle
         function applyTriangleWave(this, varargin)
             p = inputParser;
             addRequired(p, 'Child', @isobject);
-            addOptional(p, 'frequency', 'DEF', @isnumeric);
-            addOptional(p, 'amplitude', 'DEF', @isnumeric);
-            addOptional(p, 'offset', 'DEF', @isnumeric);
+            addParameter(p, 'frequency', 'DEF', @isnumeric);
+            addParameter(p, 'amplitude', 'DEF', @isnumeric);
+            addParameter(p, 'offset', 'DEF', @isnumeric);
             parse(p, this, varargin{:});
             frequency = num2str(p.Results.frequency);
             amplitude = num2str(p.Results.amplitude);
@@ -389,7 +391,7 @@ classdef K33522BChannel < handle
         end
         function storeData(this, filename)
             assert(ischar(filename), 'Input Error: Provide filename of data as a character string!');
-            this.Parent.send(sprintf('MMEMory:LOAD:STORe%d "%s"', this.ChannelNumber, filename));
+            this.Parent.send(sprintf('MMEMory:STORe:DATA%d "%s"', this.ChannelNumber, filename));
         end
     end  % - Load/Store channel-specific data/list from on-board memory
     methods
@@ -410,30 +412,6 @@ classdef K33522BChannel < handle
     end  % - Basic
     methods
         %% - General options
-        function set.SamplingRate(this, newval)
-            this.SamplingRate = newval;
-        end
-        function set.Impedance(this, newval)
-            this.Impedance = newval;
-        end
-        function set.SetToBurst(this,newval)
-            this.SetToBurst = newval;
-        end
-        function set.WaveformList(this, newval)
-            if length(newval)<8
-                error('At least eight data!')
-            end
-            if length(newval) > 1e6
-                error('At most one million data!')
-            end
-            if (min(newval) < -10 ) || (max(newval) > 10)
-                error('Permitted interval [-10,10] V exceeded!')
-            end
-            this.WaveformList = newval;
-        end   % - set the waveform list
-        function set.RescaledList(this, newval)
-            this.RescaledList = ((newval-min(newval))./(max(newval)-min(newval)) - 0.5) * 2;
-        end
         function set.ContinuousTriggerState(this, newval)
             assert( (isnumeric(newval) && (newval == 0 || newval == 1) ) || any(strcmpi(newval, {'ON','OFF'})), ...
                 'Continuous trigger state must be specified as either 0, 1, "ON" or "OFF"');
@@ -448,7 +426,7 @@ classdef K33522BChannel < handle
             ret = this.Parent.queryDouble(sprintf('INITiate%d:CONTinuous?',this.ChannelNumber));
         end
         function set.FormatBorder(this, newval)
-            assert(any(strcmpi(newval,{'NORMal','SWAPped'})),...
+            assert(any(strcmpi(newval,{'NORM','SWAP'})),...
                 'Format border must be specified as "NORMal" or "SWAPped"');
             this.Parent.send(sprintf('FORMat:BORDer %s', newval));
         end
@@ -813,12 +791,12 @@ classdef K33522BChannel < handle
             ret = this.Parent.queryDouble(sprintf('SOURce%d:FREQuency:COUPle:OFFSet?', this.ChannelNumber));
         end
         function set.FrequencyCouplingRatio(this, newval)
-            assert(isnumeric(newval) && isscalar(newval) && newval>0),...
+            assert(isnumeric(newval) && isscalar(newval) && newval>0,...
                 'Frequency coupling ratio must be a positive numeric value');
             this.Parent.send(sprintf('SOURce%d:FREQuency:COUPle:RATio %s', this.ChannelNumber, newval));
         end
         function ret = get.FrequencyCouplingRatio(this)
-            ret = this.Parent.query(sprintf('SOURce%d:FREQuency:COUPle:RATio?', this.ChannelNumber));
+            ret = this.Parent.queryDouble(sprintf('SOURce%d:FREQuency:COUPle:RATio?', this.ChannelNumber));
         end
         function set.FrequencyCouplingState(this, newval)
             assert( (isnumeric(newval) && (newval == 0 || newval == 1) ) || any(strcmpi(newval, {'ON','OFF'})), ...
@@ -1024,7 +1002,7 @@ classdef K33522BChannel < handle
             ret = this.Parent.query(sprintf('SOURce%d:FUNCtion:ARBitrary?', this.ChannelNumber));
         end
         function set.ArbitraryFunctionAdvanceMethod(this, newval)
-            assert(any(strcmpi(newval,{'TRIGger', 'SRATe'})), ...
+            assert(any(strcmpi(newval,{'TRIG', 'SRAT'})), ...
                 'Arbitrary Function Advance Method must be specified as either "TRIGger" or "SRATe"');
             this.Parent.send(sprintf('SOURce%d:FUNCtion:ARBitrary:ADvance %s', this.ChannelNumber, newval));
         end
@@ -1032,7 +1010,7 @@ classdef K33522BChannel < handle
             ret = this.Parent.query(sprintf('SOURce%d:FUNCtion:ARBitrary:ADvance?', this.ChannelNumber));
         end
         function set.ArbitraryFunctionFilter(this, newval)
-            assert(any(strcmpi(newval,{'NORMal', 'STEP', 'OFF'})), ...
+            assert(any(strcmpi(newval,{'NORM', 'STEP', 'OFF'})), ...
                 'Arbitrary Function Filter must be specified as either "NORMal", "STEP" or "OFF"');
             this.Parent.send(sprintf('SOURce%d:FUNCtion:ARBitrary:FILTer %s', this.ChannelNumber, newval));
         end
@@ -1145,7 +1123,7 @@ classdef K33522BChannel < handle
             ret = this.Parent.queryDouble(sprintf('SOURce%d:FUNCtion:PULSe:DCYCle?', this.ChannelNumber));
         end
         function set.PulseFunctionHoldTime(this, newval)
-            assert(any(strcmpi(newval,{'WIDTh', 'DCYCle'})), ...
+            assert(any(strcmpi(newval,{'WIDT', 'DCYC'})), ...
                 'Pulse function hold time must be specified as either "WIDTh" or "DCYCle"');
             this.Parent.send(sprintf('SOURce%d:FUNCtion:PULSe:HOLD %s', this.ChannelNumber, newval));
         end
@@ -1277,12 +1255,12 @@ classdef K33522BChannel < handle
             ret = this.Parent.queryDouble(sprintf('SOURce%d:RATE:COUPle:OFFSet?', this.ChannelNumber));
         end
         function set.RateCouplingRatio(this, newval)
-            assert(isnumeric(newval) && isscalar(newval) && newval>0),...
+            assert(isnumeric(newval) && isscalar(newval) && newval>0,...
                 'Rate coupling ratio must be a positive numeric value');
             this.Parent.send(sprintf('SOURce%d:RATE:COUPle:RATio %s', this.ChannelNumber, newval));
         end
         function ret = get.RateCouplingRatio(this)
-            ret = this.Parent.query(sprintf('SOURce%d:RATE:COUPle:RATio?', this.ChannelNumber));
+            ret = this.Parent.queryDouble(sprintf('SOURce%d:RATE:COUPle:RATio?', this.ChannelNumber));
         end
         function set.RateCouplingState(this, newval)
             assert( (isnumeric(newval) && (newval == 0 || newval == 1) ) || any(strcmpi(newval, {'ON','OFF'})), ...
@@ -1298,19 +1276,4 @@ classdef K33522BChannel < handle
             ret=this.Parent.queryDouble(sprintf('SOURce%d:RATE:COUPle:STATe?',this.ChannelNumber));
         end
     end  % - setters & getters
-    
-    %% Deprecated
-% Trigger Level setting only available in 33600 series AWG    
-%     function set.TriggerLevel(this,newval)
-%         assert(isnumeric(newval) && isscalar(newval) && newval>0 || any(strcmpi(newval,{'MIN','MAX'})), ...
-%             'Trigger Level must be positive scalar value or specified as either "MIN" or "MAX"');
-%         if ~any(strcmpi(newval,{'MIN','MAX'}))
-%             this.Parent.send(sprintf('TRIGger%d:LEVel %s', this.ChannelNumber, num2str(newval)));
-%         else
-%             this.Parent.send(sprintf('TRIGger%d:LEVel %s', this.ChannelNumber, newval));
-%         end
-%     end
-%     function ret=get.TriggerLevel(this)
-%         ret=this.Parent.queryDouble(sprintf('TRIGger%d:LEVel?', this.ChannelNumber));
-%     end
 end
