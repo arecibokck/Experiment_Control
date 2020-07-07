@@ -232,6 +232,7 @@ classdef K33522BChannel < handle
             addParameter(p, 'SamplingRate', this.ArbitraryFunctionSamplingRate, (@(x) isnumeric(x) || ischar(x)));
             addParameter(p, 'Impedance', this.OutputLoad, (@(x) isnumeric(x) || ischar(x)));
             addParameter(p, 'TriggerSource', 'EXT', @ischar);
+            addParameter(p, 'TriggerDelay', 'MIN', (@(x) isnumeric(x) || ischar(x)));
             addParameter(p, 'BurstMode', 'TRIG', @ischar);
             addParameter(p, 'BurstPhase', 'MIN', (@(x) isnumeric(x) || ischar(x)));
             addParameter(p, 'BurstCycles', this.BurstCycles, (@(x) isnumeric(x) || ischar(x)));
@@ -268,6 +269,7 @@ classdef K33522BChannel < handle
             this.BurstMode = p.Results.BurstMode; 
             this.BurstCycles = p.Results.BurstCycles;
             this.BurstPhase = p.Results.BurstPhase;
+            this.TriggerDelay = p.Results.TriggerDelay;
             this.TriggerSource = p.Results.TriggerSource;
             this.BurstState = p.Results.BurstState;
             this.OutputState = 'ON';
