@@ -358,10 +358,10 @@ end
 
 %%
 cos_ramp = @(x,p) p(2)+1/2*(p(1)-p(2))*(1+cos(pi*x));
-RampingDurationDown = 10;
+RampingDurationDown = 20;
 LowDuration = 2;
 RampingDurationUp = 10;
-FinalDuration = 20;
+FinalDuration = 50;
 HIGH = 5;
 LOW = 0;
 maxSamplingPoints   = 1e6;
@@ -382,15 +382,12 @@ WaveGen.channels(ChannelNumber).upload(AmplitudeRamp_Ch1, 'SamplingRate', min(fl
 
 % Parity operation ramps
 
-% define Simulation parameter
-animate = false;
-export = false;
-nFrames = 200;
 % define initial parameter
-maxTrapDepth = 1; ...28; % [uK]
+maxTrapDepth = 2; ... What voltage corresponds to a trap depth of 28 uK?
 initialFockState = 0; % 0 for the ground state
 % Define Durations
-deltaTime = 1; % us 
+deltaTime = 0.7; % us 
+pulseDuration = []; % [us] define based on Rabi-Frequency
 DisplacementDuration = 0; % [us]
 RampUpDuration = 10;% 
 RampDownDuration = RampUpDuration;
@@ -402,6 +399,7 @@ Imbalance = [1.2,0.9]; % rel. amplitude of Spin (up,minus) during HoldTime
 % - define Displacement-Operation-Parameters
 SpatialShift   = 0;  % sites
 MomentumShift  = 0;  % Useful units to be found
+maxSamplingPoints   = 1e6;
 AmplitudesSpinUp = [... % - ramping up
                     SinosoidalRamp(0,RampUpDuration  ,maxTrapDepth,maxTrapDepth*Imbalance(1),deltaTime),... 
                     ... % - waiting
@@ -416,14 +414,46 @@ AmplitudesSpinDown = [... % - ramping up
                     SinosoidalRamp(0,RampDownDuration,maxTrapDepth*Imbalance(2),maxTrapDepth,deltaTime)];
 
 assert(length(AmplitudesSpinDown) == length(AmplitudesSpinUp),'Error: AmplitudeSpinDown must be the same length as Amplitude Spin up')
+
+WaveGen.channels(1).ArbitraryFunctionFilter = 'OFF';
+WaveGen.channels(2).ArbitraryFunctionFilter = 'OFF';
+
 numberofsamples = length(AmplitudesSpinDown);  
 AmplitudeRampTimeGrid = ((1:length(AmplitudesSpinDown))-1)*deltaTime;
 AmplitudeRamp_Ch1 = interp1(linspace(0,ParityOperationTime,numberofsamples), AmplitudesSpinUp, AmplitudeRampTimeGrid);
 %WaveGen.channels(1).preview(AmplitudeRamp_Ch1);
-WaveGen.channels(1).upload(AmplitudeRamp_Ch1, 'SamplingRate', min(floor(maxSamplingPoints*1000/ParityOperationTime)/1000, 30),'Impedance', 'INF', 'BurstCycles', 1, 'BurstPhase', 15);
+WaveGen.channels(1).upload(AmplitudeRamp_Ch1, 'SamplingRate', min(floor(maxSamplingPoints*1000/ParityOperationTime)/1000, 30),...
+    'Impedance', 'INF', 'BurstCycles', 1, 'BurstPhase', 0);
 AmplitudeRamp_Ch2 = interp1(linspace(0,ParityOperationTime,numberofsamples), AmplitudesSpinDown, AmplitudeRampTimeGrid);
 %WaveGen.channels(2).preview(AmplitudeRamp_Ch2);
-WaveGen.channels(2).upload(AmplitudeRamp_Ch2, 'SamplingRate', min(floor(maxSamplingPoints*1000/ParityOperationTime)/1000, 30),'Impedance', 'INF', 'BurstCycles', 1, 'BurstPhase', 15);
+WaveGen.channels(2).upload(AmplitudeRamp_Ch2, 'SamplingRate', min(floor(maxSamplingPoints*1000/ParityOperationTime)/1000, 30), ...
+    'Impedance', 'INF', 'BurstCycles', 1, 'BurstPhase', 0);
+
+% ChannelNumber = 1;
+% WaveGen.channels(ChannelNumber).ArbitraryFunctionSamplingRate = 1.4286e+06;
+% WaveGen.channels(ChannelNumber).ArbitraryFunctionFilter = 'OFF';
+% WaveGen.channels(ChannelNumber).ArbitraryFunctionPeakToPeak = maxTrapDepth;
+% AmplitudesSpinUp = AmplitudesSpinUp(1:end-31) / maxTrapDepth;
+% ramp = char(strcat('SpinUp,', {' '}, cell2mat(arrayfun(@(f) char(strcat(num2str(AmplitudesSpinUp(f)),',', {' '})), 1:length(AmplitudesSpinUp), 'UniformOutput', false))));
+% % Arb data are fractions of PeakToPeak spaced in time by 1/SamplingRate
+% WaveGen.channels(ChannelNumber).loadArbitraryData(strip(ramp, ','));
+% WaveGen.wait;
+% WaveGen.channels(ChannelNumber).FunctionType = 'ARB';
+% WaveGen.channels(ChannelNumber).ArbitraryFunction = 'SpinUp';
+% WaveGen.channels(ChannelNumber).OutputState = 'ON';
+
+
+figure(3)      
+clf 
+stairs(AmplitudeRampTimeGrid,AmplitudeRamp_Ch1,'r-','DisplayName','Amplitude Spin up')
+hold on
+stairs(AmplitudeRampTimeGrid,AmplitudeRamp_Ch2,'b-','DisplayName','Amplitude Spin up')
+legend
+grid on
+ylim([0,maxTrapDepth*max(Imbalance)*1.1])
+ylabel('Voltage [V]','FontSize',16)
+xlabel('time [us]','FontSize',16)
+title('AmplitudeImbalance for Parity operation','FontSize',18)
 
 function [vals,times] = SinosoidalRamp(tstart,tend,x0,xEnd,tspacing)
     times =linspace(tstart,tend,(tend-tstart)/tspacing);

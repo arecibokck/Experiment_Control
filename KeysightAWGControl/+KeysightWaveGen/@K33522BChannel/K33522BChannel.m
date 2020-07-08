@@ -560,7 +560,7 @@ classdef K33522BChannel < handle
         end
         %% - Triggering options
         function set.TriggerCount(this,newval)
-            assert(isnumeric(newval) && isscalar(newval) && newval>0 || any(strcmpi(newval,{'MIN','MAX'})), ...
+            assert(isnumeric(newval) && isscalar(newval) && newval>=0 || any(strcmpi(newval,{'MIN','MAX'})), ...
                 'Trigger count must be positive scalar value or specified as either "MIN" or "MAX"');
             if ~any(strcmpi(newval,{'MIN','MAX'}))
                 this.Parent.send(sprintf('TRIGger%d:COUNt %s', this.ChannelNumber, num2str(newval)));
@@ -603,7 +603,7 @@ classdef K33522BChannel < handle
             ret=ret(1:end-1);
         end
         function set.TriggerTimer(this,newval)
-            assert(isnumeric(newval) && isscalar(newval) && newval>0 || any(strcmpi(newval,{'MIN','MAX'})), ...
+            assert(isnumeric(newval) && isscalar(newval) && newval>=0 || any(strcmpi(newval,{'MIN','MAX'})), ...
                 'Trigger time must be positive scalar value or specified as either "MIN" or "MAX"');
             if ~any(strcmpi(newval,{'MIN','MAX'}))
                 this.Parent.send(sprintf('TRIGger%d:TIMer %s', this.ChannelNumber, num2str(newval)));
@@ -625,7 +625,7 @@ classdef K33522BChannel < handle
             ret=this.Parent.query(sprintf('SOURce%d:BURSt:GATE:POLarity?', this.ChannelNumber));
         end
         function set.BurstInternalPeriod(this,newval)
-            assert(isnumeric(newval) && isscalar(newval) && newval>0 || any(strcmpi(newval,{'MIN','MAX'})), ...
+            assert(isnumeric(newval) && isscalar(newval) && newval>=0 || any(strcmpi(newval,{'MIN','MAX'})), ...
                 'Burst internal period must be positive scalar value or specified as either "MIN" or "MAX"');
             if ~any(strcmpi(newval,{'MIN','MAX'}))
                 this.Parent.send(sprintf('SOURce%d:BURSt:INTernal:PERiod %s', this.ChannelNumber, num2str(newval)));
@@ -645,7 +645,7 @@ classdef K33522BChannel < handle
             ret=this.Parent.query(sprintf('SOURce%d:BURSt:MODE?', this.ChannelNumber));
         end
         function set.BurstCycles(this,newval)
-            assert(isnumeric(newval) && isscalar(newval) && newval>0|| any(strcmpi(newval,{'INF','MIN','MAX'})),...
+            assert(isnumeric(newval) && isscalar(newval) && newval>=1|| any(strcmpi(newval,{'INF','MIN','MAX'})),...
                 'Burst cycles must be positive scalar values or be specified as "INF", "MIN", or "MAX"');
             if ~any(strcmpi(newval,{'INF','MIN','MAX'}))
                 this.Parent.send(sprintf('SOURce%d:BURSt:NCYCles %s', this.ChannelNumber, num2str(newval)));
@@ -658,7 +658,7 @@ classdef K33522BChannel < handle
             ret=ret(1:end-1);
         end
         function set.BurstPhase(this,newval)
-            assert(isnumeric(newval) && isscalar(newval) && newval>0|| any(strcmpi(newval,{'MIN','MAX'})), ...
+            assert(isnumeric(newval) && isscalar(newval) && newval>=0|| any(strcmpi(newval,{'MIN','MAX'})), ...
                 'Burst phase must be positive scalar value or specified as either "MIN" or "MAX"');
             if ~any(strcmpi(newval,{'MIN','MAX'}))
                 this.Parent.send(sprintf('SOURce%d:BURSt:PHASe %s', this.ChannelNumber, num2str(newval)));
@@ -697,7 +697,7 @@ classdef K33522BChannel < handle
             ret = this.Parent.queryDouble(sprintf('SOURce%d:FREQuency?',this.ChannelNumber));
         end
         function set.FrequencyCenter(this, newval)
-            assert(isnumeric(newval) && isscalar(newval) && newval>0 || any(strcmpi(newval,{'MIN','MAX'})), ...
+            assert(isnumeric(newval) && isscalar(newval) && newval>=0 || any(strcmpi(newval,{'MIN','MAX'})), ...
                 'Frequency center must be positive scalar value or specified as either "MIN" or "MAX"');
             if ~any(strcmpi(newval,{'MIN','MAX'}))
                 this.Parent.send(sprintf('SOURce%d:FREQuency:CENTer %s', this.ChannelNumber, num2str(newval)));
@@ -717,7 +717,7 @@ classdef K33522BChannel < handle
             ret=this.Parent.query(sprintf('SOURce%d:FREQuency:MODE?', this.ChannelNumber));
         end
         function set.FrequencySpan(this, newval)
-            assert(isnumeric(newval) && isscalar(newval) && newval>0 || any(strcmpi(newval,{'MIN','MAX'})), ...
+            assert(isnumeric(newval) && isscalar(newval) && newval>=0 || any(strcmpi(newval,{'MIN','MAX'})), ...
                 'Frequency center must be positive scalar value or specified as either "MIN" or "MAX"');
             if ~any(strcmpi(newval,{'MIN','MAX'}))
                 this.Parent.send(sprintf('SOURce%d:FREQuency:SPAN %s', this.ChannelNumber, num2str(newval)));
@@ -729,7 +729,7 @@ classdef K33522BChannel < handle
             ret=this.Parent.queryDouble(sprintf('SOURce%d:FREQuency:SPAN?', this.ChannelNumber));
         end
         function set.FrequencyStart(this, newval)
-            assert(isnumeric(newval) && isscalar(newval) && newval>0 || any(strcmpi(newval,{'MIN','MAX'})), ...
+            assert(isnumeric(newval) && isscalar(newval) && newval>=0 || any(strcmpi(newval,{'MIN','MAX'})), ...
                 'Frequency center must be positive scalar value or specified as either "MIN" or "MAX"');
             if ~any(strcmpi(newval,{'MIN','MAX'}))
                 this.Parent.send(sprintf('SOURce%d:FREQuency:STARt %s', this.ChannelNumber, num2str(newval)));
@@ -741,7 +741,7 @@ classdef K33522BChannel < handle
             ret=this.Parent.queryDouble(sprintf('SOURce%d:FREQuency:STARt?', this.ChannelNumber));
         end
         function set.FrequencyStop(this, newval)
-            assert(isnumeric(newval) && isscalar(newval) && newval>0 || any(strcmpi(newval,{'MIN','MAX'})), ...
+            assert(isnumeric(newval) && isscalar(newval) && newval>=0 || any(strcmpi(newval,{'MIN','MAX'})), ...
                 'Frequency center must be positive scalar value or specified as either "MIN" or "MAX"');
             if ~any(strcmpi(newval,{'MIN','MAX'}))
                 this.Parent.send(sprintf('SOURce%d:FREQuency:STOP %s', this.ChannelNumber, num2str(newval)));
@@ -753,7 +753,7 @@ classdef K33522BChannel < handle
             ret=this.Parent.queryDouble(sprintf('SOURce%d:FREQuency:STOP?', this.ChannelNumber));
         end
         function set.FrequencyDwellTime(this, newval)
-            assert(isnumeric(newval) && isscalar(newval) && newval>0 || any(strcmpi(newval,{'MIN','MAX'})), ...
+            assert(isnumeric(newval) && isscalar(newval) && newval>=0 || any(strcmpi(newval,{'MIN','MAX'})), ...
                 'Frequency center must be positive scalar value or specified as either "MIN" or "MAX"');
             if ~any(strcmpi(newval,{'MIN','MAX'}))
                 this.Parent.send(sprintf('SOURce%d:LIST:DWELl %s', this.ChannelNumber, num2str(newval)));
@@ -781,7 +781,7 @@ classdef K33522BChannel < handle
             ret = this.Parent.query(sprintf('SOURce%d:FREQuency:COUPle:MODE?', this.ChannelNumber));
         end
         function set.FrequencyCouplingOffset(this, newval)
-            assert(isnumeric(newval) && isscalar(newval) && newval>0 || any(strcmpi(newval,{'MIN','MAX'})), ...
+            assert(isnumeric(newval) && isscalar(newval) && newval>=0 || any(strcmpi(newval,{'MIN','MAX'})), ...
                 'Frequency coupling offset must be positive scalar value or specified as either "MIN" or "MAX"');
             if ~any(strcmpi(newval,{'MIN','MAX'}))
                 this.Parent.send(sprintf('SOURce%d:FREQuency:COUPle:OFFSet %s', this.ChannelNumber, num2str(newval)));
@@ -793,7 +793,7 @@ classdef K33522BChannel < handle
             ret = this.Parent.queryDouble(sprintf('SOURce%d:FREQuency:COUPle:OFFSet?', this.ChannelNumber));
         end
         function set.FrequencyCouplingRatio(this, newval)
-            assert(isnumeric(newval) && isscalar(newval) && newval>0,...
+            assert(isnumeric(newval) && isscalar(newval) && newval>=0,...
                 'Frequency coupling ratio must be a positive numeric value');
             this.Parent.send(sprintf('SOURce%d:FREQuency:COUPle:RATio %s', this.ChannelNumber, newval));
         end
@@ -814,7 +814,7 @@ classdef K33522BChannel < handle
             ret=this.Parent.queryDouble(sprintf('SOURce%d:FREQuency:COUPle:STATe?',this.ChannelNumber));
         end
         function set.SweepHoldTime(this, newval)
-            assert(isnumeric(newval) && isscalar(newval) && newval>0 || any(strcmpi(newval,{'MIN','MAX'})), ...
+            assert(isnumeric(newval) && isscalar(newval) && newval>=0 || any(strcmpi(newval,{'MIN','MAX'})), ...
                 'Frequency sweep hold time must be positive scalar value or specified as either "MIN" or "MAX"');
             if ~any(strcmpi(newval,{'MIN','MAX'}))
                 this.Parent.send(sprintf('SOURce%d:SWEep:HTIMe %s', this.ChannelNumber, num2str(newval)));
@@ -826,7 +826,7 @@ classdef K33522BChannel < handle
             ret = this.Parent.queryDouble(sprintf('SOURce%d:SWEep:HTIMe?', this.ChannelNumber));
         end
         function set.SweepReturnTime(this, newval)
-            assert(isnumeric(newval) && isscalar(newval) && newval>0 || any(strcmpi(newval,{'MIN','MAX'})), ...
+            assert(isnumeric(newval) && isscalar(newval) && newval>=0 || any(strcmpi(newval,{'MIN','MAX'})), ...
                 'Frequency sweep return time must be positive scalar value or specified as either "MIN" or "MAX"');
             if ~any(strcmpi(newval,{'MIN','MAX'}))
                 this.Parent.send(sprintf('SOURce%d:SWEep:RTIMe %s', this.ChannelNumber, num2str(newval)));
@@ -863,7 +863,7 @@ classdef K33522BChannel < handle
             ret = this.Parent.queryDouble(sprintf('SOURce%d:SWEep:STATe?', this.ChannelNumber));
         end
         function set.SweepTime(this, newval)
-            assert(isnumeric(newval) && isscalar(newval) && newval>0 || any(strcmpi(newval,{'MIN','MAX'})), ...
+            assert(isnumeric(newval) && isscalar(newval) && newval>=0 || any(strcmpi(newval,{'MIN','MAX'})), ...
                 'Frequency sweep time must be positive scalar value or specified as either "MIN" or "MAX"');
             if ~any(strcmpi(newval,{'MIN','MAX'}))
                 this.Parent.send(sprintf('SOURce%d:SWEep:TIME %s', this.ChannelNumber, num2str(newval)));
@@ -889,7 +889,7 @@ classdef K33522BChannel < handle
             ret = this.Parent.queryDouble(sprintf('OUTPut%d?',this.ChannelNumber));
         end % - get the output state
         function set.OutputLoad(this, newval)
-            assert(isnumeric(newval) && isscalar(newval) && newval>0|| any(strcmpi(newval,{'INF','MIN','MAX'})),...
+            assert(isnumeric(newval) && isscalar(newval) && newval>=0|| any(strcmpi(newval,{'INF','MIN','MAX'})),...
                 'Output load must be positive scalar values or be specified as "INF", "MIN", or "MAX"');
             if ~any(strcmpi(newval,{'INF','MIN','MAX'}))
                 if ~ismember(newval, [10000, 50])
@@ -1020,7 +1020,7 @@ classdef K33522BChannel < handle
             ret = this.Parent.query(sprintf('SOURce%d:FUNCtion:ARBitrary:FILTer?', this.ChannelNumber));
         end
         function set.ArbitraryFunctionFrequency(this, newval)
-            assert(isnumeric(newval) && isscalar(newval) && newval>0 || any(strcmpi(newval,{'MIN','MAX'})), ...
+            assert(isnumeric(newval) && isscalar(newval) && newval>=0 || any(strcmpi(newval,{'MIN','MAX'})), ...
                 'Frequency must be positive scalar value or specified as either "MIN" or "MAX"');
             if ~any(strcmpi(newval,{'MIN','MAX'}))
                 this.Parent.send(sprintf('SOURce%d:FUNCtion:ARBitrary:FREQuency %s', this.ChannelNumber, num2str(newval)));
@@ -1032,7 +1032,7 @@ classdef K33522BChannel < handle
             ret = this.Parent.queryDouble(sprintf('SOURce%d:FUNCtion:ARBitrary:FREQuency?', this.ChannelNumber));
         end
         function set.ArbitraryFunctionPeriod(this, newval)
-            assert(isnumeric(newval) && isscalar(newval) && newval>0 || any(strcmpi(newval,{'MIN','MAX'})), ...
+            assert(isnumeric(newval) && isscalar(newval) && newval>=0 || any(strcmpi(newval,{'MIN','MAX'})), ...
                 'Frequency must be positive scalar value or specified as either "MIN" or "MAX"');
             if ~any(strcmpi(newval,{'MIN','MAX'}))
                 this.Parent.send(sprintf('SOURce%d:FUNCtion:ARBitrary:PERiod %s', this.ChannelNumber, num2str(newval)));
@@ -1047,7 +1047,7 @@ classdef K33522BChannel < handle
             ret = this.Parent.queryDouble(sprintf('SOURce%d:FUNCtion:ARBitrary:POINts?', this.ChannelNumber));
         end
         function set.ArbitraryFunctionPeakToPeak(this, newval)
-            assert(isnumeric(newval) && isscalar(newval) && newval>0 || any(strcmpi(newval,{'MIN','MAX'})), ...
+            assert(isnumeric(newval) && isscalar(newval) && newval>=0 || any(strcmpi(newval,{'MIN','MAX'})), ...
                 'Peak-Peak voltage must be positive scalar value or specified as either "MIN" or "MAX"');
             if ~any(strcmpi(newval,{'MIN','MAX'}))
                 this.Parent.send(sprintf('SOURce%d:FUNCtion:ARBitrary:PTPeak %s', this.ChannelNumber, num2str(newval)));
@@ -1071,7 +1071,7 @@ classdef K33522BChannel < handle
             ret = this.Parent.queryDouble(sprintf('SOURce%d:FUNCtion:ARBitrary:SRATe?',this.ChannelNumber));
         end   % - get the sample rate
         function set.NoiseFunctionBandwidth(this, newval)
-            assert(isnumeric(newval) && isscalar(newval) && newval>0 || any(strcmpi(newval,{'MIN','MAX'})), ...
+            assert(isnumeric(newval) && isscalar(newval) && newval>=0 || any(strcmpi(newval,{'MIN','MAX'})), ...
                 'Noise Function Bandwidth must be positive scalar value or specified as either "MIN" or "MAX"');
             if ~any(strcmpi(newval,{'MIN','MAX'}))
                 this.Parent.send(sprintf('SOURce%d:FUNCtion:NOISe:BANDwidth %s', this.ChannelNumber, num2str(newval)));
@@ -1083,7 +1083,7 @@ classdef K33522BChannel < handle
             ret = this.Parent.queryDouble(sprintf('SOURce%d:FUNCtion:NOISe:BANDwidth?', this.ChannelNumber));
         end
         function set.PBRSFunctionBitRate(this, newval)
-            assert(isnumeric(newval) && isscalar(newval) && newval>0 || any(strcmpi(newval,{'MIN','MAX'})), ...
+            assert(isnumeric(newval) && isscalar(newval) && newval>=0 || any(strcmpi(newval,{'MIN','MAX'})), ...
                 'PBRS Function Bit Rate must be positive scalar value or specified as either "MIN" or "MAX"');
             if ~any(strcmpi(newval,{'MIN','MAX'}))
                 this.Parent.send(sprintf('SOURce%d:FUNCtion:PRBS:BRATe %s', this.ChannelNumber, num2str(newval)));
@@ -1101,7 +1101,7 @@ classdef K33522BChannel < handle
             ret = this.Parent.query(sprintf('SOURce%d:FUNCtion:PRBS:DATA?', this.ChannelNumber));
         end
         function set.PBRSFunctionTransition(this, newval)
-            assert(isnumeric(newval) && isscalar(newval) && newval>0 || any(strcmpi(newval,{'MIN','MAX'})), ...
+            assert(isnumeric(newval) && isscalar(newval) && newval>=0 || any(strcmpi(newval,{'MIN','MAX'})), ...
                 'PBRS Function transition edge time must be positive scalar value or specified as either "MIN" or "MAX"');
             if ~any(strcmpi(newval,{'MIN','MAX'}))
                 this.Parent.send(sprintf('SOURce%d:FUNCtion:PRBS:TRANsition:BOTH %s', this.ChannelNumber, num2str(newval)));
@@ -1113,7 +1113,7 @@ classdef K33522BChannel < handle
             ret = this.Parent.queryDouble(sprintf('SOURce%d:FUNCtion:PRBS:TRANsition:BOTH?', this.ChannelNumber));
         end
         function set.PulseFunctionDutyCycle(this, newval)
-            assert(isnumeric(newval) && isscalar(newval) && newval>0 || any(strcmpi(newval,{'MIN','MAX'})), ...
+            assert(isnumeric(newval) && isscalar(newval) && newval>=0 || any(strcmpi(newval,{'MIN','MAX'})), ...
                 'Pulse function duty cycle must be positive scalar value or specified as either "MIN" or "MAX"');
             if ~any(strcmpi(newval,{'MIN','MAX'}))
                 this.Parent.send(sprintf('SOURce%d:FUNCtion:PULSe:DCYCle %s', this.ChannelNumber, num2str(newval)));
@@ -1133,7 +1133,7 @@ classdef K33522BChannel < handle
             ret = this.Parent.queryDouble(sprintf('SOURce%d:FUNCtion:PULSe:HOLD?', this.ChannelNumber));
         end
         function set.PulseFunctionPeriod(this, newval)
-            assert(isnumeric(newval) && isscalar(newval) && newval>0 || any(strcmpi(newval,{'MIN','MAX'})), ...
+            assert(isnumeric(newval) && isscalar(newval) && newval>=0 || any(strcmpi(newval,{'MIN','MAX'})), ...
                 'Pulse function period must be positive scalar value or specified as either "MIN" or "MAX"');
             if ~any(strcmpi(newval,{'MIN','MAX'}))
                 this.Parent.send(sprintf('SOURce%d:FUNCtion:PULSe:PERiod %s', this.ChannelNumber, num2str(newval)));
@@ -1145,7 +1145,7 @@ classdef K33522BChannel < handle
             ret = this.Parent.queryDouble(sprintf('SOURce%d:FUNCtion:PULSe:PERiod?', this.ChannelNumber));
         end
         function set.PulseFunctionLeadingEdge(this, newval)
-            assert(isnumeric(newval) && isscalar(newval) && newval>0 || any(strcmpi(newval,{'MIN','MAX'})), ...
+            assert(isnumeric(newval) && isscalar(newval) && newval>=0 || any(strcmpi(newval,{'MIN','MAX'})), ...
                 'Pulse function leading edge time must be positive scalar value or specified as either "MIN" or "MAX"');
             if ~any(strcmpi(newval,{'MIN','MAX'}))
                 this.Parent.send(sprintf('SOURce%d:FUNCtion:PULSe:TRANsition:LEADing %s', this.ChannelNumber, num2str(newval)));
@@ -1157,7 +1157,7 @@ classdef K33522BChannel < handle
             ret = this.Parent.queryDouble(sprintf('SOURce%d:FUNCtion:PULSe:TRANsition:LEADing?', this.ChannelNumber));
         end
         function set.PulseFunctionTrailingEdge(this, newval)
-            assert(isnumeric(newval) && isscalar(newval) && newval>0 || any(strcmpi(newval,{'MIN','MAX'})), ...
+            assert(isnumeric(newval) && isscalar(newval) && newval>=0 || any(strcmpi(newval,{'MIN','MAX'})), ...
                 'Pulse function trailing edge time must be positive scalar value or specified as either "MIN" or "MAX"');
             if ~any(strcmpi(newval,{'MIN','MAX'}))
                 this.Parent.send(sprintf('SOURce%d:FUNCtion:PULSe:TRANsition:TRAiling %s', this.ChannelNumber, num2str(newval)));
@@ -1169,7 +1169,7 @@ classdef K33522BChannel < handle
             ret = this.Parent.queryDouble(sprintf('SOURce%d:FUNCtion:PULSe:TRANsition:TRAiling?', this.ChannelNumber));
         end
         function set.PulseFunctionBothEdges(this, newval)
-            assert(isnumeric(newval) && isscalar(newval) && newval>0 || any(strcmpi(newval,{'MIN','MAX'})), ...
+            assert(isnumeric(newval) && isscalar(newval) && newval>=0 || any(strcmpi(newval,{'MIN','MAX'})), ...
                 'Pulse function edge time for both edges must be positive scalar value or specified as either "MIN" or "MAX"');
             if ~any(strcmpi(newval,{'MIN','MAX'}))
                 this.Parent.send(sprintf('SOURce%d:FUNCtion:PULSe:TRANsition:BOTH %s', this.ChannelNumber, num2str(newval)));
@@ -1181,7 +1181,7 @@ classdef K33522BChannel < handle
             ret = this.Parent.queryDouble(sprintf('SOURce%d:FUNCtion:PULSe:TRANsition:BOTH?', this.ChannelNumber));
         end
         function set.PulseFunctionWidth(this, newval)
-            assert(isnumeric(newval) && isscalar(newval) && newval>0 || any(strcmpi(newval,{'MIN','MAX'})), ...
+            assert(isnumeric(newval) && isscalar(newval) && newval>=0 || any(strcmpi(newval,{'MIN','MAX'})), ...
                 'Pulse function width must be positive scalar value or specified as either "MIN" or "MAX"');
             if ~any(strcmpi(newval,{'MIN','MAX'}))
                 this.Parent.send(sprintf('SOURce%d:FUNCtion:PULSe:WIDTh %s', this.ChannelNumber, num2str(newval)));
@@ -1193,7 +1193,7 @@ classdef K33522BChannel < handle
             ret = this.Parent.queryDouble(sprintf('SOURce%d:FUNCtion:PULSe:WIDTh?', this.ChannelNumber));
         end
         function set.RampFunctionSymmetry(this, newval)
-            assert(isnumeric(newval) && isscalar(newval) && newval>0 || any(strcmpi(newval,{'MIN','MAX'})), ...
+            assert(isnumeric(newval) && isscalar(newval) && newval>=0 || any(strcmpi(newval,{'MIN','MAX'})), ...
                 'Ramp symmetry percentage be positive scalar value or specified as either "MIN" or "MAX"');
             if ~any(strcmpi(newval,{'MIN','MAX'}))
                 this.Parent.send(sprintf('SOURce%d:FUNCtion:RAMP:SYMMetry %s', this.ChannelNumber, num2str(newval)));
@@ -1205,7 +1205,7 @@ classdef K33522BChannel < handle
             ret = this.Parent.queryDouble(sprintf('SOURce%d:FUNCtion:RAMP:SYMMetry?', this.ChannelNumber));
         end
         function set.SquareFunctionDutyCycle(this, newval)
-            assert(isnumeric(newval) && isscalar(newval) && newval>0 || any(strcmpi(newval,{'MIN','MAX'})), ...
+            assert(isnumeric(newval) && isscalar(newval) && newval>=0 || any(strcmpi(newval,{'MIN','MAX'})), ...
                 'Square Function Duty Cycle must be positive scalar value or specified as either "MIN" or "MAX"');
             if ~any(strcmpi(newval,{'MIN','MAX'}))
                 this.Parent.send(sprintf('SOURce%d:FUNCtion:SQUare:DCYCle %s', this.ChannelNumber, num2str(newval)));
@@ -1245,7 +1245,7 @@ classdef K33522BChannel < handle
             ret = this.Parent.query(sprintf('SOURce%d:RATE:COUPle:MODE?', this.ChannelNumber));
         end
         function set.RateCouplingOffset(this, newval)
-            assert(isnumeric(newval) && isscalar(newval) && newval>0 || any(strcmpi(newval,{'MIN','MAX'})), ...
+            assert(isnumeric(newval) && isscalar(newval) && newval>=0 || any(strcmpi(newval,{'MIN','MAX'})), ...
                 'Rate coupling offset must be positive scalar value or specified as either "MIN" or "MAX"');
             if ~any(strcmpi(newval,{'MIN','MAX'}))
                 this.Parent.send(sprintf('SOURce%d:RATE:COUPle:OFFSet %s', this.ChannelNumber, num2str(newval)));
@@ -1257,7 +1257,7 @@ classdef K33522BChannel < handle
             ret = this.Parent.queryDouble(sprintf('SOURce%d:RATE:COUPle:OFFSet?', this.ChannelNumber));
         end
         function set.RateCouplingRatio(this, newval)
-            assert(isnumeric(newval) && isscalar(newval) && newval>0,...
+            assert(isnumeric(newval) && isscalar(newval) && newval>=0,...
                 'Rate coupling ratio must be a positive numeric value');
             this.Parent.send(sprintf('SOURce%d:RATE:COUPle:RATio %s', this.ChannelNumber, newval));
         end
