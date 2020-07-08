@@ -386,12 +386,12 @@ WaveGen.channels(ChannelNumber).upload(AmplitudeRamp_Ch1, 'SamplingRate', min(fl
 maxTrapDepth = 2; ... What voltage corresponds to a trap depth of 28 uK?
 initialFockState = 0; % 0 for the ground state
 % Define Durations
-deltaTime = 0.7; % us 
+deltaTime = 0.01; % us 
 pulseDuration = []; % [us] define based on Rabi-Frequency
 DisplacementDuration = 0; % [us]
 RampUpDuration = 10;% 
 RampDownDuration = RampUpDuration;
-HoldTime = 57.5;
+HoldTime = 57.5*10;
 ParityOperationTime = RampUpDuration+HoldTime+RampDownDuration;
 PulseTimes = [0,pulseDuration+ParityOperationTime]; % [times to include a gaussian pulse]
 % - define Parity-Operation-Parameters:
@@ -415,18 +415,18 @@ AmplitudesSpinDown = [... % - ramping up
 
 assert(length(AmplitudesSpinDown) == length(AmplitudesSpinUp),'Error: AmplitudeSpinDown must be the same length as Amplitude Spin up')
 
-WaveGen.channels(1).ArbitraryFunctionFilter = 'OFF';
-WaveGen.channels(2).ArbitraryFunctionFilter = 'OFF';
+WaveGen.channels(1).ArbitraryFunctionFilter = 'NORM';
+WaveGen.channels(2).ArbitraryFunctionFilter = 'NORM';
 
 numberofsamples = length(AmplitudesSpinDown);  
 AmplitudeRampTimeGrid = ((1:length(AmplitudesSpinDown))-1)*deltaTime;
 AmplitudeRamp_Ch1 = interp1(linspace(0,ParityOperationTime,numberofsamples), AmplitudesSpinUp, AmplitudeRampTimeGrid);
 %WaveGen.channels(1).preview(AmplitudeRamp_Ch1);
-WaveGen.channels(1).upload(AmplitudeRamp_Ch1, 'SamplingRate', min(floor(maxSamplingPoints*1000/ParityOperationTime)/1000, 30),...
+WaveGen.channels(1).upload(AmplitudeRamp_Ch1, 'SamplingRate', min(numberofsamples/max(AmplitudeRampTimeGrid), 250),...
     'Impedance', 'INF', 'BurstCycles', 1, 'BurstPhase', 0);
 AmplitudeRamp_Ch2 = interp1(linspace(0,ParityOperationTime,numberofsamples), AmplitudesSpinDown, AmplitudeRampTimeGrid);
 %WaveGen.channels(2).preview(AmplitudeRamp_Ch2);
-WaveGen.channels(2).upload(AmplitudeRamp_Ch2, 'SamplingRate', min(floor(maxSamplingPoints*1000/ParityOperationTime)/1000, 30), ...
+WaveGen.channels(2).upload(AmplitudeRamp_Ch2, 'SamplingRate', min(numberofsamples/max(AmplitudeRampTimeGrid), 250), ...
     'Impedance', 'INF', 'BurstCycles', 1, 'BurstPhase', 0);
 
 % ChannelNumber = 1;
@@ -441,7 +441,6 @@ WaveGen.channels(2).upload(AmplitudeRamp_Ch2, 'SamplingRate', min(floor(maxSampl
 % WaveGen.channels(ChannelNumber).FunctionType = 'ARB';
 % WaveGen.channels(ChannelNumber).ArbitraryFunction = 'SpinUp';
 % WaveGen.channels(ChannelNumber).OutputState = 'ON';
-
 
 figure(3)      
 clf 

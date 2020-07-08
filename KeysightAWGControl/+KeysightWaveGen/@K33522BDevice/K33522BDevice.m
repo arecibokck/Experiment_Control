@@ -40,7 +40,8 @@ classdef K33522BDevice < Devices.Device
             else
                 this.vi = visa('agilent', this.deviceID);
             end
-            this.vi.InputBufferSize = 10000000; %Input buffer 10MB
+            this.vi.InputBufferSize  = 10000000; %Input buffer 10MB
+            this.vi.OutputBufferSize = 10000000;
             this.vi.Timeout = 10;
             this.vi.ByteOrder = 'littleEndian';
             

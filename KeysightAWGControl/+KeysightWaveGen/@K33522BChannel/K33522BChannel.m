@@ -1059,13 +1059,19 @@ classdef K33522BChannel < handle
             ret = this.Parent.queryDouble(sprintf('SOURce%d:FUNCtion:ARBitrary:PTPeak?', this.ChannelNumber));
         end
         function set.ArbitraryFunctionSamplingRate(this, newval)
-            if ~ischar(newval)
-                if newval > 30e+06
-                    error('Sample rate larger 30 MHz not supported!')
+            assert(isnumeric(newval)&& newval>=0 || any(strcmpi(newval,{'MIN','MAX'})),...
+                'Sample rate must be positive numeric value or specified as either "MIN" or "MAX"');
+            if ~any(strcmpi(newval,{'MIN','MAX'}))
+                if strcmp(this.ArbitraryFunctionFilter(1:end-1), 'OFF')
+                    warning('Sample rate set to 62.7 MSa/s since filter is off!')
                 end
-                newval = num2str(newval);
+                if newval > 250e+06
+                    error('Sample rate larger 250 MSa/s not supported!')
+                end
+                this.Parent.send(sprintf('SOURce%d:FUNCtion:ARBitrary:SRATe %s',this.ChannelNumber, num2str(newval)));
+            else
+                this.Parent.send(sprintf('SOURce%d:FUNCtion:ARBitrary:SRATe %s',this.ChannelNumber, newval));
             end
-            this.Parent.send(sprintf('SOURce%d:FUNCtion:ARBitrary:SRATe %s',this.ChannelNumber, newval));
         end   % - set the sample rate
         function ret = get.ArbitraryFunctionSamplingRate(this)
             ret = this.Parent.queryDouble(sprintf('SOURce%d:FUNCtion:ARBitrary:SRATe?',this.ChannelNumber));
