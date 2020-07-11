@@ -21,7 +21,7 @@ classdef K33522BDevice < Devices.Device
     %- Methods
     methods
         function this = K33522BDevice(DeviceID)
-            %
+            % - Class Constructor
             disp('Constructing Keysight33522B object...')
             
             % - set DeviceID
@@ -58,8 +58,9 @@ classdef K33522BDevice < Devices.Device
             % notify success
             disp('Keysight 33522B Wave Generator online & Keysight 33522B Device object constructed.');
             
-        end% Class Constructor
+        end
         function connect(this)
+            % - Connect to the VISA object specified in deviceID
             switch this.vi.status
                 case 'closed'
                     fopen(this.vi);
@@ -69,108 +70,156 @@ classdef K33522BDevice < Devices.Device
                 otherwise
                     error(['Invalid Value of this.vi.status: ' this.vi.status])
             end
-        end% - Connect to the VISA object specified in deviceID
+        end
         function disconnect(this)
+            % - Disconnect from the VISA object
             fclose(this.vi);
             disp('33522B disconnected')
-        end% - Disconnect from the VISA object
+        end
         function delete(this)
+            % - Destructor
             this.disconnect();
             disp('33522B object deleted')
-        end% - Destructor
+        end
     end % - Lifecycle functions
     methods
         function write(this, cmd)
+            % - write for compatability
             send(this, cmd);
-        end % - write for compatability
+        end
         function send(this, data)
+            % - Send a string to the VISA object
             fprintf(this.vi, [data '\n']);
-        end% - Send a string to the VISA object
+        end
         function ret=read(this)
+            % - Communication functions
             ret=fgetl(this.vi);
-        end % - Communication functions
+            ret = strtrim(ret); % remove carriage return
+        end 
         function ret=readDouble(this)
+            % - Read a string from the VISA interface and convert it do double
             ret=str2double(this.read());
-        end % - Read a string from the VISA interface and convert it do double
+        end 
         function ret=query(this, query)
+            % - Send a query to the VISA object and return the result
             this.send(query);
             ret=this.read();
-        end % - Send a query to the VISA object and return the result
+        end 
         function ret=queryInt(this, query)
+            % - Send a query to the VISA object and convert the result to an integer
             this.send(query);
-            ret=str2num(this.read());
-        end % - Send a query to the VISA object and convert the result to an integer
+            ret=str2double(this.read());
+        end 
         function ret=queryDouble(this, query)
+            % - Send a query to the VISA object and convert the result to a double precision floating point number
             this.send(query);
             ret=this.readDouble();
-        end % - Send a query to the VISA object and convert the result to a double precision floating point number
+        end 
     end % - read/write/query
     methods
-        function clearStatus(this)
-            this.write('*CLS');
-        end % - Clear device status
-        function resetDevice(this)
-            this.write('*RST');
-        end % - reset device
-        function checkOPC(this)
-            this.query('*OPC?');
-        end    % - determine when the sweep or burst is complete. The *OPC? query returns 1 to the output buffer when the sweep or burst is complete
-        function busTrigger(this)
-            this.write('*TRG');
-        end  % - send bus trigger
-        function wait(this)
-            this.write('*WAI');
-        end
-        function setContinuousTrigState(this, state)
-            assert(any(strcmpi(state, {'ON','OFF'})), ...
-                'Trigger state must be specified as either "ON","OFF"');
-            this.send(sprintf('INITiate:CONTinuous:ALL %s', state));
-        end % Changes continuous trigger state for all channels
-        function inititateImmediateTrigger(this)
-            this.send('INITiate:IMMediate:ALL');
-        end % Initiates immediate state for all channels
         function ret=queryIdentification(this)
+            % - get device ID
             ret=this.query('*IDN?');
-            ret=ret(1:end-1);
-        end % - get device ID
+        end 
         function ret=selfTest(this)
-            % ret=SelfTest(this) sends '*TST?'-command and returns 1 iff
+            % Performs a complete instrument self-test. If test fails,
+            % one or more error messages will provide additional information
             this.write('*TST?');
             ret=this.read;
-            ret=ret(1:end-1);
         end
+        function resetDevice(this)
+            % - reset device
+            this.write('*RST');
+        end 
         function ret=getError(this)
-            % ret=getError(this) queries for Errors
+            % - queries for Errors
             % returns Error-Message  (e.g.: '+0,"No error"')
             ret=this.query('SYSTem:ERRor?');
-            ret=ret(1:end-1);
-        end % - queries for Errors
+        end 
         function Abort(this)
             this.send('ABORt');
         end
+        function clearStatus(this)
+            % - Clear device status
+            this.write('*CLS');
+        end 
+        function ret = checkOPC(this)
+            % - determine when the sweep or burst is complete. The *OPC? query returns 1 to the output buffer when the sweep or burst is complete
+            ret = this.queryDouble('*OPC?');
+        end    
+        function busTrigger(this)
+            % - send bus trigger
+            this.write('*TRG');
+        end  
+        function wait(this)
+            % Wait for all pending operations to complete
+            this.write('*WAI');
+        end
     end % - Basic
     methods
-        function queryUpload(this, filename)
+        function inititateImmediateTrigger(this,ChannelNumber)
+            % Initiates immediate state for all channels
+            if nargin ==1
+                ChannelNumber = 'ALL';
+            end
+            if ischar(ChannelNumber)
+            	assert(strcmpi(ChannelNumber,'ALL'),'Input Error: Channel must be 1,2 or "ALL"')
+                 this.send('INITiate:IMMediate:ALL');
+            else
+                assert(numel(ChannelNumber)==1 && any(ChannelNumber ==[1,2]),'Input Error: Channel must be 1,2 or "ALL"')
+                this.send(sprintf('INITiate%d:IMMediate',ChannelNumber));
+            end
+            
+           
+        end 
+        function setContinuousTrigState(this, state)
+            % Changes continuous trigger state for all channels
+            assert(any(strcmpi(state, {'ON','OFF'})), ...
+                'Trigger state must be specified as either "ON","OFF"');
+            this.send(sprintf('INITiate:CONTinuous:ALL %s', state));
+        end 
+    end % - initiate 
+    methods
+        function ret = queryUpload(this, filename)
+            % Uploads the contents of a file from the instrument to the host computer.
             assert(ischar(filename), 'Input Error: Provide filename as a character string!');
-            this.send(sprintf('MMEMory:UPLoad? "%s"', filename));
+            ret = this.query(sprintf('MMEMory:UPLoad? "%s"', filename));
         end
         function downloadDataFile(this, filename)
+            % - specifies file name for downloading data from the computer to instrument's Mass Memory
             assert(ischar(filename), 'Input Error: Provide filename as a character string!');
             this.send(sprintf('MMEMory:DOWNload:FNAMe "%s"', filename));
-        end % - specifies file name for downloading data from the computer to instrument's Mass Memory
+        end 
         function downloadBinBlockData(this, dat)
+            % -downloads data from the host computer to instrument's Mass Memory
             assert(ischar(dat), 'Input Error: Provide bin block data as a character string!');
             this.send(sprintf('MMEMory:DOWNload:DATA %s', dat));
-        end % -downloads data from the host computer to instrument's Mass Memory
+        end
         function deleteData(this, filename)
+            % - removes files from Mass Memory device
             assert(ischar(dat), 'Input Error: Provide filename as a character string!');
             this.send(sprintf('MMEMory:DELete "%s"', filename));
-        end % - removes files from Mass Memory device
-    end % - Download data to mass memory
+        end
+    end % - MMEMory:  Up- and  download data to mass memory
+    methods
+        function syncChannels(this)
+            % Causes two independent arbitrary waveforms to synchronize to first point 
+            % of each waveform (two-channel instruments only).
+            this.send('FUNCtion:ARBitrary:SYNChronize');
+        end 
+        
+    end % - arbitrary waveforms
+    methods
+        function fig = preview(this,varargin)
+            
+            fig =1;
+        end
+        
+    end % - plotting  
     methods (Static)
-        [Network_Devices_List,Network_Devices_List_Structured] = enumerateETHERNET;
-        [USB_Devices_List,USB_Devices_List_Structured] = enumerateUSB(~, szFilter);
-        function findAndConnectToDevice(MacAdress,ConnectionType)
+        %[Network_Devices_List,Network_Devices_List_Structured] = enumerateETHERNET;
+        %[USB_Devices_List,USB_Devices_List_Structured] = enumerateUSB(~, szFilter);
+        function findAndConnectToDevice(this, MacAdress,ConnectionType)
             
             % - input handling
             if nargin ==1

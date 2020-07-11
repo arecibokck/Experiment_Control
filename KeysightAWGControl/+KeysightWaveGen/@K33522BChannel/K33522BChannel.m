@@ -1,43 +1,45 @@
 classdef K33522BChannel < handle
     
     properties
+        % Object of K33522BDevice class
         Parent
+        % Channel currently being addressed
         ChannelNumber
     end % - Basic containers
     
     properties (Dependent)
-        % slope of trigger (Pos)|Neg
+        % Slope of trigger (Pos)|Neg
         TriggerSlope
-        % source of Trigger ={'IMM','BUS','EXT','INT'};
+        % Source of Trigger ={'IMM','BUS','EXT','INT'};
         TriggerSource
         % NumberOfTriggers accepted (will do measurement this many times)
         TriggerCount
-        % - Sets timer used when TRIGger[1|2]:SOURce is TIMer.
+        % Sets timer used when TRIGger[1|2]:SOURce is TIMer.
         TriggerTimer
-        % - Sets trigger delay, (time from assertion of trigger to occurrence of triggered event)
+        % Sets trigger delay, (time from assertion of trigger to occurrence of triggered event)
         TriggerDelay
     end % - Trigger options
     
     properties (Dependent)
-        % -  Enable or disable the burst mode
+        % Enable or disable the burst mode
         BurstState
-        % - Select the triggered burst mode (called "N Cycle" on the front panel) or external gated burst mode
+        % Select the triggered burst mode (called "N Cycle" on the front panel) or external gated burst mode
         BurstMode
-        % - Set the burst count (number of cycles per burst) to any value between 1 and 100,000,000 cycles (or infinite)
+        % Set the burst count (number of cycles per burst) to any value between 1 and 100,000,000 cycles (or infinite)
         BurstCycles
-        % - Set the starting phase of the burst from -360 to +360 degrees
+        % Set the starting phase of the burst from -360 to +360 degrees
         BurstPhase
-        % - Selects true-high (NORMal) or true-low (INVerted) logic levels on the rear-panel Ext Trig connector for an externally gated burst
+        % Selects true-high (NORMal) or true-low (INVerted) logic levels on the rear-panel Ext Trig connector for an externally gated burst
         BurstGatePolarity
-        % - Set the burst period (the interval at which internally-triggered bursts are generated) to any value from 1 ?s to 8000 seconds
+        % Set the burst period (the interval at which internally-triggered bursts are generated) to any value from 1 ?s to 8000 seconds
         BurstInternalPeriod
     end % - Burst options
     
     properties (Dependent)
-        %Specifies whether the trigger system for one or both channels (ALL) always returns to the "wait-for-trigger"
-        %state (ON) or remains in the "idle" state (OFF), ignoring triggers until INITiate:IMMediate is issued.
+        % Specifies whether the trigger system for one or both channels (ALL) always returns to the "wait-for-trigger"
+        % state (ON) or remains in the "idle" state (OFF), ignoring triggers until INITiate:IMMediate is issued.
         ContinuousTriggerState
-        %Sets the byte order used in binary data point transfers in the block mode
+        % Sets the byte order used in binary data point transfers in the block mode
         FormatBorder
     end % - General options
     
@@ -46,25 +48,33 @@ classdef K33522BChannel < handle
         Amplitude
         % Sets DC offset voltage
         Offset
-        %Set the waveform's high and low voltage levels
+        % Set the waveform's high and low voltage levels
         HighLevel
+        % Set the waveform's high and low voltage levels
         LowLevel
-        % Sets the high and low limits for output voltage
+        % Sets the higher limit for output voltage
         UpperLimit
+        % Sets the lower limit for output voltage
         LowerLimit
         % Enables or disables output amplitude voltage limits
         LimitState
         % Disables or enables voltage autoranging for all functions. Selecting ONCE performs an immediate autorange
         % and then turns autoranging OFF
+        % 
+        % - In the default mode, autoranging is enabled and the instrument automatically selects the optimal settings
+        %   for the output waveform generator and attenuator.
+        % - With autoranging disabled (OFF), the instrument uses the instrument's current gain and attenuator settings.
         AutoRange
-        %Enables or disables the maintaining of the same amplitude, offset, range, load, and units on both channels of a two-channel instrument. 
-        %The command applies to both channels; the SOURce keyword is ignored.
+        % Enables or disables the maintaining of the same amplitude, offset, range, load, and units on both channels of a two-channel instrument. 
+        % The command applies to both channels; the SOURce keyword is ignored.
         VoltageCouplingState
         %Selects the units for output amplitude
         VoltageUnits
     end % - Voltage options
     
     properties (Dependent)
+        % Sets the output frequency. This command is paired with FUNCtion:PULSe:PERiod; whichever one is
+        % executed last overrides the other.
         Frequency
         % Sets the center frequency. Used with frequency span for a frequency sweep.
         FrequencyCenter
@@ -72,20 +82,21 @@ classdef K33522BChannel < handle
         FrequencyMode
         % Sets frequency span (used in conjunction with the center frequency) for a frequency sweep.
         FrequencySpan
-        % Sets the start and stop frequencies for a frequency sweep.
+        % Sets the start frequency for a frequency sweep.
         FrequencyStart
+        % Sets the stop frequencies for a frequency sweep.
         FrequencyStop
         % Sets amount of time each frequency in list is generated
         FrequencyDwellTime
         % Specify up to 128 frequencies as a list (frequencies may also be read from or saved to a file using MMEMory:LOAD:LIST[1|2] and MMEMory:STORe:LIST.
         FrequencyList
-        %Enables/disables frequency coupling between channels in a two-channel instrument.
+        % Enables/disables frequency coupling between channels in a two-channel instrument.
         FrequencyCouplingState
-        %Sets the type of frequency coupling between frequency coupled channels.
+        % Sets the type of frequency coupling between frequency coupled channels.
         FrequencyCouplingMode
-        %OFFSet specifies a constant frequency offset between channels.
+        % OFFSet specifies a constant frequency offset between channels.
         FrequencyCouplingOffset
-        %RATio specifies a constant ratio between the channels' frequencies.
+        % RATio specifies a constant ratio between the channels' frequencies.
         FrequencyCouplingRatio
         % Sets number of seconds the sweep holds (pauses) at the stop frequency before returning to the start frequency.
         SweepHoldTime
@@ -97,7 +108,7 @@ classdef K33522BChannel < handle
         SweepState
         % Sets time (seconds) to sweep from start frequency to stop frequency.
         SweepTime
-    end % - Frequency options
+    end % - Frequency(-sweep) options
     
     properties (Dependent)
         % Enables or disables the front panel output connector.
@@ -136,8 +147,9 @@ classdef K33522BChannel < handle
         ArbitraryFunctionAdvanceMethod
         % Specifies the filter setting for an arbitrary waveform
         ArbitraryFunctionFilter
-        % Sets the frequency or period for the arbitrary waveform.
+        % Sets the frequency for the arbitrary waveform.
         ArbitraryFunctionFrequency
+        % Sets the period for the arbitrary waveform.
         ArbitraryFunctionPeriod
         % Returns the number of points in the currently selected arbitrary waveform.
         ArbitraryFunctionNumberOfPoints
@@ -160,9 +172,11 @@ classdef K33522BChannel < handle
         % Sets the period for pulse waveforms. This command is paired with the FREQuency command; the one
         % executed last overrides the other, as frequency and period specify the same parameter.
         PulseFunctionPeriod
-        % Sets the pulse edge time on the leading, trailing, or both edges of a pulse.
+        % Sets the pulse edge time on the leading edge of a pulse.
         PulseFunctionLeadingEdge
+        % Sets the pulse edge time on the trailing edge of a pulse.
         PulseFunctionTrailingEdge
+        % Sets the pulse edge time on both edges of a pulse.
         PulseFunctionBothEdges
         % Sets pulse width.
         PulseFunctionWidth
@@ -191,19 +205,28 @@ classdef K33522BChannel < handle
     end % - Data options
     
     properties (Dependent)
-       %Enables or disables sample rate coupling between channels, or allows one-time copying of one channel's
-       %sample rate into the other channel.
+        % RATE Subsystem
+        % The RATE subsystem allows you to couple the outputs' sample rates
+        % on a two-channel instrument by specifying
+        % the following items:
+        
+       % Enables or disables sample rate coupling between channels, or allows one-time copying of one channel's
+       % sample rate into the other channel.
        RateCouplingState
-       %Sets type of sample rate coupling to either a constant sample rate offset (OFFSet) or a constant ratio
+       % Sets type of sample rate coupling to either a constant sample rate offset (OFFSet) or a constant ratio
        %(RATio) between the channels' sample rates
        RateCouplingMode
-       %Sets sample rate offset when a two-channel instrument is in sample rate coupled mode OFFSet.
+       % Sets sample rate offset when a two-channel instrument is in sample rate coupled mode OFFSet.
        RateCouplingOffset
-       %Sets offset ratio between channel sample rates when a two-channel instrument is in sample rate coupled
-       %mode RATio.
+       % Sets offset ratio between channel sample rates when a two-channel instrument is in sample rate coupled
+       % mode RATio.
        RateCouplingRatio
     end % - Rate coupling options
     
+    properties (Dependent)
+        % 1/ArbitraryFunctionSamplingRate
+        ArbitraryFunctionSamplingTime
+    end % - custom
     methods
         function this =  K33522BChannel(Parent, Channel) %Constructor and initialization
             % - input handling
@@ -213,58 +236,63 @@ classdef K33522BChannel < handle
         end
     end  % - Lifecycle functions
     methods
-        % Downloads integer values representing DAC codes (DATA:ARBitrary[1|2]:DAC) or floating point values
-        % (DATA:ARBitrary[1|2]) into waveform volatile memory as either a list of comma separated values or binary
-        % block of data. The DAC codes go from -32,768 to +32,767 on both the 33500 Series and 33600 Series.
-        function loadArbitraryData(this, newval)
-           this.Parent.send(sprintf('SOURce%d:DATA:ARBitrary %s', this.ChannelNumber, newval)); 
+        % Changes state of triggering system for both channels (ALL) from "idle" to "wait-for-trigger" for the number
+        % of triggers specified by Trigger Count
+        function initiateImmediateTrigger(this)
+            this.Parent.send(sprintf('INITiate%d:IMMediate',this.ChannelNumber));
         end
-        function downloadArbitraryDataDAC(this, newval)
-            this.Parent.send(sprintf('SOURce%d:DATA:ARBitrary:DAC %s', this.ChannelNumber, newval)); 
-        end
+    end  % - Basic
+    methods
         function sync(this)
+            % Causes two independent arbitrary waveforms to synchronize to first point 
+            % of each waveform (two-channel instruments only).
             this.Parent.send(sprintf('SOURce%d:FUNCtion:ARBitrary:SYNChronize',this.ChannelNumber));
-        end % - Causes two independent arbitrary waveforms to synchronize to first point of each waveform (two-channel instruments only).
-        function upload(this, newval, varargin)
+        end 
+        function upload(this, WaveformData, varargin)
+            % Custom method to upload user-defined arbitrary waveform using binblockwrite.
             p = inputParser;
             addRequired(p, 'Child', @isobject);
-            addRequired(p, 'newval', @ismatrix);
+            addRequired(p, 'WaveformData', @ismatrix);
             addParameter(p, 'SamplingRate', this.ArbitraryFunctionSamplingRate, (@(x) isnumeric(x) || ischar(x)));
-            addParameter(p, 'Impedance', this.OutputLoad, (@(x) isnumeric(x) || ischar(x)));
+            addParameter(p, 'Impedance', inf, @(x) (isnumeric(x) && (x==50 || x == inf)) || any(strcmpi(x,{'MIN','MAX','INF'})) );
             addParameter(p, 'TriggerSource', 'EXT', @ischar);
-            addParameter(p, 'TriggerDelay', 'MIN', (@(x) isnumeric(x) || ischar(x)));
-            addParameter(p, 'BurstMode', 'TRIG', @ischar);
-            addParameter(p, 'BurstPhase', 'MIN', (@(x) isnumeric(x) || ischar(x)));
+            addParameter(p, 'TriggerDelay', 'MIN', @(x) isnumeric(x) || any(strcmpi(x,{'MIN','MAX'})) );
+            addParameter(p, 'BurstMode', 'TRIG', @(x) any(strcmpi(x,{'Trig','Bus','IMM'})));
+            addParameter(p, 'BurstPhase', 'MIN', @(x) isnumeric(x) || any(strcmpi(x,{'MIN','MAX'})) );
             addParameter(p, 'BurstCycles', this.BurstCycles, (@(x) isnumeric(x) || ischar(x)));
-            addParameter(p, 'BurstState', 'ON', @ischar);
-            parse(p, this, newval, varargin{:});
-            WaveformList = p.Results.newval;
-            if length(WaveformList)<8
+            addParameter(p, 'BurstState', 'ON', @(x) any(strcmpi(x,{'ON','OFF'})));
+            addParameter(p,'Filter','Norm',@(x) any(strcmpi(x,{'Norm','Step','OFF'})))
+            parse(p, this, WaveformData, varargin{:});
+            WaveformData = p.Results.WaveformData;
+            if length(WaveformData)<8
                 error('Need at least eight data points!')
             end
-            if length(WaveformList) > 1e6
+            if length(WaveformData) > 1e6
                 error('At most one million data points can be specified!')
             end
-            if (min(WaveformList) < -10 ) || (max(WaveformList) > 10)
+            if (min(WaveformData) < -10 ) || (max(WaveformData) > 10)
                 error('Permitted interval [-10,10] V exceeded!')
             end
             % transmit the data using SCPI commands
             this.clearVolatilememory;
             % set to LSB first
             this.FormatBorder = 'SWAP';
-            RescaledWaveformList = ((WaveformList-min(WaveformList))./(max(WaveformList)-min(WaveformList)) - 0.5) * 2; % data normalized to [-1,+1]
+            RescaledWaveformList = ((WaveformData-min(WaveformData))./(max(WaveformData)-min(WaveformData)) - 0.5) * 2; % data normalized to [-1,+1]
             % upload a binary block in Agilent format, binblockwrite is an in-built function in matlab
             binblockwrite(this.Parent.vi, RescaledWaveformList, 'float32', sprintf('SOUR%d:DATA:ARB ARB_seq, ', this.ChannelNumber));
             % wait for upload to be processed
             this.Parent.wait;
+            
+            
             this.ArbitraryFunction = 'ARB_seq';   %select ARB_seq as current arbitrary waveform
             this.FunctionType = 'ARB'; % set generator to arbitrary waveform
             this.ArbitraryFunctionAdvanceMethod = 'SRAT';
-            this.ArbitraryFunctionSamplingRate =  p.Results.SamplingRate*1e6;
+            this.ArbitraryFunctionSamplingRate =  p.Results.SamplingRate;
             this.OutputLoad =  p.Results.Impedance;
+            
             % set signal parameters
-            this.Amplitude = max(WaveformList)-min(WaveformList);
-            this.Offset = 0.5*(max(WaveformList)+min(WaveformList));
+            this.Amplitude = max(WaveformData)-min(WaveformData);
+            this.Offset = 0.5*(max(WaveformData)+min(WaveformData));
             % set triggering
             this.BurstMode = p.Results.BurstMode; 
             this.BurstCycles = p.Results.BurstCycles;
@@ -272,28 +300,40 @@ classdef K33522BChannel < handle
             this.TriggerDelay = p.Results.TriggerDelay;
             this.TriggerSource = p.Results.TriggerSource;
             this.BurstState = p.Results.BurstState;
+            
+            % - turn 
             this.OutputState = 'ON';
             this.Parent.getError();
-        end  % - upload the arbitrary waveform
+        end  
         function preview(this, newval)
+            % Preview the arbitrary waveform.
             clf;
-            t = (1:length(newval))/this.ArbitraryFunctionSamplingRate;
+            t = (1:length(newval))/this.ArbitraryFunctionSamplingRate*1E6;
             stairs(t, newval);
             title(sprintf('Preview of data for channel #%d', this.ChannelNumber));
             xlabel('Time [us]');
             ylabel('Voltage [V]');
-        end % - preview the arbitrary waveform
+        end 
     end  % - Apply Arbitrary waveforms
     methods
         function applyDCVoltage(this, varargin)
+            % Outputs a DC voltage.
             p = inputParser;
             addRequired(p, 'Child', @isobject);
+            addParameter(p, 'frequency', 'DEF', @isnumeric);
+            addParameter(p, 'amplitude', 'DEF', @isnumeric);
             addParameter(p, 'offset', 'DEF', @isnumeric);
             parse(p, this, varargin{:});
+            frequency = num2str(p.Results.frequency);
+            amplitude = num2str(p.Results.amplitude);
             offset = num2str(p.Results.offset);
-            this.Parent.send(sprintf('SOURce%d:APPLy:DC DEF,DEF,%s', this.ChannelNumber, offset));
-        end     % - apply DC offset Voltage
+            this.Parent.send(sprintf('SOURce%d:APPLy:DC %s,%s,%s', this.ChannelNumber, frequency, amplitude, offset));
+        end     
         function applyNoise(this, varargin)
+            % Outputs gaussian noise with the specified amplitude and DC offset.
+            % 
+            % If you specify a frequency, it has no effect on the noise output, but the value is remembered when you
+            % change to a different function.
             p = inputParser;
             addRequired(p, 'Child', @isobject);
             addParameter(p, 'frequency', 'DEF', @isnumeric);
@@ -304,8 +344,12 @@ classdef K33522BChannel < handle
             amplitude = num2str(p.Results.amplitude);
             offset = num2str(p.Results.offset);
             this.Parent.send(sprintf('SOURce%d:APPLy:NOISe %s,%s,%s', this.ChannelNumber, frequency, amplitude, offset));
-        end         % - apply Noise
+        end         
         function applyPRBS(this, varargin)
+            % Outputs a pseudo-random binary sequence with the specified bit 
+            % rate, amplitude and DC offset.
+            % The default waveform is a PN7 Maximum Length Shift Register generator.
+            
             p = inputParser;
             addRequired(p, 'Child', @isobject);
             addParameter(p, 'frequency', 'DEF', @isnumeric);
@@ -316,8 +360,17 @@ classdef K33522BChannel < handle
             amplitude = num2str(p.Results.amplitude);
             offset = num2str(p.Results.offset);
             this.Parent.send(sprintf('SOURce%d:APPLy:PRBS %s,%s,%s', this.ChannelNumber, frequency, amplitude, offset));
-        end          % - apply PRBS
+        end          
         function applyPulse(this, varargin)
+            % Outputs a pulse wave with the specified frequency, amplitude, 
+            % and DC offset. In addition, APPLy performs the following operations:
+            %
+            % - Preserves either the current pulse width setting (FUNCtion:PULSe:WIDTh) or the current 
+            %   pulse duty cycle setting (FUNCtion:PULSe:DCYCle).
+            % - Preserves the current transition time setting (FUNCtion:PULSe:TRANsition[:BOTH]).
+            % - May cause instrument to override the pulse width or edge time setting to comply 
+            %   with the specified frequency or period (FUNCtion:PULSe:PERiod).
+            
             p = inputParser;
             addRequired(p, 'Child', @isobject);
             addParameter(p, 'frequency', 'DEF', @isnumeric);
@@ -328,8 +381,16 @@ classdef K33522BChannel < handle
             amplitude = num2str(p.Results.amplitude);
             offset = num2str(p.Results.offset);
             this.Parent.send(sprintf('SOURce%d:APPLy:PULSe %s,%s,%s', this.ChannelNumber, frequency, amplitude, offset));
-        end         % - apply Pulse
+        end         
         function applyRamp(this, varargin)
+            % Outputs a ramp wave or triangle wave with the specified frequency, amplitude, and DC offset. 
+            % In addition, APPLy performs the following operations:
+            % 
+            % - APPLy:RAMP overrides the current symmetry setting (FUNCtion:RAMP:SYMMetry), 
+            %   and sets 100% symmetry for the ramp waveform.
+            % - APPLy:TRIangle is simply a special case of APPLy:RAMP. It 
+            %   is equivalent to a ramp waveform with 50% symmetry.
+            
             p = inputParser;
             addRequired(p, 'Child', @isobject);
             addParameter(p, 'frequency', 'DEF', @isnumeric);
@@ -340,32 +401,17 @@ classdef K33522BChannel < handle
             amplitude = num2str(p.Results.amplitude);
             offset = num2str(p.Results.offset);
             this.Parent.send(sprintf('SOURce%d:APPLy:RAMP %s,%s,%s', this.ChannelNumber, frequency, amplitude, offset));
-        end          % - apply Ramp
-        function applySineWave(this, varargin)
-            p = inputParser;
-            addRequired(p, 'Child', @isobject);
-            addParameter(p, 'frequency', 'DEF', @isnumeric);
-            addParameter(p, 'amplitude', 'DEF', @isnumeric);
-            addParameter(p, 'offset', 'DEF', @isnumeric);
-            parse(p, this, varargin{:});
-            frequency = num2str(p.Results.frequency);
-            amplitude = num2str(p.Results.amplitude);
-            offset = num2str(p.Results.offset);
-            this.Parent.send(sprintf('SOURce%d:APPLy:SINusoid %s,%s,%s', this.ChannelNumber, frequency, amplitude, offset));
-        end      % - apply Sine wave
-        function applySquareWave(this, varargin)
-            p = inputParser;
-            addRequired(p, 'Child', @isobject);
-            addParameter(p, 'frequency', 'DEF', @isnumeric);
-            addParameter(p, 'amplitude', 'DEF', @isnumeric);
-            addParameter(p, 'offset', 'DEF', @isnumeric);
-            parse(p, this, varargin{:});
-            frequency = num2str(p.Results.frequency);
-            amplitude = num2str(p.Results.amplitude);
-            offset = num2str(p.Results.offset);
-            this.Parent.send(sprintf('SOURce%d:APPLy:SQUare %s,%s,%s', this.ChannelNumber, frequency, amplitude, offset));
-        end    % - apply Square wave
+        end          
         function applyTriangleWave(this, varargin)
+            % Outputs a ramp wave or triangle wave with the specified frequency, 
+            % amplitude, and DC offset. In addition,
+            % 
+            % APPLy performs the following operations:
+            % - APPLy:RAMP overrides the current symmetry setting 
+            %   (FUNCtion:RAMP:SYMMetry), and sets 100% symmetry for the 
+            %   ramp waveform.
+            % - APPLy:TRIangle is simply a special case of APPLy:RAMP. It 
+            %   is equivalent to a ramp waveform with 50% symmetry.
             p = inputParser;
             addRequired(p, 'Child', @isobject);
             addParameter(p, 'frequency', 'DEF', @isnumeric);
@@ -376,42 +422,95 @@ classdef K33522BChannel < handle
             amplitude = num2str(p.Results.amplitude);
             offset = num2str(p.Results.offset);
             this.Parent.send(sprintf('SOURce%d:APPLy:TRIangle %s,%s,%s', this.ChannelNumber, frequency, amplitude, offset));
-        end  % - apply Triangle wave
+        end  
+        function applySineWave(this, varargin)
+            % Outputs a sine wave with the specified frequency, amplitude, 
+            % and DC offset.
+            
+            p = inputParser;
+            addRequired(p, 'Child', @isobject);
+            addParameter(p, 'frequency', 'DEF', @isnumeric);
+            addParameter(p, 'amplitude', 'DEF', @isnumeric);
+            addParameter(p, 'offset', 'DEF', @isnumeric);
+            parse(p, this, varargin{:});
+            frequency = num2str(p.Results.frequency);
+            amplitude = num2str(p.Results.amplitude);
+            offset = num2str(p.Results.offset);
+            this.Parent.send(sprintf('SOURce%d:APPLy:SINusoid %s,%s,%s', this.ChannelNumber, frequency, amplitude, offset));
+        end      
+        function applySquareWave(this, varargin)
+            % Outputs a square wave with the specified frequency, amplitude, 
+            % and DC offset. In addition, APPLy:SQUare overrides the current 
+            % duty cycle setting (FUNCtion:SQUare:DCYCle), and sets a 50% 
+            % duty cycle for the square wave.
+            
+            p = inputParser;
+            addRequired(p, 'Child', @isobject);
+            addParameter(p, 'frequency', 'DEF', @isnumeric);
+            addParameter(p, 'amplitude', 'DEF', @isnumeric);
+            addParameter(p, 'offset', 'DEF', @isnumeric);
+            parse(p, this, varargin{:});
+            frequency = num2str(p.Results.frequency);
+            amplitude = num2str(p.Results.amplitude);
+            offset = num2str(p.Results.offset);
+            this.Parent.send(sprintf('SOURce%d:APPLy:SQUare %s,%s,%s', this.ChannelNumber, frequency, amplitude, offset));
+        end    
     end  % - Apply built-in waveforms
     methods
+        function loadArbitraryData(this, newval,Format)
+            % Downloads integer values representing DAC codes (DATA:ARBitrary[1|2]:DAC) or floating point values
+            % (DATA:ARBitrary[1|2]) into waveform volatile memory as either a list of comma separated values or binary
+            % block of data. The DAC codes go from -32,768 to +32,767 on both the 33500 Series and 33600 Series.
+            %
+            % input             newval     char-arry containing the data
+            %      (optional)   Format     ('float')|'DAC' 
+            if nargin ==2
+                Format ='float';
+            end
+            assert(any(strcmpi(Format,{'float','DAC'})),...
+                'input error:  Format must be "float" or "DAC"')
+            switch Format
+                case 'float'
+                    this.Parent.send(sprintf('SOURce%d:DATA:ARBitrary %s', this.ChannelNumber, newval)); 
+                case 'DAC'
+                    this.Parent.send(sprintf('SOURce%d:DATA:ARBitrary:DAC %s', this.ChannelNumber, newval)); 
+            end
+        end
+        function clearVolatilememory(this)
+            % Clears waveform memory for the specified channel and reloads the default waveform.
+           this.Parent.send(sprintf('SOURce%d:DATA:VOLatile:CLEar', this.ChannelNumber)); 
+        end 
+        function createDataSequence(this, newval)
+            % Defines a sequence of waveforms already loaded into waveform memory via MMEMory:LOAD:DATA[1|2]
+            % or DATA:ARBitrary. The MMEMory:LOAD:DATA[1|2] command can also load a sequence file that auto-
+            % matically loads the associated arbitrary waveforms and includes the amplitude, offset, sample rate, and filter setup.
+            this.Parent.send(sprintf('SOURce%d:DATA:SEQuence %s', this.ChannelNumber, newval)); 
+        end
+    end  % - Data: Manage user-defined arbitrary waveforms
+    methods
         function loadList(this, filename)
+            % Loads a frequency list file (.lst).
             assert(ischar(filename), 'Input Error: Provide filename of list as a character string!');
             this.Parent.send(sprintf('MMEMory:LOAD:LIST%d "%s"', this.ChannelNumber, filename));
         end
         function storeList(this, filename)
+            % Stores a frequency list file (.lst).
             assert(ischar(filename), 'Input Error: Provide filename of list as a character string!');
             this.Parent.send(sprintf('MMEMory:STORe:LIST%d "%s"', this.ChannelNumber, filename));
         end
         function loadData(this, filename)
+            % Loads the specified arb segment(.arb/.barb) or arb sequence (.seq) file in INTERNAL or USB memory into
+            % volatile memory for the specified channel.
             assert(ischar(filename), 'Input Error: Provide filename of data as a character string!');
             this.Parent.send(sprintf('MMEMory:LOAD:DATA%d "%s"', this.ChannelNumber, filename));
         end
         function storeData(this, filename)
+            % Stores the specified arb segment(.arb/.barb) or arb sequence (.seq) data in the channel specified volatile
+            % memory (default, channel 1) in INTERNAL or USB memory.
             assert(ischar(filename), 'Input Error: Provide filename of data as a character string!');
             this.Parent.send(sprintf('MMEMory:STORe:DATA%d "%s"', this.ChannelNumber, filename));
         end
-    end  % - Load/Store channel-specific data/list from on-board memory
-    methods
-        % Changes state of triggering system for both channels (ALL) from "idle" to "wait-for-trigger" for the number
-        % of triggers specified by Trigger Count
-        function initiateImmediateTrigger(this)
-            this.Parent.send(sprintf('INITiate%d:IMMediate',this.ChannelNumber));
-        end
-        % Defines a sequence of waveforms already loaded into waveform memory via MMEMory:LOAD:DATA[1|2]
-        % or DATA:ARBitrary. The MMEMory:LOAD:DATA[1|2] command can also load a sequence file that auto-
-        % matically loads the associated arbitrary waveforms and includes the amplitude, offset, sample rate, and filter setup.
-        function createDataSequence(this, newval)
-            this.Parent.send(sprintf('SOURce%d:DATA:SEQuence %s', this.ChannelNumber, newval)); 
-        end
-        function clearVolatilememory(this)
-           this.Parent.send(sprintf('SOURce%d:DATA:VOLatile:CLEar', this.ChannelNumber)); 
-        end % - Clears waveform memory for the specified channel and reloads the default waveform.
-    end  % - Basic
+    end  % - MMemory:  Load/Store channel-specific data/list from on-board memory
     methods
         %% - General options
         function set.ContinuousTriggerState(this, newval)
@@ -590,7 +689,6 @@ classdef K33522BChannel < handle
         end
         function ret=get.TriggerSlope(this)
             ret=this.Parent.query(sprintf('TRIGger%d:SLOPe?', this.ChannelNumber));
-            ret=ret(1:end-1);
         end
         function set.TriggerSource(this,newval)
             Sources={'IMM','BUS','EXT','TIM'};
@@ -600,7 +698,6 @@ classdef K33522BChannel < handle
         end
         function ret=get.TriggerSource(this)
             ret=this.Parent.query(sprintf('TRIGger%d:SOURce?', this.ChannelNumber));
-            ret=ret(1:end-1);
         end
         function set.TriggerTimer(this,newval)
             assert(isnumeric(newval) && isscalar(newval) && newval>=0 || any(strcmpi(newval,{'MIN','MAX'})), ...
@@ -613,7 +710,6 @@ classdef K33522BChannel < handle
         end
         function ret=get.TriggerTimer(this)
             ret=this.Parent.queryDouble(sprintf('TRIGger%d:TIMer?', this.ChannelNumber));
-            ret=ret(1:end-1);
         end
         %% - Burst options
         function set.BurstGatePolarity(this,newval)
@@ -891,15 +987,10 @@ classdef K33522BChannel < handle
         function set.OutputLoad(this, newval)
             assert(isnumeric(newval) && isscalar(newval) && newval>=0|| any(strcmpi(newval,{'INF','MIN','MAX'})),...
                 'Output load must be positive scalar values or be specified as "INF", "MIN", or "MAX"');
-            if ~any(strcmpi(newval,{'INF','MIN','MAX'}))
-                if ~ismember(newval, [10000, 50])
-                    error('Impedance can only be 50 Ohm or 10000 Ohm!')
-                else
-                    this.Parent.send(sprintf('OUTPut%d:LOAD %s',this.ChannelNumber, num2str(newval)));
-                end
-                
-            else
+            if any(strcmpi(newval,{'INF','MIN','MAX'}))
                 this.Parent.send(sprintf('OUTPut%d:LOAD %s',this.ChannelNumber, newval));
+            else
+                this.Parent.send(sprintf('OUTPut%d:LOAD %s',this.ChannelNumber, num2str(newval)));
             end
             
         end % - set the output load
@@ -989,6 +1080,7 @@ classdef K33522BChannel < handle
             ret = this.Parent.query(sprintf('OUTPut%d:TRIGger:SOURce?',this.ChannelNumber));
         end % - get the output trigger source
         %% - Function options
+        % - Function Type
         function set.FunctionType(this, newval)
             assert(any(strcmpi(newval,{'SIN', 'SQU', 'TRI', 'RAMP', 'PULS', 'PRBS', 'NOIS', 'ARB', 'DC'})), ...
                 'Function type must be specified as either "SINusoid", "SQUare", "TRIangle", "RAMP", "PULSe", "PRBS", "NOISe", "ARB", "DC"');
@@ -997,6 +1089,8 @@ classdef K33522BChannel < handle
         function ret = get.FunctionType(this)
             ret = this.Parent.query(sprintf('SOURce%d:FUNCtion?', this.ChannelNumber));
         end
+        
+        % - Arbitrary Function
         function set.ArbitraryFunction(this, newval)
             this.Parent.send(sprintf('SOURce%d:FUNCtion:ARBitrary "%s"', this.ChannelNumber, newval));
         end
@@ -1033,7 +1127,7 @@ classdef K33522BChannel < handle
         end
         function set.ArbitraryFunctionPeriod(this, newval)
             assert(isnumeric(newval) && isscalar(newval) && newval>=0 || any(strcmpi(newval,{'MIN','MAX'})), ...
-                'Frequency must be positive scalar value or specified as either "MIN" or "MAX"');
+                'ArbitraryFunctionPeriod must be positive scalar value or specified as either "MIN" or "MAX"');
             if ~any(strcmpi(newval,{'MIN','MAX'}))
                 this.Parent.send(sprintf('SOURce%d:FUNCtion:ARBitrary:PERiod %s', this.ChannelNumber, num2str(newval)));
             else
@@ -1076,6 +1170,8 @@ classdef K33522BChannel < handle
         function ret = get.ArbitraryFunctionSamplingRate(this)
             ret = this.Parent.queryDouble(sprintf('SOURce%d:FUNCtion:ARBitrary:SRATe?',this.ChannelNumber));
         end   % - get the sample rate
+        
+        % - Noise Function
         function set.NoiseFunctionBandwidth(this, newval)
             assert(isnumeric(newval) && isscalar(newval) && newval>=0 || any(strcmpi(newval,{'MIN','MAX'})), ...
                 'Noise Function Bandwidth must be positive scalar value or specified as either "MIN" or "MAX"');
@@ -1088,6 +1184,8 @@ classdef K33522BChannel < handle
         function ret = get.NoiseFunctionBandwidth(this)
             ret = this.Parent.queryDouble(sprintf('SOURce%d:FUNCtion:NOISe:BANDwidth?', this.ChannelNumber));
         end
+        
+        % - PBRS Function
         function set.PBRSFunctionBitRate(this, newval)
             assert(isnumeric(newval) && isscalar(newval) && newval>=0 || any(strcmpi(newval,{'MIN','MAX'})), ...
                 'PBRS Function Bit Rate must be positive scalar value or specified as either "MIN" or "MAX"');
@@ -1118,6 +1216,8 @@ classdef K33522BChannel < handle
         function ret = get.PBRSFunctionTransition(this)
             ret = this.Parent.queryDouble(sprintf('SOURce%d:FUNCtion:PRBS:TRANsition:BOTH?', this.ChannelNumber));
         end
+        
+        % - Pulse Function
         function set.PulseFunctionDutyCycle(this, newval)
             assert(isnumeric(newval) && isscalar(newval) && newval>=0 || any(strcmpi(newval,{'MIN','MAX'})), ...
                 'Pulse function duty cycle must be positive scalar value or specified as either "MIN" or "MAX"');
@@ -1198,6 +1298,8 @@ classdef K33522BChannel < handle
         function ret = get.PulseFunctionWidth(this)
             ret = this.Parent.queryDouble(sprintf('SOURce%d:FUNCtion:PULSe:WIDTh?', this.ChannelNumber));
         end
+        
+        % - Ramp Function
         function set.RampFunctionSymmetry(this, newval)
             assert(isnumeric(newval) && isscalar(newval) && newval>=0 || any(strcmpi(newval,{'MIN','MAX'})), ...
                 'Ramp symmetry percentage be positive scalar value or specified as either "MIN" or "MAX"');
@@ -1210,6 +1312,8 @@ classdef K33522BChannel < handle
         function ret = get.RampFunctionSymmetry(this)
             ret = this.Parent.queryDouble(sprintf('SOURce%d:FUNCtion:RAMP:SYMMetry?', this.ChannelNumber));
         end
+        
+        % - Square Function
         function set.SquareFunctionDutyCycle(this, newval)
             assert(isnumeric(newval) && isscalar(newval) && newval>=0 || any(strcmpi(newval,{'MIN','MAX'})), ...
                 'Square Function Duty Cycle must be positive scalar value or specified as either "MIN" or "MAX"');
@@ -1242,6 +1346,10 @@ classdef K33522BChannel < handle
             ret = this.Parent.query(sprintf('SOURce%d:DATA:VOLatile:FREE?', this.ChannelNumber));
         end
         %% - Rate coupling options
+        % RATE Subsystem
+        % The RATE subsystem allows you to couple the outputs' sample rates
+        % on a two-channel instrument by specifying
+        % the following items:
         function set.RateCouplingMode(this, newval)
             assert(any(strcmpi(newval,{'OFF','RAT'})),...
                 'Rate coupling mode must be specified as "OFFset" or "RATio"');
@@ -1284,4 +1392,20 @@ classdef K33522BChannel < handle
             ret=this.Parent.queryDouble(sprintf('SOURce%d:RATE:COUPle:STATe?',this.ChannelNumber));
         end
     end  % - setters & getters
+    methods
+        function set.ArbitraryFunctionSamplingTime(this, newval)
+            assert(isnumeric(newval)&& newval>=0 || any(strcmpi(newval,{'MIN','MAX'})),...
+                'Sample rate must be positive numeric value or specified as either "MIN" or "MAX"');
+            if strcmpi(newval,'MAX')
+                this.ArbitraryFunctionSamplingRate = 'MIN';
+            elseif strcmpi(newval,'MIN')
+                this.ArbitraryFunctionSamplingRate = 'MAX';
+            else
+                this.ArbitraryFunctionSamplingRate = 1/newval;
+            end
+        end   % - set the sample rate
+        function ret = get.ArbitraryFunctionSamplingTime(this)
+            ret = 1/this.ArbitraryFunctionSamplingRate;
+        end   % - get the sample rate
+    end  % - setters/getters: Custom
 end
